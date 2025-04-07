@@ -2,11 +2,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { ChakraProvider } from '@chakra-ui/react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { CSSTransition, TransitionGroup } from 'react-transition-group'; // Import transition components
+import { CSSTransition, TransitionGroup } from 'react-transition-group'; 
 import Home from './components/Home';
 import About from './components/About';
+import TryIt from './components/TryIt'; // Import the TryIt component
 import theme from './theme';
-import './App.css'; // Add transition styles here
+import './App.css'; 
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -20,6 +21,7 @@ function AnimatedRoutes() {
                 <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/about" element={<About />} />
+                    <Route path="/try-it" element={<TryIt />} />
                 </Routes>
             </CSSTransition>
         </TransitionGroup>

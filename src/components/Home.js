@@ -39,14 +39,15 @@ export default function Home() {
                         </Text>
                     </Link>
                     {/* Try it Out as an actual button */}
-                    <Button
-                        variant="primary"
-                        fontSize="lg"
-                        size="md"
-                        onClick={() => alert('Try it Out! button clicked!')}
-                    >
-                        Try it Out!
-                    </Button>
+                    <Link to="/try-it" style={{ textDecoration: 'none' }}>
+                        <Button
+                            variant="primary"
+                            fontSize="lg"
+                            size="md"
+                        >
+                            Try it Out!
+                        </Button>
+                    </Link>
                 </Flex>
             </Flex>
 
