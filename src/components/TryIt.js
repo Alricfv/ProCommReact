@@ -17,12 +17,16 @@ export default function TryIt() {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: 'duration=10'
+                body: 'duration=5'
             });
             
             const data = await response.json();
             if (!response.ok) {
+                console.error('Recording error:', data.error);
                 throw new Error(data.error || 'Recording failed');
+            }
+            if (!data.message?.includes('successful')) {
+                throw new Error('Recording was not confirmed successful');
             }
             
             // Wait for 10 seconds

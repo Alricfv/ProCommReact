@@ -13,23 +13,25 @@ app = FastAPI()
 def record_audio(duration: int = Form(...)):
     try:
         fs = 44100  # Sample rate
-        myrecording = sd.rec(int(duration * fs), samplerate=fs, channels=2)
+        channels = 1  # Reduce to mono audio
+        myrecording = sd.rec(int(duration * fs), samplerate=fs, channels=channels, dtype='float32')
         sd.wait()  # Wait until recording is finished
 
-        # Use absolute path
-        filename = os.path.abspath('outp.wav')
+        filename = 'outp.wav'
         if os.path.exists(filename):
             os.remove(filename)  # Remove the existing file
 
-        write(filename, fs, myrecording)
-        
-        # Verify file was created
+        try:
+            write(filename, fs, myrecording)
+        except Exception as e:
+            return {"error": f"Failed to save audio: {str(e)}"}, 500
+
         if not os.path.exists(filename):
-            return {"error": "Failed to save recording"}, 500
+            return {"error": "Failed to verify recording file"}, 500
             
-        return {"message": f"Audio recorded for {duration} seconds and saved as {filename}"}
+        return {"message": "Recording successful"}
     except Exception as e:
-        return {"error": str(e)}, 500
+        return {"error": f"Recording failed: {str(e)}"}, 500
 
 # Endpoint to transcribe audio
 @app.post("/transcribe/")
