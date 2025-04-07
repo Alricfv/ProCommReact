@@ -12,13 +12,18 @@ export default function TryIt() {
     const handleRecord = async () => {
         setIsRecording(true);
         try {
-            await fetch('/record/', {
+            const response = await fetch('/record/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: 'duration=10'
             });
+            
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Recording failed');
+            }
             
             // Wait for 10 seconds
             await new Promise(resolve => setTimeout(resolve, 10000));

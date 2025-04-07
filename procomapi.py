@@ -11,16 +11,25 @@ app = FastAPI()
 # Endpoint to record audio
 @app.post("/record/")
 def record_audio(duration: int = Form(...)):
-    fs = 44100  # Sample rate
-    myrecording = sd.rec(int(duration * fs), samplerate=fs, channels=2)
-    sd.wait()  # Wait until recording is finished
+    try:
+        fs = 44100  # Sample rate
+        myrecording = sd.rec(int(duration * fs), samplerate=fs, channels=2)
+        sd.wait()  # Wait until recording is finished
 
-    filename = 'outp.wav'
-    if os.path.exists(filename):
-        os.remove(filename)  # Remove the existing file
+        # Use absolute path
+        filename = os.path.abspath('outp.wav')
+        if os.path.exists(filename):
+            os.remove(filename)  # Remove the existing file
 
-    write(filename, fs, myrecording)
-    return {"message": f"Audio recorded for {duration} seconds and saved as {filename}"}
+        write(filename, fs, myrecording)
+        
+        # Verify file was created
+        if not os.path.exists(filename):
+            return {"error": "Failed to save recording"}, 500
+            
+        return {"message": f"Audio recorded for {duration} seconds and saved as {filename}"}
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 # Endpoint to transcribe audio
 @app.post("/transcribe/")
