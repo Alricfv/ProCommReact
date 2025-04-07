@@ -62,18 +62,21 @@ export default function TryIt() {
 
     const handleRecord = async () => {
         if (isRecording) {
-            speechRecognitionRef.current?.stop();
-            setIsRecording(false);
+            try {
+                speechRecognitionRef.current?.stop();
+            } finally {
+                setIsRecording(false);
+            }
         } else {
             try {
-                setIsRecording(true);
                 setTranscription('');
                 speechRecognitionRef.current?.start();
+                setIsRecording(true);
                 
-                // Stop after 5 seconds
                 setTimeout(() => {
-                    if (isRecording) {
+                    try {
                         speechRecognitionRef.current?.stop();
+                    } finally {
                         setIsRecording(false);
                         toast({
                             title: "Recording completed",
@@ -84,6 +87,7 @@ export default function TryIt() {
                     }
                 }, 5000);
             } catch (error) {
+                setIsRecording(false);
                 toast({
                     title: "Recording failed",
                     description: "Please check microphone permissions",
@@ -91,7 +95,6 @@ export default function TryIt() {
                     duration: 3000,
                     isClosable: true,
                 });
-                setIsRecording(false);
             }
         }
     };
