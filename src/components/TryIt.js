@@ -1,99 +1,123 @@
 
-import React, { useState } from 'react';
-import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast } from '@chakra-ui/react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress } from '@chakra-ui/react';
 
 export default function TryIt() {
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [transcription, setTranscription] = useState('');
     const [analysis, setAnalysis] = useState(null);
+    const [audioData, setAudioData] = useState(null);
+    const mediaRecorderRef = useRef(null);
+    const speechRecognitionRef = useRef(null);
     const toast = useToast();
 
+    useEffect(() => {
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window) {
+            speechRecognitionRef.current = new webkitSpeechRecognition();
+            speechRecognitionRef.current.continuous = true;
+            speechRecognitionRef.current.interimResults = true;
+
+            speechRecognitionRef.current.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    setTranscription(finalTranscript);
+                }
+            };
+        }
+
+        return () => {
+            if (speechRecognitionRef.current) {
+                speechRecognitionRef.current.stop();
+            }
+        };
+    }, []);
+
+    const analyzeSpeech = (text) => {
+        const words = text.trim().split(/\s+/);
+        const sentences = text.split(/[.!?]+/).filter(Boolean);
+        
+        // Calculate metrics
+        const wordsPerMinute = Math.round((words.length / 5) * 60); // Assuming 5 seconds of speech
+        const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
+        const avgSentenceLength = words.length / sentences.length;
+        const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
+        const vocabularyRichness = (uniqueWords / words.length * 100).toFixed(1);
+
+        return {
+            speech_rate: `${wordsPerMinute} words per minute`,
+            avg_word_length: `${avgWordLength.toFixed(1)} characters`,
+            avg_sentence_length: `${avgSentenceLength.toFixed(1)} words`,
+            vocabulary_richness: `${vocabularyRichness}%`,
+            total_words: words.length,
+            unique_words: uniqueWords
+        };
+    };
+
     const handleRecord = async () => {
-        setIsRecording(true);
-        try {
-            const response = await fetch('/record/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'duration=5'
-            });
-            
-            const data = await response.json();
-            if (!response.ok) {
-                console.error('Recording error:', data.error);
-                throw new Error(data.error || 'Recording failed');
+        if (isRecording) {
+            speechRecognitionRef.current?.stop();
+            setIsRecording(false);
+        } else {
+            try {
+                setIsRecording(true);
+                setTranscription('');
+                speechRecognitionRef.current?.start();
+                
+                // Stop after 5 seconds
+                setTimeout(() => {
+                    if (isRecording) {
+                        speechRecognitionRef.current?.stop();
+                        setIsRecording(false);
+                        toast({
+                            title: "Recording completed",
+                            status: "success",
+                            duration: 3000,
+                            isClosable: true,
+                        });
+                    }
+                }, 5000);
+            } catch (error) {
+                toast({
+                    title: "Recording failed",
+                    description: "Please check microphone permissions",
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setIsRecording(false);
             }
-            if (!data.message?.includes('successful')) {
-                throw new Error('Recording was not confirmed successful');
-            }
-            
-            // Wait for 10 seconds
-            await new Promise(resolve => setTimeout(resolve, 10000));
-            
+        }
+    };
+
+    const handleAnalyze = () => {
+        if (!transcription) {
             toast({
-                title: "Recording completed",
+                title: "No speech to analyze",
+                description: "Please record some speech first",
+                status: "warning",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        setIsAnalyzing(true);
+        try {
+            const results = analyzeSpeech(transcription);
+            setAnalysis(results);
+            toast({
+                title: "Analysis complete",
                 status: "success",
                 duration: 3000,
                 isClosable: true,
             });
-        } catch (error) {
-            toast({
-                title: "Recording failed",
-                description: "Please try again",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-        setIsRecording(false);
-    };
-
-    const handleTranscribe = async () => {
-        setIsAnalyzing(true);
-        try {
-            const response = await fetch('/transcribe/', { method: 'POST' });
-            const data = await response.json();
-            if (data.transcription) {
-                setTranscription(data.transcription);
-                toast({
-                    title: "Transcription complete",
-                    status: "success",
-                    duration: 3000,
-                    isClosable: true,
-                });
-            } else {
-                throw new Error('No transcription received');
-            }
-        } catch (error) {
-            toast({
-                title: "Transcription failed",
-                description: "Please try recording again",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-        setIsAnalyzing(false);
-    };
-
-    const handleAnalyze = async () => {
-        setIsAnalyzing(true);
-        try {
-            const response = await fetch('/analyze/', { method: 'POST' });
-            const data = await response.json();
-            if (data.analysis_results) {
-                setAnalysis(data.analysis_results);
-                toast({
-                    title: "Analysis complete",
-                    status: "success",
-                    duration: 3000,
-                    isClosable: true,
-                });
-            } else {
-                throw new Error('No analysis results received');
-            }
         } catch (error) {
             toast({
                 title: "Analysis failed",
@@ -116,10 +140,10 @@ export default function TryIt() {
             <Container maxW="container.xl" py={10}>
                 <VStack spacing={8} align="center">
                     <Heading size="2xl" bgGradient="linear(to-r, #00a6ff, #0074e4)" bgClip="text">
-                        Try PROCOMM
+                        Speech Analyzer
                     </Heading>
                     <Text fontSize="xl" textAlign="center" color="#e0e0e0">
-                        Record your speech, get instant transcription and detailed analysis
+                        Record your speech for instant analysis
                     </Text>
                     
                     <Button
@@ -136,12 +160,18 @@ export default function TryIt() {
                             transform: 'translateY(-2px)',
                             boxShadow: '0 6px 8px rgba(0, 0, 0, 0.2)',
                         }}
-                        _active={{
-                            transform: 'translateY(1px)',
-                        }}
                     >
-                        {isRecording ? "Recording..." : "Start Recording (10s)"}
+                        {isRecording ? "Stop Recording" : "Start Recording (5s)"}
                     </Button>
+
+                    {isRecording && (
+                        <Progress
+                            size="sm"
+                            width="200px"
+                            isIndeterminate
+                            colorScheme="blue"
+                        />
+                    )}
 
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} width="100%">
                         <Box 
@@ -155,16 +185,6 @@ export default function TryIt() {
                         >
                             <VStack spacing={6}>
                                 <Heading size="md" color="#00a6ff">Transcription</Heading>
-                                <Button 
-                                    onClick={handleTranscribe} 
-                                    isDisabled={isRecording}
-                                    isLoading={isAnalyzing}
-                                    colorScheme="blue"
-                                    size="lg"
-                                    w="full"
-                                >
-                                    Get Transcription
-                                </Button>
                                 <Box 
                                     p={6} 
                                     bg="rgba(0,0,0,0.3)" 
@@ -191,7 +211,7 @@ export default function TryIt() {
                                 <Heading size="md" color="#00a6ff">Speech Analysis</Heading>
                                 <Button 
                                     onClick={handleAnalyze} 
-                                    isDisabled={isRecording}
+                                    isDisabled={!transcription}
                                     isLoading={isAnalyzing}
                                     colorScheme="blue"
                                     size="lg"
