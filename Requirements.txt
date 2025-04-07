@@ -1,0 +1,8 @@
+fastapi
+pydantic
+os
+sounddevice
+scipy.io.wavfile
+whisper
+re
+scipy
