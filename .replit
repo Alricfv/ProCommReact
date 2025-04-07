@@ -1,0 +1,22 @@
+run = "npm run start"
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "npm run start"]
+
+[workflows]
+
+[[workflows.workflow]]
+name = "install"
+mode = "sequential"
+author = 34989412
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
