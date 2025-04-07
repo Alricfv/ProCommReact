@@ -40,12 +40,9 @@ export default function Home() {
                     </Link>
                     {/* Try it Out as an actual button */}
                     <Button
+                        variant="primary"
                         fontSize="lg"
                         size="md"
-                        fontWeight="bold"
-                        backgroundColor="#FFFFFF" // White background
-                        color="#000000" // Black text
-                        _hover={{ backgroundColor: '#e5e5e5' }} // Light gray hover effect
                         onClick={() => alert('Try it Out! button clicked!')}
                     >
                         Try it Out!

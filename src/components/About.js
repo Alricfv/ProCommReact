@@ -40,13 +40,8 @@ function About() {
                     </Link>
                     {/* Try it Out as an actual button */}
                     <Button
-                        fontSize="lg"
-                        colorScheme="teal"
+                        variant="secondary"
                         size="md"
-                        fontWeight="bold"
-                        backgroundColor="#1d1d1f"
-                        color="#f5f5f7"
-                        _hover={{ backgroundColor: '#333333' }}
                         onClick={() => alert('Try it Out! button clicked!')}
                     >
                         Try it Out!
