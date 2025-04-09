@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Tooltip, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
 import { FaMicrophone, FaHistory, FaInfoCircle, FaChartLine } from 'react-icons/fa';
@@ -52,7 +51,7 @@ export default function TryIt() {
     const analyzeSpeech = (text) => {
         const words = text.trim().split(/\s+/);
         const sentences = text.split(/[.!?]+/).filter(Boolean);
-        
+
         const wordsPerMinute = Math.round((words.length / 5) * 60);
         const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
         const avgSentenceLength = words.length / sentences.length;
@@ -83,7 +82,7 @@ export default function TryIt() {
                 setTranscription('');
                 speechRecognitionRef.current?.start();
                 setIsRecording(true);
-                
+
                 setTimeout(() => {
                     try {
                         speechRecognitionRef.current?.stop();
@@ -171,7 +170,7 @@ export default function TryIt() {
                             and get instant feedback on your speech patterns.
                         </Text>
                     </Box>
-                    
+
                     <Box 
                         p={6} 
                         borderRadius="xl" 
@@ -187,8 +186,6 @@ export default function TryIt() {
                                     size="lg"
                                     colorScheme={isRecording ? "red" : "blue"}
                                     onClick={handleRecord}
-                                    isLoading={isRecording}
-                                    loadingText="Recording..."
                                     leftIcon={<FaMicrophone />}
                                     w="200px"
                                     h="60px"
@@ -199,9 +196,9 @@ export default function TryIt() {
                                         boxShadow: '0 6px 8px rgba(0, 0, 0, 0.2)',
                                     }}
                                 >
-                                    {isRecording ? `Stop (${timer}s)` : "Start Recording"}
+                                    {isRecording ? `Stop Recording (${timer}s)` : "Start Recording"}
                                 </Button>
-                                
+
                                 <Button
                                     onClick={handleAnalyze}
                                     isDisabled={!transcription}
