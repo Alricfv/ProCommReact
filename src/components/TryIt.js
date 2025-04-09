@@ -13,10 +13,13 @@ export default function TryIt() {
     const toast = useToast();
 
     useEffect(() => {
-        if ('webkitSpeechRecognition' in window) {
-            speechRecognitionRef.current = new webkitSpeechRecognition();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            speechRecognitionRef.current = new SpeechRecognition();
             speechRecognitionRef.current.continuous = true;
             speechRecognitionRef.current.interimResults = true;
+            speechRecognitionRef.current.lang = 'en-US';
+            speechRecognitionRef.current.maxAlternatives = 3;
 
             speechRecognitionRef.current.onresult = (event) => {
                 let finalTranscript = '';
