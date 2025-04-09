@@ -9,7 +9,7 @@ export default function TryIt() {
     const [transcription, setTranscription] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [recordingHistory, setRecordingHistory] = useState([]);
-    const [timer, setTimer] = useState(5);
+    const [timer, setTimer] = useState(180); // 3 minutes in seconds
     const speechRecognitionRef = useRef(null);
     const toast = useToast();
 
@@ -89,15 +89,16 @@ export default function TryIt() {
                         speechRecognitionRef.current?.stop();
                     } finally {
                         setIsRecording(false);
-                        setTimer(5);
+                        setTimer(180);
                         toast({
                             title: "Recording completed",
+                            description: "Maximum time (3 minutes) reached",
                             status: "success",
                             duration: 3000,
                             isClosable: true,
                         });
                     }
-                }, 5000);
+                }, 180000); // 3 minutes in milliseconds
             } catch (error) {
                 setIsRecording(false);
                 setTimer(5);
