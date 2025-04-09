@@ -1,37 +1,61 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Tooltip, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
-import { FaMicrophone, FaHistory, FaInfoCircle, FaChartLine } from 'react-icons/fa';
+import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
+import { FaMicrophone, FaChartLine } from 'react-icons/fa';
 
 export default function TryIt() {
     const [isRecording, setIsRecording] = useState(false);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [transcription, setTranscription] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [recordingHistory, setRecordingHistory] = useState([]);
-    const [timer, setTimer] = useState(180); // 3 minutes in seconds
-    const speechRecognitionRef = useRef(null);
+    const recognitionRef = useRef(null);
     const toast = useToast();
 
-    const mediaRecorderRef = useRef(null);
-    const chunksRef = useRef([]);
-
     useEffect(() => {
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new window.webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    finalTranscript += event.results[i][0].transcript;
+                }
+                setTranscription(finalTranscript);
+            };
+
+            recognition.onerror = (event) => {
+                toast({
+                    title: "Recognition Error",
+                    description: event.error,
+                    status: "error",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setIsRecording(false);
+            };
+
+            recognition.onend = () => {
+                setIsRecording(false);
+            };
+
+            recognitionRef.current = recognition;
+        } else {
+            toast({
+                title: "Browser not supported",
+                description: "Your browser doesn't support speech recognition",
+                status: "error",
+                duration: null,
+                isClosable: true,
+            });
+        }
+
         return () => {
-            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-                mediaRecorderRef.current.stop();
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
             }
         };
-    }, []);
-
-    useEffect(() => {
-        let interval;
-        if (isRecording && timer > 0) {
-            interval = setInterval(() => {
-                setTimer(prev => prev - 1);
-            }, 1000);
-        }
-        return () => clearInterval(interval);
-    }, [isRecording, timer]);
+    }, [toast]);
 
     const analyzeSpeech = (text) => {
         const words = text.trim().split(/\s+/);
@@ -50,101 +74,20 @@ export default function TryIt() {
             vocabulary_richness: `${vocabularyRichness}%`,
             total_words: words.length,
             unique_words: uniqueWords,
-            confidence_score: Math.round(Math.random() * 20 + 80) // Simulated confidence score
+            confidence_score: Math.round(Math.random() * 20 + 80)
         };
     };
 
-    const handleRecord = async () => {
+    const handleRecord = () => {
         if (isRecording) {
-            try {
-                mediaRecorderRef.current?.stop();
-            } finally {
-                setIsRecording(false);
-                setTimer(5);
-            }
+            recognitionRef.current?.stop();
+            setIsRecording(false);
         } else {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                chunksRef.current = [];
-                
-                mediaRecorderRef.current = new MediaRecorder(stream);
-                mediaRecorderRef.current.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        chunksRef.current.push(e.data);
-                    }
-                };
-
-                mediaRecorderRef.current.onstop = async () => {
-                    const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob, 'recording.wav');
-
-                    try {
-                        setIsAnalyzing(true);
-                        const response = await fetch('/api/transcribe', {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'Accept': 'application/json'
-                            }
-                        }).catch(error => {
-                            throw new Error('Failed to connect to the server. Please ensure the API server is running.');
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`Server error: ${response.status}`);
-                        }
-                        
-                        const data = await response.json();
-                        if (!data.transcription) {
-                            throw new Error('No transcription received');
-                        }
-                        
-                        setTranscription(data.transcription);
-                        toast({
-                            title: "Transcription complete",
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                        });
-                    } catch (error) {
-                        console.error('Transcription error:', error);
-                        toast({
-                            title: "Transcription failed",
-                            description: error.message || "Please check server connection",
-                            status: "error",
-                            duration: 3000,
-                            isClosable: true,
-                        });
-                    } finally {
-                        setIsAnalyzing(false);
-                    }
-                    
-                    stream.getTracks().forEach(track => track.stop());
-                };
-
-                mediaRecorderRef.current.start();
+                recognitionRef.current?.start();
                 setIsRecording(true);
                 setTranscription('');
-
-                // Auto-stop after 3 minutes
-                setTimeout(() => {
-                    if (mediaRecorderRef.current?.state === 'recording') {
-                        mediaRecorderRef.current.stop();
-                        setIsRecording(false);
-                        setTimer(180);
-                        toast({
-                            title: "Recording completed",
-                            description: "Maximum time (3 minutes) reached",
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                        });
-                    }
-                }, 180000);
             } catch (error) {
-                setIsRecording(false);
-                setTimer(5);
                 toast({
                     title: "Recording failed",
                     description: "Please check microphone permissions",
@@ -168,27 +111,9 @@ export default function TryIt() {
             return;
         }
 
-        setIsAnalyzing(true);
-        try {
-            const results = analyzeSpeech(transcription);
-            setAnalysis(results);
-            setRecordingHistory([...recordingHistory, { transcription, analysis: results, timestamp: new Date() }]);
-            toast({
-                title: "Analysis complete",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-            });
-        } catch (error) {
-            toast({
-                title: "Analysis failed",
-                description: "Please try again",
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-        }
-        setIsAnalyzing(false);
+        const results = analyzeSpeech(transcription);
+        setAnalysis(results);
+        setRecordingHistory([...recordingHistory, { transcription, analysis: results, timestamp: new Date() }]);
     };
 
     return (
@@ -234,19 +159,13 @@ export default function TryIt() {
                                     w="200px"
                                     h="60px"
                                     fontSize="lg"
-                                    boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
-                                    _hover={{
-                                        transform: 'translateY(-2px)',
-                                        boxShadow: '0 6px 8px rgba(0, 0, 0, 0.2)',
-                                    }}
                                 >
-                                    {isRecording ? `Stop Recording (${timer}s)` : "Start Recording"}
+                                    {isRecording ? "Stop Recording" : "Start Recording"}
                                 </Button>
 
                                 <Button
                                     onClick={handleAnalyze}
                                     isDisabled={!transcription}
-                                    isLoading={isAnalyzing}
                                     colorScheme="green"
                                     size="lg"
                                     leftIcon={<FaChartLine />}
@@ -294,10 +213,7 @@ export default function TryIt() {
                             >
                                 <StatLabel>Speech Rate</StatLabel>
                                 <StatNumber color="#00a6ff">{analysis.speech_rate}</StatNumber>
-                                <StatHelpText>
-                                    <Icon as={FaInfoCircle} mr={2} />
-                                    Ideal: 120-150 WPM
-                                </StatHelpText>
+                                <StatHelpText>Ideal: 120-150 WPM</StatHelpText>
                             </Stat>
 
                             <Stat
@@ -308,10 +224,7 @@ export default function TryIt() {
                             >
                                 <StatLabel>Vocabulary Richness</StatLabel>
                                 <StatNumber color="#00a6ff">{analysis.vocabulary_richness}</StatNumber>
-                                <StatHelpText>
-                                    <Icon as={FaInfoCircle} mr={2} />
-                                    Higher is better
-                                </StatHelpText>
+                                <StatHelpText>Higher is better</StatHelpText>
                             </Stat>
 
                             <Stat
@@ -322,10 +235,7 @@ export default function TryIt() {
                             >
                                 <StatLabel>Confidence Score</StatLabel>
                                 <StatNumber color="#00a6ff">{analysis.confidence_score}%</StatNumber>
-                                <StatHelpText>
-                                    <Icon as={FaInfoCircle} mr={2} />
-                                    Speech clarity
-                                </StatHelpText>
+                                <StatHelpText>Speech clarity</StatHelpText>
                             </Stat>
                         </SimpleGrid>
                     )}
