@@ -25,7 +25,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uvicorn procomapi:app --host 0.0.0.0 --port 5000 --reload"
+args = "python3 procomapi.py"
 
 [[workflows.workflow]]
 name = "Start All"
@@ -74,6 +74,27 @@ args = "unzip vosk-model-small-en-us-0.15.zip -d model"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "rm vosk-model-small-en-us-0.15.zip"
+
+[[workflows.workflow]]
+name = "Install Speech Dependencies"
+author = 34989412
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "unzip vosk-model-small-en-us-0.15.zip -d model"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "rm vosk-model-small-en-us-0.15.zip"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm install vosk node-microphone"
 
 [[ports]]
 localPort = 3000

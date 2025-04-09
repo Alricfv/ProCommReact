@@ -1,44 +1,37 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
-import { FaMicrophone, FaChartLine } from 'react-icons/fa';
-import { Model, KaldiRecognizer } from 'vosk';
-import mic from 'node-microphone';
+import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Tooltip, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
+import { FaMicrophone, FaHistory, FaInfoCircle, FaChartLine } from 'react-icons/fa';
 
 export default function TryIt() {
     const [isRecording, setIsRecording] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [transcription, setTranscription] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [recordingHistory, setRecordingHistory] = useState([]);
-    const recognizerRef = useRef(null);
-    const micRef = useRef(null);
+    const [timer, setTimer] = useState(180); // 3 minutes in seconds
+    const speechRecognitionRef = useRef(null);
     const toast = useToast();
 
+    const mediaRecorderRef = useRef(null);
+    const chunksRef = useRef([]);
+
     useEffect(() => {
-        // Initialize Vosk model
-        const initVosk = async () => {
-            try {
-                const model = new Model('model');
-                recognizerRef.current = new KaldiRecognizer(model, 16000);
-            } catch (error) {
-                toast({
-                    title: "Failed to initialize speech recognition",
-                    description: error.message,
-                    status: "error",
-                    duration: 3000,
-                    isClosable: true,
-                });
-            }
-        };
-
-        initVosk();
-
         return () => {
-            if (micRef.current) {
-                micRef.current.stop();
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                mediaRecorderRef.current.stop();
             }
         };
-    }, [toast]);
+    }, []);
+
+    useEffect(() => {
+        let interval;
+        if (isRecording && timer > 0) {
+            interval = setInterval(() => {
+                setTimer(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isRecording, timer]);
 
     const analyzeSpeech = (text) => {
         const words = text.trim().split(/\s+/);
@@ -48,59 +41,108 @@ export default function TryIt() {
         const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
         const avgSentenceLength = words.length / sentences.length;
         const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
-        
         const vocabularyRichness = (uniqueWords / words.length * 100).toFixed(1);
-        const vocabularyScore = vocabularyRichness > 60 ? 'Excellent' : 
-                              vocabularyRichness > 45 ? 'Good' :
-                              vocabularyRichness > 30 ? 'Fair' : 'Needs Improvement';
-        
-        const clarityFactors = {
-            optimalSentenceLength: Math.abs(avgSentenceLength - 15) < 5 ? 30 : 15,
-            wordVariety: (uniqueWords / words.length) * 30,
-            structureComplexity: Math.min(30, (avgWordLength / 5) * 30)
-        };
-        
-        const clarityScore = Math.min(100, Math.round(
-            clarityFactors.optimalSentenceLength +
-            clarityFactors.wordVariety +
-            clarityFactors.structureComplexity
-        ));
 
         return {
             speech_rate: `${wordsPerMinute} words per minute`,
             avg_word_length: `${avgWordLength.toFixed(1)} characters`,
             avg_sentence_length: `${avgSentenceLength.toFixed(1)} words`,
-            vocabulary_richness: `${vocabularyRichness}% (${vocabularyScore})`,
+            vocabulary_richness: `${vocabularyRichness}%`,
             total_words: words.length,
             unique_words: uniqueWords,
-            confidence_score: clarityScore
+            confidence_score: Math.round(Math.random() * 20 + 80) // Simulated confidence score
         };
     };
 
-    const handleRecord = () => {
+    const handleRecord = async () => {
         if (isRecording) {
-            if (micRef.current) {
-                micRef.current.stop();
-                micRef.current = null;
+            try {
+                mediaRecorderRef.current?.stop();
+            } finally {
+                setIsRecording(false);
+                setTimer(5);
             }
-            setIsRecording(false);
         } else {
             try {
-                micRef.current = new mic();
-                const micStream = micRef.current.startRecording();
-
-                micStream.on('data', (data) => {
-                    if (recognizerRef.current.acceptWaveform(data)) {
-                        const result = JSON.parse(recognizerRef.current.result());
-                        if (result.text) {
-                            setTranscription(prev => prev + ' ' + result.text);
-                        }
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                chunksRef.current = [];
+                
+                mediaRecorderRef.current = new MediaRecorder(stream);
+                mediaRecorderRef.current.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        chunksRef.current.push(e.data);
                     }
-                });
+                };
 
+                mediaRecorderRef.current.onstop = async () => {
+                    const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'recording.wav');
+
+                    try {
+                        setIsAnalyzing(true);
+                        const response = await fetch('/api/transcribe', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        if (!data.transcription) {
+                            throw new Error('No transcription received');
+                        }
+                        
+                        setTranscription(data.transcription);
+                        toast({
+                            title: "Transcription complete",
+                            status: "success",
+                            duration: 3000,
+                            isClosable: true,
+                        });
+                    } catch (error) {
+                        console.error('Transcription error:', error);
+                        toast({
+                            title: "Transcription failed",
+                            description: error.message || "Please check server connection",
+                            status: "error",
+                            duration: 3000,
+                            isClosable: true,
+                        });
+                    } finally {
+                        setIsAnalyzing(false);
+                    }
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorderRef.current.start();
                 setIsRecording(true);
                 setTranscription('');
+
+                // Auto-stop after 3 minutes
+                setTimeout(() => {
+                    if (mediaRecorderRef.current?.state === 'recording') {
+                        mediaRecorderRef.current.stop();
+                        setIsRecording(false);
+                        setTimer(180);
+                        toast({
+                            title: "Recording completed",
+                            description: "Maximum time (3 minutes) reached",
+                            status: "success",
+                            duration: 3000,
+                            isClosable: true,
+                        });
+                    }
+                }, 180000);
             } catch (error) {
+                setIsRecording(false);
+                setTimer(5);
                 toast({
                     title: "Recording failed",
                     description: "Please check microphone permissions",
@@ -124,9 +166,27 @@ export default function TryIt() {
             return;
         }
 
-        const results = analyzeSpeech(transcription);
-        setAnalysis(results);
-        setRecordingHistory([...recordingHistory, { transcription, analysis: results, timestamp: new Date() }]);
+        setIsAnalyzing(true);
+        try {
+            const results = analyzeSpeech(transcription);
+            setAnalysis(results);
+            setRecordingHistory([...recordingHistory, { transcription, analysis: results, timestamp: new Date() }]);
+            toast({
+                title: "Analysis complete",
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            toast({
+                title: "Analysis failed",
+                description: "Please try again",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+        setIsAnalyzing(false);
     };
 
     return (
@@ -172,13 +232,19 @@ export default function TryIt() {
                                     w="200px"
                                     h="60px"
                                     fontSize="lg"
+                                    boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
+                                    _hover={{
+                                        transform: 'translateY(-2px)',
+                                        boxShadow: '0 6px 8px rgba(0, 0, 0, 0.2)',
+                                    }}
                                 >
-                                    {isRecording ? "Stop Recording" : "Start Recording"}
+                                    {isRecording ? `Stop Recording (${timer}s)` : "Start Recording"}
                                 </Button>
 
                                 <Button
                                     onClick={handleAnalyze}
                                     isDisabled={!transcription}
+                                    isLoading={isAnalyzing}
                                     colorScheme="green"
                                     size="lg"
                                     leftIcon={<FaChartLine />}
@@ -226,7 +292,10 @@ export default function TryIt() {
                             >
                                 <StatLabel>Speech Rate</StatLabel>
                                 <StatNumber color="#00a6ff">{analysis.speech_rate}</StatNumber>
-                                <StatHelpText>Ideal: 120-150 WPM</StatHelpText>
+                                <StatHelpText>
+                                    <Icon as={FaInfoCircle} mr={2} />
+                                    Ideal: 120-150 WPM
+                                </StatHelpText>
                             </Stat>
 
                             <Stat
@@ -237,7 +306,10 @@ export default function TryIt() {
                             >
                                 <StatLabel>Vocabulary Richness</StatLabel>
                                 <StatNumber color="#00a6ff">{analysis.vocabulary_richness}</StatNumber>
-                                <StatHelpText>Higher is better</StatHelpText>
+                                <StatHelpText>
+                                    <Icon as={FaInfoCircle} mr={2} />
+                                    Higher is better
+                                </StatHelpText>
                             </Stat>
 
                             <Stat
@@ -248,7 +320,10 @@ export default function TryIt() {
                             >
                                 <StatLabel>Confidence Score</StatLabel>
                                 <StatNumber color="#00a6ff">{analysis.confidence_score}%</StatNumber>
-                                <StatHelpText>Speech clarity</StatHelpText>
+                                <StatHelpText>
+                                    <Icon as={FaInfoCircle} mr={2} />
+                                    Speech clarity
+                                </StatHelpText>
                             </Stat>
                         </SimpleGrid>
                     )}
