@@ -16,5 +16,8 @@
     pkgs.SDL2
     pkgs.libxcrypt
     pkgs.portaudio
+    pkgs.alsa-lib
+    pkgs.alsa-utils
+    pkgs.pulseaudio
   ];
 }
