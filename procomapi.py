@@ -5,7 +5,6 @@ import tempfile
 import os
 import sounddevice as sd
 from scipy.io.wavfile import write
-import whisper
 import re
 
 app = FastAPI()
@@ -18,9 +17,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Initialize Whisper model (This is kept for the /analyze endpoint)
-model = whisper.load_model("tiny")
 
 # Endpoint to record audio
 @app.post("/record/")
