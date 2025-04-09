@@ -1,16 +1,31 @@
-from fastapi import FastAPI, UploadFile, Form
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 from pydantic import BaseModel
 import os
 import sounddevice as sd
 from scipy.io.wavfile import write
 import whisper
 import re
+import tempfile
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize Whisper model
+model = whisper.load_model("tiny")
+
 # Endpoint to record audio
 @app.post("/record/")
-def record_audio(duration: int = Form(...)):
+def record_audio(duration: int = 0):
     try:
         fs = 44100  # Sample rate
         channels = 1  # Reduce to mono audio
@@ -33,17 +48,23 @@ def record_audio(duration: int = Form(...)):
     except Exception as e:
         return {"error": f"Recording failed: {str(e)}"}, 500
 
-# Endpoint to transcribe audio
-@app.post("/transcribe/")
-def transcribe_audio():
-    model = whisper.load_model("tiny")
-    result = model.transcribe("outp.wav")
-    transcription = result["text"]
+# Endpoint to transcribe audio using Whisper
+@app.post("/api/transcribe")
+async def transcribe_audio(audio: UploadFile = File(...)):
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
+        content = await audio.read()
+        temp_audio.write(content)
+        temp_audio.flush()
 
-    with open('transcrib.txt', 'w') as f:
-        f.write(transcription)
+        try:
+            result = model.transcribe(temp_audio.name)
+            transcription = result["text"]
+            os.unlink(temp_audio.name)
+            return {"transcription": transcription}
+        except Exception as e:
+            os.unlink(temp_audio.name)
+            raise HTTPException(status_code=500, detail=str(e))
 
-    return {"transcription": transcription}
 
 # Endpoint to perform speech analysis
 @app.post("/analyze/")

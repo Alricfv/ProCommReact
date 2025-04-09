@@ -12,31 +12,13 @@ export default function TryIt() {
     const speechRecognitionRef = useRef(null);
     const toast = useToast();
 
+    const mediaRecorderRef = useRef(null);
+    const chunksRef = useRef([]);
+
     useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            speechRecognitionRef.current = new SpeechRecognition();
-            speechRecognitionRef.current.continuous = true;
-            speechRecognitionRef.current.interimResults = true;
-            speechRecognitionRef.current.lang = 'en-US';
-            speechRecognitionRef.current.maxAlternatives = 3;
-
-            speechRecognitionRef.current.onresult = (event) => {
-                let finalTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    }
-                }
-                if (finalTranscript) {
-                    setTranscription(finalTranscript);
-                }
-            };
-        }
-
         return () => {
-            if (speechRecognitionRef.current) {
-                speechRecognitionRef.current.stop();
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                mediaRecorderRef.current.stop();
             }
         };
     }, []);
@@ -75,21 +57,67 @@ export default function TryIt() {
     const handleRecord = async () => {
         if (isRecording) {
             try {
-                speechRecognitionRef.current?.stop();
+                mediaRecorderRef.current?.stop();
             } finally {
                 setIsRecording(false);
                 setTimer(5);
             }
         } else {
             try {
-                setTranscription('');
-                speechRecognitionRef.current?.start();
-                setIsRecording(true);
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                chunksRef.current = [];
+                
+                mediaRecorderRef.current = new MediaRecorder(stream);
+                mediaRecorderRef.current.ondataavailable = (e) => {
+                    if (e.data.size > 0) {
+                        chunksRef.current.push(e.data);
+                    }
+                };
 
-                setTimeout(() => {
+                mediaRecorderRef.current.onstop = async () => {
+                    const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob, 'recording.wav');
+
                     try {
-                        speechRecognitionRef.current?.stop();
+                        setIsAnalyzing(true);
+                        const response = await fetch('/api/transcribe', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        setTranscription(data.transcription);
+                        
+                        toast({
+                            title: "Transcription complete",
+                            status: "success",
+                            duration: 3000,
+                            isClosable: true,
+                        });
+                    } catch (error) {
+                        toast({
+                            title: "Transcription failed",
+                            description: "Please try again",
+                            status: "error",
+                            duration: 3000,
+                            isClosable: true,
+                        });
                     } finally {
+                        setIsAnalyzing(false);
+                    }
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorderRef.current.start();
+                setIsRecording(true);
+                setTranscription('');
+
+                // Auto-stop after 3 minutes
+                setTimeout(() => {
+                    if (mediaRecorderRef.current?.state === 'recording') {
+                        mediaRecorderRef.current.stop();
                         setIsRecording(false);
                         setTimer(180);
                         toast({
@@ -100,7 +128,7 @@ export default function TryIt() {
                             isClosable: true,
                         });
                     }
-                }, 180000); // 3 minutes in milliseconds
+                }, 180000);
             } catch (error) {
                 setIsRecording(false);
                 setTimer(5);
