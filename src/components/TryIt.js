@@ -81,14 +81,24 @@ export default function TryIt() {
 
                     try {
                         setIsAnalyzing(true);
-                        const response = await fetch('/api/transcribe', {
+                        const response = await fetch('http://0.0.0.0:5000/api/transcribe', {
                             method: 'POST',
-                            body: formData
+                            body: formData,
+                            headers: {
+                                'Accept': 'application/json'
+                            }
                         });
                         
-                        const data = await response.json();
-                        setTranscription(data.transcription);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                         
+                        const data = await response.json();
+                        if (!data.transcription) {
+                            throw new Error('No transcription received');
+                        }
+                        
+                        setTranscription(data.transcription);
                         toast({
                             title: "Transcription complete",
                             status: "success",
@@ -96,9 +106,10 @@ export default function TryIt() {
                             isClosable: true,
                         });
                     } catch (error) {
+                        console.error('Transcription error:', error);
                         toast({
                             title: "Transcription failed",
-                            description: "Please try again",
+                            description: error.message || "Please check server connection",
                             status: "error",
                             duration: 3000,
                             isClosable: true,

@@ -17,6 +17,15 @@ author = 34989412
 [[workflows.workflow.tasks]]
 task = "packager.installForAll"
 
+[[workflows.workflow]]
+name = "Start API Server"
+author = 34989412
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python procomapi.py"
+
 [[ports]]
 localPort = 3000
 externalPort = 80
