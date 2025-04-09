@@ -1,13 +1,12 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import HTTPException
-from pydantic import BaseModel
+import speech_recognition as sr
+import tempfile
 import os
 import sounddevice as sd
 from scipy.io.wavfile import write
 import whisper
 import re
-import tempfile
 
 app = FastAPI()
 
@@ -20,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Whisper model
+# Initialize Whisper model (This is kept for the /analyze endpoint)
 model = whisper.load_model("tiny")
 
 # Endpoint to record audio
@@ -48,21 +47,38 @@ def record_audio(duration: int = 0):
     except Exception as e:
         return {"error": f"Recording failed: {str(e)}"}, 500
 
-# Endpoint to transcribe audio using Whisper
+# Endpoint to transcribe audio using speech_recognition
 @app.post("/api/transcribe")
 async def transcribe_audio(audio: UploadFile = File(...)):
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
-        content = await audio.read()
-        temp_audio.write(content)
-        temp_audio.flush()
+    try:
+        # Save the uploaded audio to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
+            content = await audio.read()
+            temp_audio.write(content)
+            temp_audio.flush()
 
-        try:
-            result = model.transcribe(temp_audio.name)
+            # Initialize recognizer
+            recognizer = sr.Recognizer()
+
+            # Load audio file
+            with sr.AudioFile(temp_audio.name) as source:
+                # Record audio from file
+                audio_data = recognizer.record(source)
+
+                # Perform the transcription
+                text = recognizer.recognize_google(audio_data)
+
+            # Cleanup temporary file
             os.unlink(temp_audio.name)
-            return {"transcription": result["text"]}
-        except Exception as e:
-            os.unlink(temp_audio.name)
-            raise HTTPException(status_code=500, detail=str(e))
+
+            return {"transcription": text}
+
+    except sr.UnknownValueError:
+        raise HTTPException(status_code=400, detail="Could not understand audio")
+    except sr.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Could not request results: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # Endpoint to perform speech analysis
