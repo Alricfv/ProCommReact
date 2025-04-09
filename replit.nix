@@ -1,5 +1,6 @@
 {pkgs}: {
   deps = [
+    pkgs.ffmpeg-full
     pkgs.haskellPackages.bindings-portaudio
     pkgs.ocamlPackages.portaudio
     pkgs.xsimd
