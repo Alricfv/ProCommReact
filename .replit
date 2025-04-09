@@ -1,5 +1,5 @@
 run = "npm run start"
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -24,7 +24,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python procomapi.py"
+args = "uvicorn procomapi:app --host 0.0.0.0 --port 5000 --reload"
 
 [[ports]]
 localPort = 3000
