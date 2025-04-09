@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import os
 import sounddevice as sd
 from scipy.io.wavfile import write
-import whisper
+from faster_whisper import WhisperModel
 import re
 import tempfile
 
@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # Initialize Whisper model
-model = whisper.load_model("tiny")
+model = WhisperModel("tiny", device="cpu", compute_type="int8")
 
 # Endpoint to record audio
 @app.post("/record/")
