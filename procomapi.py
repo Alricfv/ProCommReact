@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import os
 import sounddevice as sd
 from scipy.io.wavfile import write
-from faster_whisper import WhisperModel
+import whisper
 import re
 import tempfile
 
@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # Initialize Whisper model
-model = WhisperModel("tiny", device="cpu", compute_type="int8")
+model = whisper.load_model("tiny")
 
 # Endpoint to record audio
 @app.post("/record/")
@@ -58,9 +58,8 @@ async def transcribe_audio(audio: UploadFile = File(...)):
 
         try:
             result = model.transcribe(temp_audio.name)
-            transcription = result["text"]
             os.unlink(temp_audio.name)
-            return {"transcription": transcription}
+            return {"transcription": result["text"]}
         except Exception as e:
             os.unlink(temp_audio.name)
             raise HTTPException(status_code=500, detail=str(e))
