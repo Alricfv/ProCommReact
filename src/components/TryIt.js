@@ -81,7 +81,7 @@ export default function TryIt() {
 
                     try {
                         setIsAnalyzing(true);
-                        const response = await fetch('http://0.0.0.0:5000/api/transcribe', {
+                        const response = await fetch('/api/transcribe', {
                             method: 'POST',
                             body: formData,
                             headers: {
