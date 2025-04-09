@@ -15,13 +15,23 @@ export default function TryIt() {
             const recognition = new window.webkitSpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
+            recognition.maxAlternatives = 3;
+            recognition.lang = 'en-US';
 
+            // Increase recognition sensitivity
             recognition.onresult = (event) => {
                 let finalTranscript = '';
                 for (let i = 0; i < event.results.length; i++) {
-                    finalTranscript += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        // Take highest confidence result
+                        const alternatives = Array.from(event.results[i]);
+                        const bestMatch = alternatives.reduce((prev, current) => 
+                            (current.confidence > prev.confidence) ? current : prev
+                        );
+                        finalTranscript += bestMatch.transcript + ' ';
+                    }
                 }
-                setTranscription(finalTranscript);
+                setTranscription(finalTranscript.trim());
             };
 
             recognition.onerror = (event) => {
