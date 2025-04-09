@@ -1,5 +1,7 @@
 {pkgs}: {
   deps = [
+    pkgs.haskellPackages.bindings-portaudio
+    pkgs.ocamlPackages.portaudio
     pkgs.xsimd
     pkgs.portmidi
     pkgs.pkg-config
