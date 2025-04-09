@@ -1,68 +1,41 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
 import { FaMicrophone, FaChartLine } from 'react-icons/fa';
+import { Model, KaldiRecognizer } from 'vosk';
+import mic from 'node-microphone';
 
 export default function TryIt() {
     const [isRecording, setIsRecording] = useState(false);
     const [transcription, setTranscription] = useState('');
     const [analysis, setAnalysis] = useState(null);
     const [recordingHistory, setRecordingHistory] = useState([]);
-    const recognitionRef = useRef(null);
+    const recognizerRef = useRef(null);
+    const micRef = useRef(null);
     const toast = useToast();
 
     useEffect(() => {
-        if ('webkitSpeechRecognition' in window) {
-            const recognition = new window.webkitSpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.maxAlternatives = 3;
-            recognition.lang = 'en-US';
-
-            // Increase recognition sensitivity
-            recognition.onresult = (event) => {
-                let finalTranscript = '';
-                for (let i = 0; i < event.results.length; i++) {
-                    if (event.results[i].isFinal) {
-                        // Take highest confidence result
-                        const alternatives = Array.from(event.results[i]);
-                        const bestMatch = alternatives.reduce((prev, current) => 
-                            (current.confidence > prev.confidence) ? current : prev
-                        );
-                        finalTranscript += bestMatch.transcript + ' ';
-                    }
-                }
-                setTranscription(finalTranscript.trim());
-            };
-
-            recognition.onerror = (event) => {
+        // Initialize Vosk model
+        const initVosk = async () => {
+            try {
+                const model = new Model('model');
+                recognizerRef.current = new KaldiRecognizer(model, 16000);
+            } catch (error) {
                 toast({
-                    title: "Recognition Error",
-                    description: event.error,
+                    title: "Failed to initialize speech recognition",
+                    description: error.message,
                     status: "error",
                     duration: 3000,
                     isClosable: true,
                 });
-                setIsRecording(false);
-            };
+            }
+        };
 
-            recognition.onend = () => {
-                setIsRecording(false);
-            };
-
-            recognitionRef.current = recognition;
-        } else {
-            toast({
-                title: "Browser not supported",
-                description: "Your browser doesn't support speech recognition",
-                status: "error",
-                duration: null,
-                isClosable: true,
-            });
-        }
+        initVosk();
 
         return () => {
-            if (recognitionRef.current) {
-                recognitionRef.current.stop();
+            if (micRef.current) {
+                micRef.current.stop();
             }
         };
     }, [toast]);
@@ -76,17 +49,15 @@ export default function TryIt() {
         const avgSentenceLength = words.length / sentences.length;
         const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
         
-        // Stricter vocabulary richness calculation
         const vocabularyRichness = (uniqueWords / words.length * 100).toFixed(1);
         const vocabularyScore = vocabularyRichness > 60 ? 'Excellent' : 
                               vocabularyRichness > 45 ? 'Good' :
                               vocabularyRichness > 30 ? 'Fair' : 'Needs Improvement';
         
-        // More detailed clarity score based on sentence structure
         const clarityFactors = {
-            optimalSentenceLength: Math.abs(avgSentenceLength - 15) < 5 ? 30 : 15, // Optimal length is 10-20 words
+            optimalSentenceLength: Math.abs(avgSentenceLength - 15) < 5 ? 30 : 15,
             wordVariety: (uniqueWords / words.length) * 30,
-            structureComplexity: Math.min(30, (avgWordLength / 5) * 30) // Reward moderate complexity
+            structureComplexity: Math.min(30, (avgWordLength / 5) * 30)
         };
         
         const clarityScore = Math.min(100, Math.round(
@@ -108,11 +79,25 @@ export default function TryIt() {
 
     const handleRecord = () => {
         if (isRecording) {
-            recognitionRef.current?.stop();
+            if (micRef.current) {
+                micRef.current.stop();
+                micRef.current = null;
+            }
             setIsRecording(false);
         } else {
             try {
-                recognitionRef.current?.start();
+                micRef.current = new mic();
+                const micStream = micRef.current.startRecording();
+
+                micStream.on('data', (data) => {
+                    if (recognizerRef.current.acceptWaveform(data)) {
+                        const result = JSON.parse(recognizerRef.current.result());
+                        if (result.text) {
+                            setTranscription(prev => prev + ' ' + result.text);
+                        }
+                    }
+                });
+
                 setIsRecording(true);
                 setTranscription('');
             } catch (error) {
