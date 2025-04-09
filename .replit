@@ -34,7 +34,7 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "uvicorn procomapi:app --host 0.0.0.0 --port 5000 --reload"
+args = "node server.js"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"

@@ -1,59 +1,63 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import speech_recognition as sr
-import tempfile
-import os
+const express = require('express');
+const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const speech = require('@google-cloud/speech'); // Requires installation: npm install @google-cloud/speech
+const fs = require('node:fs');
+const path = require('node:path');
 
-app = FastAPI()
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+const app = express();
+const port = 3000;
 
-@app.get("/")
-async def read_root():
-    return {"status": "API is running"}
+app.use(express.json());
 
-@app.post("/api/transcribe")
-async def transcribe_audio(audio: UploadFile = File(...)):
-    if not audio:
-        raise HTTPException(status_code=400, detail="No audio file provided")
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${uuidv4()}${path.extname(file.originalname)}`);
+    }
+});
 
-    if not audio.filename.endswith(('.wav', '.mp3', '.ogg')):
-        raise HTTPException(status_code=400, detail="Invalid audio format. Please upload .wav, .mp3, or .ogg file")
+const upload = multer({ storage });
 
-    try:
-        # Create temp file to store audio
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
-            # Write uploaded file to temp file
-            content = await audio.read()
-            temp_audio.write(content)
-            temp_audio.flush()
+app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: 'No audio file provided' });
+    }
 
-            # Initialize recognizer
-            recognizer = sr.Recognizer()
+    const audioFile = req.file.path;
+    const client = new speech.SpeechClient();
 
-            # Read the audio file
-            with sr.AudioFile(temp_audio.name) as source:
-                # Record audio from file
-                audio_data = recognizer.record(source)
+    const [response] = await client.recognize({
+        audio: {
+            content: fs.readFileSync(audioFile).toString('base64'),
+        },
+        config: {
+            encoding: 'LINEAR16',
+            sampleRateHertz: 16000, // Adjust if necessary
+            languageCode: 'en-US', // Adjust to your needed language
+        },
+    });
 
-                try:
-                    # Perform the transcription
-                    text = recognizer.recognize_google(audio_data)
-                    return {"transcription": text, "status": "success"}
-                except sr.UnknownValueError:
-                    raise HTTPException(status_code=400, detail="Speech recognition could not understand the audio")
-                except sr.RequestError as e:
-                    raise HTTPException(status_code=500, detail=f"Could not request results from speech recognition service: {str(e)}")
-                finally:
-                    # Cleanup temp file
-                    os.unlink(temp_audio.name)
+    const transcription = response.results.map(result => result.alternatives[0].transcript).join('\n');
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    fs.unlink(audioFile, (err) => {
+        if (err) {
+          console.error(err)
+          return;
+        }
+    });
+
+    res.json({ transcription: transcription, status: 'success' });
+});
+
+
+app.get('/', (req, res) => {
+    res.send('API is running');
+});
+
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+});
