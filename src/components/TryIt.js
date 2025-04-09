@@ -65,16 +65,34 @@ export default function TryIt() {
         const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
         const avgSentenceLength = words.length / sentences.length;
         const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
+        
+        // Stricter vocabulary richness calculation
         const vocabularyRichness = (uniqueWords / words.length * 100).toFixed(1);
+        const vocabularyScore = vocabularyRichness > 60 ? 'Excellent' : 
+                              vocabularyRichness > 45 ? 'Good' :
+                              vocabularyRichness > 30 ? 'Fair' : 'Needs Improvement';
+        
+        // More detailed clarity score based on sentence structure
+        const clarityFactors = {
+            optimalSentenceLength: Math.abs(avgSentenceLength - 15) < 5 ? 30 : 15, // Optimal length is 10-20 words
+            wordVariety: (uniqueWords / words.length) * 30,
+            structureComplexity: Math.min(30, (avgWordLength / 5) * 30) // Reward moderate complexity
+        };
+        
+        const clarityScore = Math.min(100, Math.round(
+            clarityFactors.optimalSentenceLength +
+            clarityFactors.wordVariety +
+            clarityFactors.structureComplexity
+        ));
 
         return {
             speech_rate: `${wordsPerMinute} words per minute`,
             avg_word_length: `${avgWordLength.toFixed(1)} characters`,
             avg_sentence_length: `${avgSentenceLength.toFixed(1)} words`,
-            vocabulary_richness: `${vocabularyRichness}%`,
+            vocabulary_richness: `${vocabularyRichness}% (${vocabularyScore})`,
             total_words: words.length,
             unique_words: uniqueWords,
-            confidence_score: Math.round(Math.random() * 20 + 80)
+            confidence_score: clarityScore
         };
     };
 
