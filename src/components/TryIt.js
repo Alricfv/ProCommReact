@@ -87,10 +87,12 @@ export default function TryIt() {
                             headers: {
                                 'Accept': 'application/json'
                             }
+                        }).catch(error => {
+                            throw new Error('Failed to connect to the server. Please ensure the API server is running.');
                         });
                         
                         if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            throw new Error(`Server error: ${response.status}`);
                         }
                         
                         const data = await response.json();

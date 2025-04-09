@@ -8,6 +8,7 @@ channel = "stable-24_05"
 run = ["sh", "-c", "npm run start"]
 
 [workflows]
+runButton = "Start All"
 
 [[workflows.workflow]]
 name = "install"
@@ -25,6 +26,19 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "uvicorn procomapi:app --host 0.0.0.0 --port 5000 --reload"
+
+[[workflows.workflow]]
+name = "Start All"
+author = 34989412
+mode = "parallel"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "uvicorn procomapi:app --host 0.0.0.0 --port 5000 --reload"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm start"
 
 [[ports]]
 localPort = 3000
