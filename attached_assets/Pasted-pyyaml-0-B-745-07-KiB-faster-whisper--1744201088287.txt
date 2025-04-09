@@ -1,0 +1,43 @@
+pyyaml     ------------------------------     0 B/745.07 KiB
+faster-whisper ------------------------------     0 B/1.07 MiB
+⠙ Preparing packages... (0/13)
+flatbuffers ------------------------------ 14.91 KiB/30.23 KiB
+humanfriendly ------------------------------     0 B/84.76 KiB
+protobuf   ------------------------------     0 B/308.80 KiB
+huggingface-hub ------------------------------ 14.88 KiB/470.15 KiB
+pyyaml     ------------------------------     0 B/745.07 KiB
+faster-whisper ------------------------------     0 B/1.07 MiB
+setuptools ------------------------------ 14.88 KiB/1.20 MiB
+⠙ Preparing packages... (0/13)
+flatbuffers ------------------------------ 14.91 KiB/30.23 KiB
+humanfriendly ------------------------------     0 B/84.76 KiB
+protobuf   ------------------------------     0 B/308.80 KiB
+huggingface-hub ------------------------------ 14.88 KiB/470.15 KiB
+pyyaml     ------------------------------     0 B/745.07 KiB
+faster-whisper ------------------------------     0 B/1.07 MiB
+setuptools ------------------------------ 14.88 KiB/1.20 MiB
+tokenizers ------------------------------     0 B/2.90 MiB
+⠙ Preparing packages... (0/13)
+flatbuffers ------------------------------ 14.91 KiB/30.23 KiB
+humanfriendly ------------------------------ 14.83 KiB/84.76 KiB
+protobuf   ------------------------------ 14.91 KiB/308.80 KiB
+huggingface-hub ------------------------------ 30.88 KiB/470.15 KiB
+pyyaml     ------------------------------ 14.88 KiB/745.07 KiB
+faster-whisper ------------------------------     0 B/1.07 MiB
+setuptools ------------------------------ 30.88 KiB/1.20 MiB
+tokenizers ------------------------------ 14.91 KiB/2.90 MiB
+⠙ Preparing packages... (0/13)
+humanfriendly ------------------------------ 14.83 KiB/84.76 KiB
+protobuf   ------------------------------ 14.91 KiB/308.80 KiB
+⠙ Preparing packages... (0/13)
+humanfriendly ------------------------------ 78.73 KiB/84.76 KiB
+protobuf   ------------------------------ 92.36 KiB/308.80 KiB
+⠹ Preparing packages... (2/13)
+protobuf   ------------------------------ 108.36 KiB/308.80 KiB
+⠹ Preparing packages... (2/13)
+protobuf   ------------------------------ 246.47 KiB/308.80 KiB
+⠹ Preparing packages... (2/13)
+⠹ Preparing packages... (2/13)
+Prepared 13 packages in 3.45s
+error: Failed to install: coloredlogs-15.0.1-py2.py3-none-any.whl (coloredlogs==15.0.1)
+  Caused by: failed to copy file from /home/runner/workspace/.cache/uv/archive-v0/z6iryIpgg0TTt_n6RryZ4/coloredlogs.pth to /nix/store/clx0mcir7qw8zk36zbr4jra789g3knf6-python3-3.11.10/lib/python3.11/site-packages/coloredlogs.pth: Permission denied (os error 13)
