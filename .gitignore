@@ -1,5 +1,5 @@
 node_modules
-model
+model/
 __pycache__
 .next
 propserver.py
