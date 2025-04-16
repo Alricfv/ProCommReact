@@ -6,3 +6,14 @@ scipy.io.wavfile
 whisper
 re
 scipy
+vosk
+flask
+flask_cors
+scipy.io
+transformers
+numpy
+io
+ffmpeg
+wavfile
+React
+@chakra-ui/react

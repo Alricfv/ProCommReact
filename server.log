@@ -1,0 +1,166 @@
+2025-04-16 20:17:58,735 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:17:59,092 - DEBUG - https://huggingface.co:443 "HEAD /distilbert/distilbert-base-uncased-finetuned-sst-2-english/resolve/714eb0f/config.json HTTP/1.1" 200 0
+2025-04-16 20:17:59,805 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 20:18:00,049 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 20:18:00,053 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:18:00,286 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5095
+2025-04-16 20:18:00,837 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 20:18:01,052 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 20:18:01,267 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 20:18:01,493 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 20:18:01,703 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 20:18:01,900 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 20:18:02,102 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 20:26:54,243 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-16 20:26:54,244 - INFO - [33mPress CTRL+C to quit[0m
+2025-04-16 20:26:54,246 - INFO -  * Restarting with stat
+2025-04-16 20:27:30,136 - WARNING -  * Debugger is active!
+2025-04-16 20:27:30,144 - INFO -  * Debugger PIN: 134-776-020
+2025-04-16 20:27:31,413 - INFO - Received a transcription request.
+2025-04-16 20:27:31,423 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:27:31,621 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:27:34,402 - INFO - Transcription completed successfully.
+2025-04-16 20:27:34,406 - INFO - 127.0.0.1 - - [16/Apr/2025 20:27:34] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:27:48,943 - INFO - Received a transcription request.
+2025-04-16 20:27:48,945 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:27:49,043 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:27:53,425 - INFO - Transcription completed successfully.
+2025-04-16 20:27:53,429 - INFO - 127.0.0.1 - - [16/Apr/2025 20:27:53] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:28:01,515 - INFO - Received a transcription request.
+2025-04-16 20:28:01,517 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:28:01,618 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:28:04,902 - INFO - Transcription completed successfully.
+2025-04-16 20:28:04,905 - INFO - 127.0.0.1 - - [16/Apr/2025 20:28:04] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:30:27,164 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReact2\\server.py', reloading
+2025-04-16 20:30:27,703 - INFO -  * Restarting with stat
+2025-04-16 20:31:08,688 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:31:09,373 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 20:31:10,231 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 20:31:10,253 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:31:10,848 - WARNING -  * Debugger is active!
+2025-04-16 20:31:10,852 - INFO -  * Debugger PIN: 134-776-020
+2025-04-16 20:31:10,945 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5114
+2025-04-16 20:31:11,602 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 20:31:12,144 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 20:31:12,707 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 20:31:12,955 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 20:31:13,192 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 20:31:13,743 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 20:31:13,964 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 20:32:35,003 - INFO - Received a transcription request.
+2025-04-16 20:32:35,007 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:32:35,175 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:32:38,875 - INFO - Transcription completed successfully.
+2025-04-16 20:32:39,032 - INFO - 127.0.0.1 - - [16/Apr/2025 20:32:39] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:33:54,914 - INFO - Received a transcription request.
+2025-04-16 20:33:54,916 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:33:55,021 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:34:04,639 - INFO - Transcription completed successfully.
+2025-04-16 20:34:04,690 - INFO - 127.0.0.1 - - [16/Apr/2025 20:34:04] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:36:16,099 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReact2\\server.py', reloading
+2025-04-16 20:36:18,149 - INFO -  * Restarting with stat
+2025-04-16 20:36:59,872 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:37:00,589 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 20:37:01,932 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 20:37:01,958 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:37:02,227 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5114
+2025-04-16 20:37:02,557 - WARNING -  * Debugger is active!
+2025-04-16 20:37:02,562 - INFO -  * Debugger PIN: 134-776-020
+2025-04-16 20:37:02,817 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 20:37:02,976 - INFO - Received a transcription request.
+2025-04-16 20:37:02,978 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:37:03,167 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:37:03,759 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 20:37:03,986 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 20:37:04,246 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 20:37:04,480 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 20:37:04,703 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 20:37:05,334 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 20:37:08,131 - INFO - Transcription completed successfully.
+2025-04-16 20:37:08,140 - INFO - 127.0.0.1 - - [16/Apr/2025 20:37:08] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:37:38,031 - INFO - Received a transcription request.
+2025-04-16 20:37:38,033 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:37:38,125 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:37:39,661 - INFO - Transcription completed successfully.
+2025-04-16 20:37:39,664 - INFO - 127.0.0.1 - - [16/Apr/2025 20:37:39] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:38:51,674 - INFO - Received a transcription request.
+2025-04-16 20:38:51,676 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:38:51,774 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:38:54,568 - INFO - Transcription completed successfully.
+2025-04-16 20:38:54,572 - INFO - 127.0.0.1 - - [16/Apr/2025 20:38:54] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 20:40:27,340 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReact2\\server.py', reloading
+2025-04-16 20:40:29,135 - INFO -  * Restarting with stat
+2025-04-16 20:41:09,956 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:41:10,225 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 20:41:10,743 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 20:41:10,763 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 20:41:11,044 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5114
+2025-04-16 20:41:11,366 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 20:41:11,405 - WARNING -  * Debugger is active!
+2025-04-16 20:41:11,410 - INFO -  * Debugger PIN: 134-776-020
+2025-04-16 20:41:11,602 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 20:41:11,820 - INFO - Received a transcription request.
+2025-04-16 20:41:11,822 - INFO - Converting WebM to WAV in memory...
+2025-04-16 20:41:11,934 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 20:41:11,968 - INFO - Processing WAV data with Vosk...
+2025-04-16 20:41:12,163 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 20:41:12,406 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 20:41:12,623 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 20:41:12,850 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 20:41:18,455 - INFO - Transcription completed successfully.
+2025-04-16 20:41:18,461 - INFO - 127.0.0.1 - - [16/Apr/2025 20:41:18] "POST /transcribe HTTP/1.1" 200 -
+2025-04-16 21:11:32,732 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReact2\\server.py', reloading
+2025-04-16 21:11:34,646 - INFO -  * Restarting with stat
+2025-04-16 21:12:16,838 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:12:17,488 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 21:12:18,062 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 21:12:18,072 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:12:18,920 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5095
+2025-04-16 21:12:19,001 - WARNING -  * Debugger is active!
+2025-04-16 21:12:19,011 - INFO -  * Debugger PIN: 134-776-020
+2025-04-16 21:12:19,176 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 21:12:19,896 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 21:12:20,146 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 21:12:20,385 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 21:12:20,614 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 21:12:21,140 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 21:12:21,346 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 21:47:59,275 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReact2\\server.py', reloading
+2025-04-16 21:48:01,446 - INFO -  * Restarting with stat
+2025-04-16 21:48:40,729 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:48:41,017 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 21:48:41,477 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 21:48:41,495 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:48:41,731 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5095
+2025-04-16 21:48:42,063 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 21:48:42,287 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 21:48:43,071 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 21:48:43,303 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 21:48:43,526 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 21:48:43,726 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 21:48:43,929 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 21:49:48,188 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:49:48,769 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 21:49:49,436 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 21:49:49,441 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:49:49,680 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5095
+2025-04-16 21:49:49,928 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 21:49:50,494 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 21:49:50,752 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 21:49:50,985 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 21:49:51,202 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 21:49:51,838 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 21:49:52,052 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0
+2025-04-16 21:50:24,697 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/1.1" 200 0
+2025-04-16 21:50:24,911 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/model.safetensors HTTP/1.1" 404 0
+2025-04-16 21:50:24,916 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-04-16 21:50:25,142 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base HTTP/1.1" 200 5095
+2025-04-16 21:50:25,376 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main HTTP/1.1" 200 11013
+2025-04-16 21:50:25,386 - INFO - Serving on http://0.0.0.0:5000
+2025-04-16 21:50:25,594 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/main?p=1 HTTP/1.1" 200 2801
+2025-04-16 21:50:25,811 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/discussions?p=0 HTTP/1.1" 200 34491
+2025-04-16 21:50:26,040 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013 HTTP/1.1" 200 11763
+2025-04-16 21:50:27,529 - DEBUG - https://huggingface.co:443 "GET /api/models/j-hartmann/emotion-english-distilroberta-base/commits/refs%2Fpr%2F3013?p=1 HTTP/1.1" 200 3016
+2025-04-16 21:50:27,728 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors.index.json HTTP/1.1" 404 0
+2025-04-16 21:50:27,927 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/refs%2Fpr%2F3013/model.safetensors HTTP/1.1" 302 0

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Tooltip, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
+import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
 import { FaMicrophone, FaHistory, FaInfoCircle, FaChartLine } from 'react-icons/fa';
 
 export default function TryIt() {
@@ -9,7 +9,10 @@ export default function TryIt() {
     const [analysis, setAnalysis] = useState(null);
     const [recordingHistory, setRecordingHistory] = useState([]);
     const [timer, setTimer] = useState(180); // 3 minutes in seconds
-    const speechRecognitionRef = useRef(null);
+    const [sentiment, setSentiment] = useState('');
+    const [sentimentScore, setSentimentScore] = useState(null);
+    const [emotion, setEmotion] = useState('');
+    const [emotionScore, setEmotionScore] = useState(null);
     const toast = useToast();
 
     const mediaRecorderRef = useRef(null);
@@ -41,13 +44,24 @@ export default function TryIt() {
         const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
         const avgSentenceLength = words.length / sentences.length;
         const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
-        const vocabularyRichness = (uniqueWords / words.length * 100).toFixed(1);
+        const vocabularyRichness = ((uniqueWords / words.length) * 100).toFixed(1);
+        const adjustedRichness = Math.min(vocabularyRichness, 100); // Cap richness at 100%
+
+        // Adjust vocabulary richness based on word count thresholds
+        let finalRichness;
+        if (words.length < 50) {
+            finalRichness = adjustedRichness * 0.8; // Penalize for low word count
+        } else if (words.length > 200) {
+            finalRichness = adjustedRichness * 1.1; // Slight boost for high word count
+        } else {
+            finalRichness = adjustedRichness;
+        }
 
         return {
             speech_rate: `${wordsPerMinute} words per minute`,
             avg_word_length: `${avgWordLength.toFixed(1)} characters`,
             avg_sentence_length: `${avgSentenceLength.toFixed(1)} words`,
-            vocabulary_richness: `${vocabularyRichness}%`,
+            vocabulary_richness: `${Math.min(finalRichness, 100).toFixed(1)}%`, // Adjusted vocabulary richness
             total_words: words.length,
             unique_words: uniqueWords,
             confidence_score: Math.round(Math.random() * 20 + 80) // Simulated confidence score
@@ -55,102 +69,116 @@ export default function TryIt() {
     };
 
     const handleRecord = async () => {
+        if (!window.MediaRecorder) {
+            toast({
+                title: "Unsupported Browser",
+                description: "Your browser does not support audio recording.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+
         if (isRecording) {
-            try {
-                mediaRecorderRef.current?.stop();
-            } finally {
-                setIsRecording(false);
-                setTimer(5);
-            }
-        } else {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                chunksRef.current = [];
-                
-                mediaRecorderRef.current = new MediaRecorder(stream);
-                mediaRecorderRef.current.ondataavailable = (e) => {
-                    if (e.data.size > 0) {
-                        chunksRef.current.push(e.data);
-                    }
-                };
+            mediaRecorderRef.current?.stop();
+            setIsRecording(false);
+            return;
+        }
 
-                mediaRecorderRef.current.onstop = async () => {
-                    const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            chunksRef.current = [];
+            const mimeType = 'audio/webm';
+            if (!MediaRecorder.isTypeSupported(mimeType)) {
+                console.warn(`${mimeType} is not supported, falling back to default`);
+            }
+
+            mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
+
+            mediaRecorderRef.current.ondataavailable = (e) => {
+                console.log("Data available:", e.data);
+                if (e.data.size > 0) {
+                    chunksRef.current.push(e.data);
+                } else {
+                    console.warn("Empty audio chunk received.");
+                }
+            };
+
+            mediaRecorderRef.current.onstop = async () => {
+                const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
+
+                if (audioBlob.size === 0) {
+                    toast({
+                        title: "Audio Error",
+                        description: "The audio file is empty. Please ensure your microphone is working.",
+                        status: "error",
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                    return;
+                }
+
+                try {
+                    setIsAnalyzing(true);
+
                     const formData = new FormData();
-                    formData.append('audio', audioBlob, 'recording.wav');
+                    formData.append('audio', audioBlob, 'audio.webm');
 
-                    try {
-                        setIsAnalyzing(true);
-                        const response = await fetch('/api/transcribe', {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'Accept': 'application/json'
-                            }
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        
-                        const data = await response.json();
-                        if (!data.transcription) {
-                            throw new Error('No transcription received');
-                        }
-                        
-                        setTranscription(data.transcription);
-                        toast({
-                            title: "Transcription complete",
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                        });
-                    } catch (error) {
-                        console.error('Transcription error:', error);
-                        toast({
-                            title: "Transcription failed",
-                            description: error.message || "Please check server connection",
-                            status: "error",
-                            duration: 3000,
-                            isClosable: true,
-                        });
-                    } finally {
-                        setIsAnalyzing(false);
+                    const response = await fetch('http://127.0.0.1:5000/transcribe', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to transcribe audio');
                     }
-                    
-                    stream.getTracks().forEach(track => track.stop());
-                };
 
-                mediaRecorderRef.current.start();
-                setIsRecording(true);
-                setTranscription('');
-
-                // Auto-stop after 3 minutes
-                setTimeout(() => {
-                    if (mediaRecorderRef.current?.state === 'recording') {
-                        mediaRecorderRef.current.stop();
-                        setIsRecording(false);
-                        setTimer(180);
-                        toast({
-                            title: "Recording completed",
-                            description: "Maximum time (3 minutes) reached",
-                            status: "success",
-                            duration: 3000,
-                            isClosable: true,
-                        });
+                    const data = await response.json();
+                    if (data.error) {
+                        throw new Error(data.error);
                     }
-                }, 180000);
-            } catch (error) {
-                setIsRecording(false);
-                setTimer(5);
-                toast({
-                    title: "Recording failed",
-                    description: "Please check microphone permissions",
-                    status: "error",
-                    duration: 3000,
-                    isClosable: true,
-                });
-            }
+
+                    setTranscription(data.transcription);
+                    setSentiment(data.sentiment);
+                    setSentimentScore(data.sentiment_score);
+                    setEmotion(data.emotion);
+                    setEmotionScore(data.emotion_score);
+
+                    toast({
+                        title: "Transcription and Analysis Complete",
+                        status: "success",
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                } catch (error) {
+                    console.error("Transcription error:", error);
+                    toast({
+                        title: "Transcription failed",
+                        description: error.message || "An error occurred during transcription.",
+                        status: "error",
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                } finally {
+                    setIsAnalyzing(false);
+                }
+            };
+
+            mediaRecorderRef.current.start();
+            setIsRecording(true);
+        } catch (error) {
+            console.error("Microphone access error:", error);
+            toast({
+                title: "Microphone Error",
+                description: "Please allow microphone access in your browser settings.",
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 
@@ -192,10 +220,22 @@ export default function TryIt() {
     return (
         <Box 
             minHeight="100vh" 
-            background="linear-gradient(135deg, #1a1a1a, #2d2d2d)"
-            paddingTop="90px"
-            color="#ffffff"
+            background="linear-gradient(135deg, #000000, #ffffff)" 
+            backgroundSize="200% 200%" 
+            animation="gradientShift 8s ease-in-out infinite" 
+            position="relative" 
+            overflow="hidden"
         >
+            {/* Add a subtle black-and-white gradient animation */}
+            <style>
+                {`
+                @keyframes gradientShift {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                }
+                `}
+            </style>
             <Container maxW="container.xl" py={10}>
                 <VStack spacing={8} align="center">
                     <Box textAlign="center" mb={8}>
@@ -325,6 +365,22 @@ export default function TryIt() {
                                     Speech clarity
                                 </StatHelpText>
                             </Stat>
+
+                            {emotion && (
+                                <Stat
+                                    bg="rgba(255,255,255,0.05)"
+                                    p={4}
+                                    borderRadius="lg"
+                                    border="1px solid rgba(255,255,255,0.1)"
+                                >
+                                    <StatLabel>Emotion</StatLabel>
+                                    <StatNumber color="#00a6ff">{emotion}</StatNumber>
+                                    <StatHelpText>
+                                        <Icon as={FaInfoCircle} mr={2} />
+                                        Score: {(emotionScore * 100).toFixed(2)}%
+                                    </StatHelpText>
+                                </Stat>
+                            )}
                         </SimpleGrid>
                     )}
 
