@@ -1,0 +1,6 @@
+node_modules
+model/
+__pycache__
+.next
+propserver.
+.venv

@@ -1,0 +1,16 @@
+fastapi
+pydantic
+sounddevice
+scipy
+vosk
+flask
+flask_cors
+transformers
+numpy
+ffmpeg
+wavfile
+requests
+waitress
+ffmpeg-python
+vosk
+torch

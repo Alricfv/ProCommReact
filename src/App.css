@@ -1,0 +1,88 @@
+/* Global styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #121212;
+    overflow-y: auto; /* Allow vertical scrolling */
+}
+
+/* Transition animations */
+.fade-enter {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.fade-exit {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+/* Adjust layout for transcription and analysis */
+.transcription-box {
+    transition: transform 0.5s ease-in-out;
+    transform: translateX(-20%); /* Nudge to the left */
+}
+
+.transcription-box.slide-left {
+    transform: translateX(-100%);
+}
+
+.analysis-box {
+    display: flex;
+    flex-direction: column; /* Stack results vertically */
+    gap: 20px; /* Add spacing between results */
+    position: absolute;
+    right: 10%; /* Position on the right */
+    top: 10%;
+    width: 30%; /* Adjust width for better visibility */
+    max-height: 80%; /* Prevent overflow */
+    overflow-y: auto; /* Enable scrolling if needed */
+    background: rgba(0, 0, 0, 0.7); /* Add a semi-transparent background */
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.analysis-box.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Add animation for shifting the page to the left */
+.page-container {
+    transition: transform 0.5s ease-in-out;
+    transform: translateX(0);
+}
+
+.page-container.shift-left {
+    transform: translateX(-20%); /* Shift the page slightly to the left */
+}
+
+/* Ensure the analysis results are fully visible and scrollable */
+.analysis-results {
+    position: fixed; /* Ensure it stays visible on the screen */
+    right: 0;
+    top: 0;
+    width: 25%; /* Adjust width for better visibility */
+    height: 100%; /* Use full height of the viewport */
+    background: rgba(0, 0, 0, 0.9); /* Slightly darker background for better contrast */
+    color: #fff;
+    padding: 20px;
+    overflow-y: auto; /* Enable scrolling for overflowing content */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    z-index: 1000; /* Ensure it appears above other elements */
+}
