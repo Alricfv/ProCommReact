@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Stat, StatLabel, StatNumber, StatHelpText } from '@chakra-ui/react';
-import { FaMicrophone, FaHistory, FaInfoCircle, FaChartLine } from 'react-icons/fa';
+import { FaMicrophone, FaInfoCircle, FaChartLine } from 'react-icons/fa';
 
 export default function TryIt() {
     const [isRecording, setIsRecording] = useState(false);
