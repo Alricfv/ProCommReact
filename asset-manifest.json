@@ -1,0 +1,14 @@
+{
+  "files": {
+    "main.css": "/ProCommReactSon1/static/css/main.bc1612c7.css",
+    "main.js": "/ProCommReactSon1/static/js/main.791d3f98.js",
+    "static/media/procommimg.png": "/ProCommReactSon1/static/media/procommimg.4600a360a30cac90fd31.png",
+    "index.html": "/ProCommReactSon1/index.html",
+    "main.bc1612c7.css.map": "/ProCommReactSon1/static/css/main.bc1612c7.css.map",
+    "main.791d3f98.js.map": "/ProCommReactSon1/static/js/main.791d3f98.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bc1612c7.css",
+    "static/js/main.791d3f98.js"
+  ]
+}
