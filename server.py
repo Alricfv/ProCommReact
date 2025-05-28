@@ -73,8 +73,44 @@ def calculate_confidence_from_audio(audio_data):
     return round(confidence_score)
 
 def clean_transcription(transcription):
-    """Clean the transcription text."""
-    return transcription.strip()
+    """Clean the transcription text by extracting text from JSON results."""
+    import json
+    import logging
+    
+    logging.info(f"Raw transcription: {transcription}")
+    
+    cleaned_text = ""
+    # Handle each JSON object separately
+    parts = transcription.strip().split("\n")
+    
+    for part in parts:
+        try:
+            if not part.strip():
+                continue
+                
+            # Parse JSON and extract text field
+            result = json.loads(part)
+            logging.info(f"Parsed JSON: {result}")
+            
+            if "text" in result:
+                text_part = result["text"]
+                logging.info(f"Extracted text: {text_part}")
+                if text_part:  # Only add non-empty text
+                    cleaned_text += " " + text_part
+        except json.JSONDecodeError as e:
+            logging.error(f"JSON parse error: {e}, for text: {part}")
+            # If it's not valid JSON, try to extract anything between quotes after "text"
+            import re
+            match = re.search(r'"text"\s*:\s*"([^"]*)"', part)
+            if match:
+                text_part = match.group(1)
+                logging.info(f"Regex extracted text: {text_part}")
+                if text_part:  # Only add non-empty text
+                    cleaned_text += " " + text_part
+            
+    result = cleaned_text.strip()
+    logging.info(f"Cleaned transcription: {result}")
+    return result
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
