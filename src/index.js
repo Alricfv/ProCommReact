@@ -31,7 +31,7 @@ function AnimatedRoutes() {
 root.render(
     <React.StrictMode>
         <ChakraProvider theme={theme}>
-            <BrowserRouter>
+            <BrowserRouter basename="/ProCommReactSon1">
                 <AnimatedRoutes />
             </BrowserRouter>
         </ChakraProvider>
