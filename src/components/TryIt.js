@@ -601,9 +601,9 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // Use environment-based API URL selection
-                    const API_URL = process.env.NODE_ENV === 'production'
-                        ? 'http://165.232.40.163:5000/transcribe'  // Replace YOUR_DROPLET_IP with your actual server IP
+                    // Use environment variable for the API URL
+                    const API_URL = process.env.REACT_APP_API_URL 
+                        ? `${process.env.REACT_APP_API_URL}/transcribe`
                         : 'http://127.0.0.1:5000/transcribe';
                         
                     const response = await fetch(API_URL, {
