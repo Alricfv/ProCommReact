@@ -28,7 +28,11 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = Flask(__name__, static_folder='static')
 # Enable CORS for the Flask app
-CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}})
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "https://alricfv.github.io"
+]}})
 
 # Load the Vosk model
 model_path = "model/vosk-model-en-us-0.22"
