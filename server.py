@@ -190,4 +190,5 @@ from waitress import serve
 
 if __name__ == '__main__':
     print("Starting server with Waitress...")
-    serve(app, host='0.0.0.0', port=5000)
+    # Set timeout to 5 minutes (300 seconds)
+    serve(app, host='0.0.0.0', port=5000, threads=4, timeout=300)
