@@ -601,15 +601,10 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // Use environment variable for the API URL with HTTPS
-                    let API_URL = process.env.REACT_APP_API_URL 
-                        ? `${process.env.REACT_APP_API_URL}/transcribe`
+                    // HARDCODED URL for production - Direct Connect to server without port 5000
+                    let API_URL = process.env.NODE_ENV === 'production' 
+                        ? 'https://165.232.40.163/transcribe'
                         : 'http://127.0.0.1:5000/transcribe';
-                    
-                    // Convert HTTP to HTTPS if needed (for production environment)
-                    if (process.env.NODE_ENV === 'production' && API_URL.startsWith('http:')) {
-                        API_URL = API_URL.replace('http:', 'https:');
-                    }
                     
                     console.log('Using API URL:', API_URL);
                         
