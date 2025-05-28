@@ -4,3 +4,9 @@ __pycache__
 .next
 propserver.
 .venv
+
+# Environment variables
+.env
+
+# Config files (removing the config file approach)
+src/config.js
