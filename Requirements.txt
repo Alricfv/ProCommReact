@@ -1,16 +1,20 @@
-fastapi
-pydantic
-sounddevice
-scipy
-vosk
-flask
-flask_cors
-transformers
-numpy
-ffmpeg
-wavfile
-requests
-waitress
-ffmpeg-python
-vosk
-torch
+# Requirements for ProComm Backend with Vosk
+# Web framework and utilities
+flask==2.3.3
+flask_cors==4.0.0
+waitress==2.1.2
+
+# Speech recognition and audio processing
+vosk==0.3.45
+scipy==1.11.3
+ffmpeg-python==0.2.0
+numpy==1.26.0
+transformers==4.34.0
+torch==2.1.0
+
+# HTTP and data handling
+requests==2.31.0
+pydantic==2.4.2
+
+# Additional dependencies
+python-multipart==0.0.6

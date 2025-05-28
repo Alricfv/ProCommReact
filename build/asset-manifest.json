@@ -1,13 +1,14 @@
 {
   "files": {
-    "main.css": "/static/css/main.bc1612c7.css",
-    "main.js": "/static/js/main.406362ca.js",
-    "index.html": "/index.html",
-    "main.bc1612c7.css.map": "/static/css/main.bc1612c7.css.map",
-    "main.406362ca.js.map": "/static/js/main.406362ca.js.map"
+    "main.css": "/ProCommReact/static/css/main.bc1612c7.css",
+    "main.js": "/ProCommReact/static/js/main.f7b0e075.js",
+    "static/media/procommimg.png": "/ProCommReact/static/media/procommimg.4600a360a30cac90fd31.png",
+    "index.html": "/ProCommReact/index.html",
+    "main.bc1612c7.css.map": "/ProCommReact/static/css/main.bc1612c7.css.map",
+    "main.f7b0e075.js.map": "/ProCommReact/static/js/main.f7b0e075.js.map"
   },
   "entrypoints": [
     "static/css/main.bc1612c7.css",
-    "static/js/main.406362ca.js"
+    "static/js/main.f7b0e075.js"
   ]
 }
