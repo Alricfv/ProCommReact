@@ -610,6 +610,8 @@ export default function TryIt() {
                     if (process.env.NODE_ENV === 'production' && API_URL.startsWith('http:')) {
                         API_URL = API_URL.replace('http:', 'https:');
                     }
+                    
+                    console.log('Using API URL:', API_URL);
                         
                     const response = await fetch(API_URL, {
                         method: 'POST',
