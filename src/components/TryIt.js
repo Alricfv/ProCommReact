@@ -601,9 +601,9 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // HARDCODED URL for production - Direct Connect to server without port 5000
+                    // HARDCODED URL for production - Using explicit port 443
                     let API_URL = process.env.NODE_ENV === 'production' 
-                        ? 'https://165.232.40.163/transcribe'
+                        ? 'https://165.232.40.163:443/transcribe'
                         : 'http://127.0.0.1:5000/transcribe';
                     
                     console.log('Using API URL:', API_URL);
