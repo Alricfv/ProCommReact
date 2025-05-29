@@ -601,12 +601,13 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // HARDCODED URL for production - Using explicit port 443
-                    let API_URL = process.env.NODE_ENV === 'production' 
-                        ? 'https://165.232.40.163:443/transcribe'
+                    // Use environment variable for the API URL (complete with port and endpoint)
+                    let API_URL = process.env.REACT_APP_API_URL 
+                        ? process.env.REACT_APP_API_URL
                         : 'http://127.0.0.1:5000/transcribe';
                     
-                    console.log('Using API URL:', API_URL);
+                    // Hide the full URL in logs for security
+                    console.log('Using API endpoint from environment');
                         
                     const response = await fetch(API_URL, {
                         method: 'POST',
