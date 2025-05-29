@@ -601,13 +601,13 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // Use environment variable for the API URL (complete with port and endpoint)
+                    // Use environment variable for the API URL
                     let API_URL = process.env.REACT_APP_API_URL 
                         ? process.env.REACT_APP_API_URL
                         : 'http://127.0.0.1:5000/transcribe';
                     
-                    // Hide the full URL in logs for security
-                    console.log('Using API endpoint from environment');
+                    // Log that we're using the API (without revealing the full URL)
+                    console.log('Using API endpoint from environment variables');
                         
                     const response = await fetch(API_URL, {
                         method: 'POST',
