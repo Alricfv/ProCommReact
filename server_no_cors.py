@@ -36,6 +36,16 @@ model = Model(model_path)
 # Load emotion detection pipeline
 emotion_detector = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base")
 
+def perform_emotion_detection(text):
+    """Perform emotion detection on the given text."""
+    emotion_result = emotion_detector(text)
+    emotion = max(emotion_result, key=lambda x: x['score'])['label']
+    emotion_score = max(emotion_result, key=lambda x: x['score'])['score']
+    return {
+        "emotion": emotion,
+        "emotion_score": emotion_score
+    }
+
 def detect_filler_words(text):
     """Detect filler words in the transcription text."""
     # Common filler words and phrases
@@ -135,16 +145,6 @@ def detect_filler_words(text):
         
     return results
 
-def perform_emotion_detection(text):
-    """Perform emotion detection on the given text."""
-    emotion_result = emotion_detector(text)
-    emotion = max(emotion_result, key=lambda x: x['score'])['label']
-    emotion_score = max(emotion_result, key=lambda x: x['score'])['score']
-    return {
-        "emotion": emotion,
-        "emotion_score": emotion_score
-    }
-
 # Function to calculate confidence score based on audio properties using numpy and scipy
 def calculate_confidence_from_audio(audio_data):
     """Calculate confidence score based on audio properties."""
@@ -208,9 +208,10 @@ def clean_transcription(transcription):
     logging.info(f"Cleaned transcription: {result}")
     return result
 
+# Routes - NO CORS HEADERS ADDED HERE - LETTING NGINX HANDLE IT
 @app.route('/transcribe', methods=['POST', 'OPTIONS'])
 def transcribe():
-    # Handle preflight OPTIONS request
+    # Special handling for OPTIONS but without adding CORS headers
     if request.method == 'OPTIONS':
         return jsonify({}), 200
         
@@ -266,7 +267,7 @@ def transcribe():
         filler_word_analysis = detect_filler_words(transcription)
         
         logging.info("Transcription and analysis completed successfully.")
-
+        
         return jsonify({
             "transcription": transcription,
             "confidence_score": confidence_score,
@@ -274,6 +275,7 @@ def transcribe():
             "emotion_score": emotion_analysis["emotion_score"],
             "filler_words": filler_word_analysis
         })
+    
     except Exception as e:
         logging.error(f"Error during transcription: {e}")
         return jsonify({"error": "Internal server error"}), 500
