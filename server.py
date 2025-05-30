@@ -4,14 +4,12 @@ import os
 import numpy as np
 import logging
 import sys
+import tempfile
+import time
 from flask import Flask, request, jsonify, send_from_directory
-from vosk import Model, KaldiRecognizer
-import vosk
-import wave
 from scipy.io import wavfile
 from transformers import pipeline
-
-vosk.SetLogLevel(-1)  # Suppress logs for better performance
+import whisper # type: ignore
 
 # Configure logging to also output to the terminal
 logging.basicConfig(
@@ -27,23 +25,33 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = Flask(__name__, static_folder='static')
 
-# Load the Vosk model
-model_path = "model/vosk-model-en-us-0.22"
-if not os.path.exists(model_path):
-    raise FileNotFoundError(f"Model not found at {model_path}")
-model = Model(model_path)
+# Load Whisper model
+whisper_model_size = os.environ.get("WHISPER_MODEL_SIZE", "base")
+logging.info(f"Loading Whisper model: {whisper_model_size}")
+try:
+    whisper_model = whisper.load_model(whisper_model_size)
+    logging.info(f"Whisper model loaded successfully")
+except Exception as e:
+    logging.error(f"Error loading Whisper model: {e}")
+    raise RuntimeError(f"Failed to load Whisper model: {e}")
 
 # Load emotion detection pipeline
 emotion_detector = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base")
 
 def detect_filler_words(text):
     """Detect filler words in the transcription text."""
-    # Common filler words and phrases
+    # Common filler words and phrases - expanded to catch variations
     filler_words = {
         'um': 'hesitation',
+        'uhm': 'hesitation',
+        'umm': 'hesitation',
         'uh': 'hesitation',
+        'uhh': 'hesitation',
         'er': 'hesitation',
-        'ah': 'hesitation', 
+        'err': 'hesitation',
+        'ah': 'hesitation',
+        'ahh': 'hesitation',
+        'hmm': 'hesitation', 
         'like': 'comparison',
         'you know': 'verbal crutch',
         'i mean': 'verbal crutch',
@@ -56,6 +64,8 @@ def detect_filler_words(text):
         'kind of': 'hedging',
         'sort of': 'hedging',
     }
+    
+    logging.info(f"Looking for filler words in text of length: {len(text)}")
     
     results = {"total_count": 0, "categories": {}, "instances": []}
     
@@ -168,51 +178,41 @@ def calculate_confidence_from_audio(audio_data):
     confidence_score = max(50, min(100, (loudness + 40) * 0.5 + speech_ratio * 50))
     return round(confidence_score)
 
-def clean_transcription(transcription):
-    """Clean the transcription text by extracting text from JSON results."""
-    import json
-    import logging
-    
-    logging.info(f"Raw transcription: {transcription}")
-    
-    cleaned_text = ""
-    # Handle each JSON object separately
-    parts = transcription.strip().split("\n")
-    
-    for part in parts:
+def transcribe_with_whisper(audio_data):
+    """Transcribe audio using Whisper."""
+    try:
+        # Create a temporary file for the audio
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+            temp_path = temp_wav.name
+            temp_wav.write(audio_data)
+        
+        logging.info(f"Transcribing with Whisper using temporary file: {temp_path}")
+        
+        start_time = time.time()
+        # Use Whisper to transcribe
+        result = whisper_model.transcribe(
+            temp_path,
+            language="en",  # Force English
+            word_timestamps=True,  # Get timestamps for word-level analysis
+            fp16=False,  # Use fp32 for CPU compatibility
+            verbose=True  # Enable verbose output for more information
+        )
+        transcription_time = time.time() - start_time
+        logging.info(f"Whisper transcription completed in {transcription_time:.2f} seconds")
+        
+        # Clean up temporary file
         try:
-            if not part.strip():
-                continue
-                
-            # Parse JSON and extract text field
-            result = json.loads(part)
-            logging.info(f"Parsed JSON: {result}")
-            
-            if "text" in result:
-                text_part = result["text"]
-                logging.info(f"Extracted text: {text_part}")
-                if text_part:  # Only add non-empty text
-                    cleaned_text += " " + text_part
-        except json.JSONDecodeError as e:
-            logging.error(f"JSON parse error: {e}, for text: {part}")
-            # If it's not valid JSON, try to extract anything between quotes after "text"
-            import re
-            match = re.search(r'"text"\s*:\s*"([^"]*)"', part)
-            if match:
-                text_part = match[1]
-                logging.info(f"Regex extracted text: {text_part}")
-                if text_part:  # Only add non-empty text
-                    cleaned_text += " " + text_part
-            
-    result = cleaned_text.strip()
-    logging.info(f"Cleaned transcription: {result}")
-    return result
+            os.unlink(temp_path)
+        except Exception as e:
+            logging.warning(f"Failed to delete temporary file {temp_path}: {e}")
+        
+        return result
+    except Exception as e:
+        logging.error(f"Error in Whisper transcription: {e}")
+        raise
 
-@app.route('/transcribe', methods=['POST', 'OPTIONS'])
+@app.route('/transcribe', methods=['POST'])
 def transcribe():
-    # Handle preflight OPTIONS request
-    if request.method == 'OPTIONS':
-        return jsonify({}), 200
         
     try:
         logging.info("Received a transcription request.")
@@ -236,47 +236,55 @@ def transcribe():
         # Calculate confidence score from audio
         confidence_score = calculate_confidence_from_audio(wav_data)
 
-        # Process the WAV data with Vosk
-        logging.info("Processing WAV data with Vosk...")
-        wf = wave.open(io.BytesIO(wav_data), 'rb')
-        if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() != 16000:
-            logging.error("Invalid WAV file format.")
-            return jsonify({"error": "Audio file must be WAV format mono PCM with 16000 Hz sample rate."}), 400
+        # Transcribe with Whisper
+        whisper_result = transcribe_with_whisper(wav_data)        # Extract the transcribed text
+        transcription = whisper_result['text']
+        logging.info(f"Whisper transcription: {transcription}")
 
-        recognizer = KaldiRecognizer(model, wf.getframerate())
-        transcription = ""
-        while True:
-            data = wf.readframes(4000)
-            if len(data) == 0:
-                break
-            if recognizer.AcceptWaveform(data):
-                result = recognizer.Result()
-                transcription += result
-
-        final_result = recognizer.FinalResult()
-        transcription += final_result
-
-        # Clean the transcription
-        transcription = clean_transcription(transcription)
-
+        # Check for segments that might contain filler words
+        if 'segments' in whisper_result:
+            segment_texts = []
+            for segment in whisper_result['segments']:
+                if 'text' in segment:
+                    segment_texts.append(segment['text'])
+            
+            # Combine all segments text with the main transcription for a more comprehensive analysis
+            combined_text = transcription + " " + " ".join(segment_texts)
+            logging.info(f"Combined text for analysis: '{combined_text}'")
+        else:
+            combined_text = transcription
+            
         # Perform emotion detection
         emotion_analysis = perform_emotion_detection(transcription)
         
-        # Perform filler word detection
-        filler_word_analysis = detect_filler_words(transcription)
+        # Perform filler word detection with detailed logging
+        logging.info(f"Starting filler word detection on text: '{combined_text}'")
+        normalized_text = combined_text.lower()
+        logging.info(f"Normalized text for filler detection: '{normalized_text}'")
+        filler_word_analysis = detect_filler_words(combined_text)
+        logging.info(f"Filler word analysis result: {filler_word_analysis}")
         
         logging.info("Transcription and analysis completed successfully.")
-
-        return jsonify({
+        
+        # Prepare response
+        response_data = {
             "transcription": transcription,
             "confidence_score": confidence_score,
             "emotion": emotion_analysis["emotion"],
             "emotion_score": emotion_analysis["emotion_score"],
-            "filler_words": filler_word_analysis
-        })
+            "filler_words": filler_word_analysis,
+            "transcription_source": "whisper"
+        }
+        
+        # Include word-level timestamps for visualization
+        if whisper_result and 'segments' in whisper_result:
+            response_data["segments"] = whisper_result.get('segments', [])
+            
+        return jsonify(response_data)
+    
     except Exception as e:
         logging.error(f"Error during transcription: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @app.route('/')
 def serve_index():
