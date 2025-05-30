@@ -601,16 +601,11 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // Use hardcoded URL for production - this is the version that was working before
-                    let API_URL;
-                    if (process.env.NODE_ENV === 'production') {
-                        API_URL = 'https://165.232.40.163:443/transcribe'; // Force HTTPS in production
-                    } else {
-                        API_URL = 'http://127.0.0.1:5000/transcribe'; // Use HTTP for local development
-                    }
+                    // Use environment variable for API URL
+                    const API_BASE_URL = process.env.REACT_APP_API_URL //|| 'http://127.0.0.1:5000';
+                    const API_URL = `${API_BASE_URL}/transcribe`;
                     
-                    // Hide the full URL in logs for security
-                    console.log('Using API endpoint:', process.env.NODE_ENV === 'production' ? 'Production HTTPS endpoint' : 'Development endpoint');
+                    console.log('Using API endpoint:', API_URL);
                         
                     const response = await fetch(API_URL, {
                         method: 'POST',
