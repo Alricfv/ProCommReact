@@ -43,6 +43,105 @@ model = Model(model_path)
 # Load emotion detection pipeline
 emotion_detector = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base")
 
+def detect_filler_words(text):
+    """Detect filler words in the transcription text."""
+    # Common filler words and phrases
+    filler_words = {
+        'um': 'hesitation',
+        'uh': 'hesitation',
+        'er': 'hesitation',
+        'ah': 'hesitation', 
+        'like': 'comparison',
+        'you know': 'verbal crutch',
+        'i mean': 'verbal crutch',
+        'actually': 'verbal crutch',
+        'basically': 'verbal crutch',
+        'literally': 'verbal crutch',
+        'honestly': 'verbal crutch',
+        'so': 'transition',
+        'right': 'confirmation',
+        'kind of': 'hedging',
+        'sort of': 'hedging',
+    }
+    
+    results = {"total_count": 0, "categories": {}, "instances": []}
+    
+    # Normalize text for better matching (lowercase)
+    normalized_text = text.lower()
+    words = normalized_text.split()
+    
+    # Process for single-word fillers
+    for i, word in enumerate(words):
+        if word in filler_words:
+            category = filler_words[word]
+            results["total_count"] += 1
+            
+            # Track categories
+            if category not in results["categories"]:
+                results["categories"][category] = 1
+            else:
+                results["categories"][category] += 1
+                
+            # Track instances with context
+            start_idx = max(0, i - 3)  # up to 3 words before
+            end_idx = min(len(words), i + 4)  # up to 3 words after
+            context = ' '.join(words[start_idx:end_idx])
+            
+            results["instances"].append({
+                "word": word,
+                "category": category,
+                "context": context
+            })
+    
+    # Process for multi-word fillers
+    for phrase in [fw for fw in filler_words.keys() if ' ' in fw]:
+        if phrase in normalized_text:
+            category = filler_words[phrase]
+            count = normalized_text.count(phrase)
+            results["total_count"] += count
+            
+            # Track categories
+            if category not in results["categories"]:
+                results["categories"][category] = count
+            else:
+                results["categories"][category] += count
+                
+            # Find all occurrences
+            start_pos = 0
+            while True:
+                start_pos = normalized_text.find(phrase, start_pos)
+                if start_pos == -1:
+                    break
+                    
+                # Get context
+                context_start = normalized_text.rfind(' ', 0, max(0, start_pos - 15))
+                if context_start == -1:
+                    context_start = 0
+                context_end = normalized_text.find(' ', min(len(normalized_text), start_pos + len(phrase) + 15))
+                if context_end == -1:
+                    context_end = len(normalized_text)
+                
+                context = normalized_text[context_start:context_end].strip()
+                
+                results["instances"].append({
+                    "word": phrase,
+                    "category": category,
+                    "context": context
+                })
+                
+                start_pos += len(phrase)
+    
+    # Calculate frequency per minute (assuming average speaking rate of 150 words per minute)
+    word_count = len(words)
+    estimated_duration_minutes = word_count / 150
+    
+    if estimated_duration_minutes > 0:
+        results["frequency_per_minute"] = results["total_count"] / estimated_duration_minutes
+    else:
+        results["frequency_per_minute"] = 0
+        
+    return results
+
 def perform_emotion_detection(text):
     """Perform emotion detection on the given text."""
     emotion_result = emotion_detector(text)
@@ -161,18 +260,20 @@ def transcribe():
         transcription += final_result
 
         # Clean the transcription
-        transcription = clean_transcription(transcription)
-
-        # Perform emotion detection
+        transcription = clean_transcription(transcription)        # Perform emotion detection
         emotion_analysis = perform_emotion_detection(transcription)
-
-        logging.info("Transcription completed successfully.")
+        
+        # Perform filler word detection
+        filler_word_analysis = detect_filler_words(transcription)
+        
+        logging.info("Transcription and analysis completed successfully.")
 
         return jsonify({
             "transcription": transcription,
             "confidence_score": confidence_score,
             "emotion": emotion_analysis["emotion"],
-            "emotion_score": emotion_analysis["emotion_score"]
+            "emotion_score": emotion_analysis["emotion_score"],
+            "filler_words": filler_word_analysis
         })
     except Exception as e:
         logging.error(f"Error during transcription: {e}")
