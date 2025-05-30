@@ -20,6 +20,7 @@ export default function TryIt() {
     const [recordingStartTime, setRecordingStartTime] = useState(null); // Track when recording starts
     const [actualRecordingDuration, setActualRecordingDuration] = useState(0); // Store actual duration
     const [durationSource, setDurationSource] = useState('timer-based'); // Track source of duration measurement
+    const [fillerWords, setFillerWords] = useState(null); // Store filler word analysis
     const toast = useToast();
 
     const mediaRecorderRef = useRef(null);
@@ -664,6 +665,11 @@ export default function TryIt() {
                     setEmotion(data.emotion);
                     setEmotionScore(data.emotion_score);
                     
+                    // Store filler word analysis if available
+                    if (data.filler_words) {
+                        setFillerWords(data.filler_words);
+                    }
+                    
                     // Store the server's confidence score for consistent results
                     if (data.confidence_score) {
                         sessionStorage.setItem('serverConfidenceScore', data.confidence_score.toString());
@@ -1036,7 +1042,129 @@ export default function TryIt() {
                                         </StatHelpText>
                                     </Stat>
                                 )}
+                                
+                                {fillerWords && (
+                                    <Stat
+                                        bg="rgba(255,255,255,0.05)"
+                                        p={4}
+                                        borderRadius="lg"
+                                        border="1px solid rgba(255,255,255,0.1)"
+                                    >
+                                        <StatLabel>Filler Words</StatLabel>
+                                        <StatNumber color="#00a6ff">{fillerWords.total_count}</StatNumber>
+                                        <StatHelpText>
+                                            <Icon as={FaInfoCircle} mr={2} />
+                                            {fillerWords.frequency_per_minute.toFixed(1)} per minute
+                                        </StatHelpText>
+                                    </Stat>
+                                )}
                             </SimpleGrid>
+
+                            {/* Filler Word Analysis */}
+                            {fillerWords && fillerWords.total_count > 0 && (
+                                <Box 
+                                    width="100%" 
+                                    maxW="800px"
+                                    mt={4}
+                                    p={4}
+                                    bg="rgba(255,255,255,0.05)"
+                                    borderRadius="xl"
+                                    border="1px solid rgba(255,255,255,0.1)"
+                                >
+                                    <HStack alignItems="center" mb={3}>
+                                        <Icon as={FaInfoCircle} color="#00a6ff" boxSize={5} />
+                                        <Text fontWeight="bold" color="#e0e0e0">Filler Word Analysis</Text>
+                                        <Tooltip 
+                                            hasArrow
+                                            label="Filler words are sounds, words, or phrases that don't add meaning to your speech but fill pauses. Common examples include 'um', 'uh', 'like', and 'you know'."
+                                            bg="gray.700"
+                                            color="white"
+                                            placement="top"
+                                            p={3}
+                                        >
+                                            <Icon as={FaQuestionCircle} color="#aaaaaa" cursor="pointer" ml={2} />
+                                        </Tooltip>
+                                    </HStack>
+
+                                    {/* Filler Word Categories */}
+                                    {Object.keys(fillerWords.categories).length > 0 && (
+                                        <Box mb={4}>
+                                            <Text color="#e0e0e0" fontSize="sm" mb={2}>Filler Word Categories:</Text>
+                                            <HStack flexWrap="wrap" spacing={2}>
+                                                {Object.entries(fillerWords.categories).map(([category, count]) => (
+                                                    <Badge 
+                                                        key={category}
+                                                        colorScheme={
+                                                            category === 'hesitation' ? 'red' : 
+                                                            category === 'verbal crutch' ? 'orange' : 
+                                                            category === 'hedging' ? 'yellow' : 
+                                                            'blue'
+                                                        }
+                                                        py={1}
+                                                        px={2}
+                                                        borderRadius="md"
+                                                    >
+                                                        {category}: {count}
+                                                    </Badge>
+                                                ))}
+                                            </HStack>
+                                        </Box>
+                                    )}
+
+                                    {/* Filler Word Instances */}
+                                    {fillerWords.instances.length > 0 && (
+                                        <Box>
+                                            <Text color="#e0e0e0" fontSize="sm" mb={2}>Examples:</Text>
+                                            <VStack align="start" spacing={2} maxHeight="200px" overflowY="auto" p={2}>
+                                                {fillerWords.instances.slice(0, 5).map((instance, index) => (
+                                                    <Box 
+                                                        key={index}
+                                                        p={2}
+                                                        borderRadius="md"
+                                                        bg="rgba(0,0,0,0.2)"
+                                                        width="100%"
+                                                    >
+                                                        <Text fontSize="sm" color="#e0e0e0">
+                                                            "...{instance.context}..."
+                                                        </Text>
+                                                        <Badge 
+                                                            size="sm" 
+                                                            colorScheme={
+                                                                instance.category === 'hesitation' ? 'red' : 
+                                                                instance.category === 'verbal crutch' ? 'orange' : 
+                                                                instance.category === 'hedging' ? 'yellow' : 
+                                                                'blue'
+                                                            }
+                                                            mt={1}
+                                                        >
+                                                            {instance.word} ({instance.category})
+                                                        </Badge>
+                                                    </Box>
+                                                ))}
+                                            </VStack>
+                                            
+                                            {/* Tips for improvement */}
+                                            <Box mt={4} p={3} bg="rgba(0,166,255,0.1)" borderRadius="md">
+                                                <Text color="#e0e0e0" fontSize="sm" fontWeight="bold">
+                                                    Tips to reduce filler words:
+                                                </Text>
+                                                <Text color="#e0e0e0" fontSize="sm" mt={2}>
+                                                    • Practice pausing instead of using fillers
+                                                </Text>
+                                                <Text color="#e0e0e0" fontSize="sm">
+                                                    • Record yourself to become aware of your patterns
+                                                </Text>
+                                                <Text color="#e0e0e0" fontSize="sm">
+                                                    • Slow down your speech slightly
+                                                </Text>
+                                                <Text color="#e0e0e0" fontSize="sm">
+                                                    • Prepare key points before speaking
+                                                </Text>
+                                            </Box>
+                                        </Box>
+                                    )}
+                                </Box>
+                            )}
 
                             {/* Speech Rate Feedback */}
                             <Box 

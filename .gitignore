@@ -4,6 +4,7 @@ __pycache__
 .next
 propserver.
 .venv
+nextstepsofproj.txt
 
 # Environment variables
 .env
