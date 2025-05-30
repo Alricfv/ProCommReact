@@ -7,6 +7,11 @@ propserver.
 
 # Environment variables
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
 
 # Config files (removing the config file approach)
 src/config.js
