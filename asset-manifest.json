@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/ProCommReact/static/css/main.bc1612c7.css",
-    "main.js": "/ProCommReact/static/js/main.832d2ecc.js",
+    "main.js": "/ProCommReact/static/js/main.fff9a4cb.js",
     "static/media/procommimg.png": "/ProCommReact/static/media/procommimg.4600a360a30cac90fd31.png",
     "index.html": "/ProCommReact/index.html",
     "main.bc1612c7.css.map": "/ProCommReact/static/css/main.bc1612c7.css.map",
-    "main.832d2ecc.js.map": "/ProCommReact/static/js/main.832d2ecc.js.map"
+    "main.fff9a4cb.js.map": "/ProCommReact/static/js/main.fff9a4cb.js.map"
   },
   "entrypoints": [
     "static/css/main.bc1612c7.css",
-    "static/js/main.832d2ecc.js"
+    "static/js/main.fff9a4cb.js"
   ]
 }
