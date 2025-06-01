@@ -26,7 +26,7 @@ logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 app = Flask(__name__, static_folder='static')
 
 # Load Whisper model
-whisper_model_size = os.environ.get("WHISPER_MODEL_SIZE", "base")
+whisper_model_size = os.environ.get("WHISPER_MODEL_SIZE", "small")
 logging.info(f"Loading Whisper model: {whisper_model_size}")
 try:
     whisper_model = whisper.load_model(whisper_model_size)
@@ -72,12 +72,14 @@ def detect_filler_words(text):
     # Normalize text for better matching (lowercase)
     normalized_text = text.lower()
     words = normalized_text.split()
-    
-    # Process for single-word fillers
+      # Process for single-word fillers
     for i, word in enumerate(words):
+        logging.debug(f"Checking word '{word}' for filler")
+        # Check exact matches
         if word in filler_words:
             category = filler_words[word]
             results["total_count"] += 1
+            logging.info(f"Detected filler word: '{word}' as {category}")
             
             # Track categories
             if category not in results["categories"]:
@@ -95,6 +97,31 @@ def detect_filler_words(text):
                 "category": category,
                 "context": context
             })
+        # Additional check for words containing fillers (like 'umm' or 'uhh')
+        else:
+            for filler in ['um', 'uh', 'er', 'ah']:
+                if filler in word or word.startswith(filler) or word.endswith(filler):
+                    category = filler_words.get(filler, 'hesitation')
+                    results["total_count"] += 1
+                    logging.info(f"Detected partial filler match: '{word}' containing '{filler}' as {category}")
+                    
+                    # Track categories
+                    if category not in results["categories"]:
+                        results["categories"][category] = 1
+                    else:
+                        results["categories"][category] += 1
+                    
+                    # Track instances with context
+                    start_idx = max(0, i - 3)
+                    end_idx = min(len(words), i + 4)
+                    context = ' '.join(words[start_idx:end_idx])
+                    
+                    results["instances"].append({
+                        "word": word,
+                        "category": category,
+                        "context": context
+                    })
+                    break
     
     # Process for multi-word fillers
     for phrase in [fw for fw in filler_words.keys() if ' ' in fw]:
@@ -188,14 +215,17 @@ def transcribe_with_whisper(audio_data):
         
         logging.info(f"Transcribing with Whisper using temporary file: {temp_path}")
         
-        start_time = time.time()
-        # Use Whisper to transcribe
+        start_time = time.time()        # Use Whisper to transcribe
+        # Note: Whisper sometimes cleans up filler words by default
         result = whisper_model.transcribe(
             temp_path,
             language="en",  # Force English
             word_timestamps=True,  # Get timestamps for word-level analysis
             fp16=False,  # Use fp32 for CPU compatibility
-            verbose=True  # Enable verbose output for more information
+            verbose=True,  # Enable verbose output for more information
+            prepend_punctuations=",.?!:;\"'""''…—–()",
+            append_punctuations=",.?!:;\"'""''…—–()",
+            suppress_blank=False  # Don't suppress blank outputs which might contain fillers
         )
         transcription_time = time.time() - start_time
         logging.info(f"Whisper transcription completed in {transcription_time:.2f} seconds")
@@ -234,22 +264,50 @@ def transcribe():
         wav_data, _ = process.communicate(input=webm_data)
 
         # Calculate confidence score from audio
-        confidence_score = calculate_confidence_from_audio(wav_data)
-
-        # Transcribe with Whisper
-        whisper_result = transcribe_with_whisper(wav_data)        # Extract the transcribed text
+        confidence_score = calculate_confidence_from_audio(wav_data)        # Transcribe with Whisper
+        whisper_result = transcribe_with_whisper(wav_data)
+        # Extract the transcribed text
         transcription = whisper_result['text']
         logging.info(f"Whisper transcription: {transcription}")
-
+        
         # Check for segments that might contain filler words
+        logging.info(f"Examining whisper_result structure: {whisper_result.keys()}")
+        
         if 'segments' in whisper_result:
             segment_texts = []
-            for segment in whisper_result['segments']:
-                if 'text' in segment:
-                    segment_texts.append(segment['text'])
+            logging.info(f"Number of segments: {len(whisper_result['segments'])}")
             
-            # Combine all segments text with the main transcription for a more comprehensive analysis
-            combined_text = transcription + " " + " ".join(segment_texts)
+            for i, segment in enumerate(whisper_result['segments']):
+                if 'text' in segment:
+                    segment_text = segment['text']
+                    segment_texts.append(segment_text)
+                    logging.info(f"Segment {i} text: '{segment_text}'")
+                  # Log words if available
+                if 'words' in segment:
+                    words = segment.get('words', [])
+                    words_text = " ".join([w.get('word', '') for w in words])
+                    logging.info(f"Segment {i} words: '{words_text}'")
+                    
+                    # Extract individual words for filler detection
+                    for j, word_info in enumerate(words):
+                        if 'word' in word_info:
+                            word = word_info['word'].strip().lower()
+                            if word in ['um', 'uh', 'er', 'ah', 'like', 'hmm']:
+                                logging.info(f"Found potential filler word '{word}' in segment {i}, word {j}")
+                  # Extract raw words from all segments
+            raw_words_list = []
+            for segment in whisper_result['segments']:
+                if 'words' in segment:
+                    for word_info in segment['words']:
+                        if 'word' in word_info:
+                            raw_words_list.append(word_info['word'])
+            
+            # Add a separate raw words text to improve filler detection
+            raw_words_text = " ".join(raw_words_list)
+            logging.info(f"Raw words extracted from whisper: '{raw_words_text}'")
+            
+            # Combine all texts for a more comprehensive analysis
+            combined_text = f"{transcription} {' '.join(segment_texts)} {raw_words_text}"
             logging.info(f"Combined text for analysis: '{combined_text}'")
         else:
             combined_text = transcription
