@@ -1,177 +1,499 @@
 import React from 'react';
-import { Box, Flex, Heading, Text, Image, Button, VStack, HStack } from '@chakra-ui/react';
+import { 
+    Box, Flex, Heading, Text, Image, Button, VStack, HStack, Container, 
+    Badge, Icon, useColorModeValue, Divider, SimpleGrid, List, ListItem, 
+    ListIcon, Circle, Wrap, WrapItem, useBreakpointValue
+} from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
-import aboutImage from './about.jpg'; // Replace with an actual image file if available
+import { 
+    FaRocket, FaUserFriends, FaHeadset, FaMicrophone, FaChartLine, 
+    FaLightbulb, FaCheck, FaCode, FaGlobe, FaTools, FaWaveSquare
+} from 'react-icons/fa';
+import aboutImage from './about.jpg';
 
 function About() {
+    // Modern color scheme with gradients
+    const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
+    const cardBg = useColorModeValue("rgba(30, 41, 59, 0.8)", "rgba(30, 41, 59, 0.8)");
+    const accentColor = "#38bdf8"; // Updated to a vibrant blue
+    const textColor = "#f8fafc";
+    const highlightColor = "#7dd3fc";
+    const secondaryAccent = "#4ade80"; // Green accent color
+    const tertiaryAccent = "#c084fc"; // Purple accent color
+    
+    const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
+    
     return (
-        <Box backgroundColor="#0d1117" color="#f0f6fc" fontFamily="'Inter', sans-serif">
+        <Box bgGradient={bgGradient} color={textColor} fontFamily="'Inter', sans-serif" minHeight="100vh">
             {/* Navigation Bar */}
             <Flex
                 as="nav"
                 justifyContent="space-between"
                 alignItems="center"
                 padding="20px 40px"
-                backgroundColor="#161b22"
-                boxShadow="lg"
+                bg="rgba(15, 23, 42, 0.9)"
+                backdropFilter="blur(10px)"
+                boxShadow="0 4px 30px rgba(0, 0, 0, 0.2)"
                 position="fixed"
                 top="0"
                 width="100%"
                 zIndex="1000"
             >
-                <Heading size="lg" color="#58a6ff">
-                    ProComm
-                </Heading>
+                <HStack spacing={3}>
+                    <Circle size="40px" bg={`rgba(56, 189, 248, 0.2)`} display="flex" alignItems="center" justifyContent="center">
+                        <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
+                    </Circle>
+                    <Heading size="lg" bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} bgClip="text">
+                        ProComm
+                    </Heading>
+                </HStack>
                 <HStack spacing="20px">
                     <Link to="/">
-                        <Button variant="ghost" colorScheme="blue">
+                        <Button 
+                            variant="ghost" 
+                            _hover={{ bg: 'rgba(56, 189, 248, 0.2)' }}
+                            color={textColor}
+                        >
                             Home
                         </Button>
                     </Link>
                     <Link to="/try-it">
-                        <Button colorScheme="blue" size="md">
+                        <Button 
+                            bg={accentColor}
+                            _hover={{ bg: '#0ea5e9' }}
+                            size="md"
+                            boxShadow="0 4px 12px rgba(56, 189, 248, 0.4)"
+                        >
                             Try it Out!
                         </Button>
                     </Link>
                 </HStack>
             </Flex>
 
-            {/* Main Content */}
+            {/* Hero Section */}
             <Box 
                 as="main"
                 marginTop="80px"
-                padding="50px 20px"
-                background="linear-gradient(135deg, #0d1117, #161b22)"
+                padding={{ base: "60px 20px", md: "80px 40px" }}
+                position="relative"
+                overflow="hidden"
             >
-                <Heading size="2xl" textAlign="center" marginBottom="40px" color="#58a6ff">
-                    About ProComm
-                </Heading>
-                <Text fontSize="lg" color="#8b949e" textAlign="center" maxWidth="800px" margin="0 auto" marginBottom="40px" lineHeight="1.8">
-                    ProComm is a cutting-edge platform designed to revolutionize communication and collaboration. 
-                    Our mission is to provide seamless, efficient, and innovative solutions for individuals and teams worldwide.
-                </Text>
-
-                {/* About section with image */}
-                <Flex 
-                    justifyContent="center" 
-                    alignItems="center" 
-                    gap="40px" 
-                    flexWrap={{base: "wrap", md: "nowrap"}}
-                    marginBottom="50px"
-                    padding="20px"
-                >
-                    <Box 
-                        textAlign={{base: "center", md: "left"}} 
-                        maxWidth="500px" 
-                        backgroundColor="#1e293b" 
-                        padding="30px" 
-                        borderRadius="10px" 
-                        boxShadow="lg"
-                    >
-                        <Heading size="xl" color="#38bdf8" marginBottom="20px">
-                            Our Vision
-                        </Heading>
-                        <Text fontSize="md" color="#e2e8f0" lineHeight="1.8">
-                            At ProComm, we envision a world where communication barriers are eliminated, 
-                            and collaboration is effortless. We strive to empower people with tools that enhance productivity and creativity.
-                        </Text>
-                    </Box>
-                    <Image
-                        src={aboutImage}
-                        alt="About ProComm"
-                        width={{base: "300px", md: "400px"}}
-                        height={{base: "300px", md: "400px"}}
-                        objectFit="cover"
-                        borderRadius="10px"
-                        boxShadow="lg"
-                    />
-                </Flex>
-
-                {/* Feature boxes similar to Home page */}
-                <Box padding="20px 0 50px 0">
-                    <Heading size="2xl" textAlign="center" marginBottom="40px" color="#4ade80">
-                        Why Choose ProComm?
-                    </Heading>
-
-                    <Box textAlign="center" marginBottom="20px" padding="20px" backgroundColor="#1e293b" borderRadius="10px" boxShadow="lg">
-                        <Heading size="xl" color="#38bdf8" marginBottom="20px">
-                            Innovative Technology
-                        </Heading>
-                        <Text fontSize="lg" color="#e2e8f0" maxWidth="700px" margin="0 auto" lineHeight="1.8">
-                            Our platform leverages cutting-edge speech analysis technology to provide you with accurate transcription and meaningful insights into your speaking patterns.
-                        </Text>
-                    </Box>
-
-                    <Box textAlign="center" marginBottom="20px" padding="20px" backgroundColor="#1e293b" borderRadius="10px" boxShadow="lg">
-                        <Heading size="xl" color="#38bdf8" marginBottom="20px">
-                            User-Friendly Design
-                        </Heading>
-                        <Text fontSize="lg" color="#e2e8f0" maxWidth="700px" margin="0 auto" lineHeight="1.8">
-                            We've designed ProComm with simplicity in mind. Our intuitive interface makes it easy for anyone to analyze their speech and improve their communication skills.
-                        </Text>
-                    </Box>
-
-                    <Box textAlign="center" marginBottom="20px" padding="20px" backgroundColor="#1e293b" borderRadius="10px" boxShadow="lg">
-                        <Heading size="xl" color="#38bdf8" marginBottom="20px">
-                            Dedicated Support
-                        </Heading>
-                        <Text fontSize="lg" color="#e2e8f0" maxWidth="700px" margin="0 auto" lineHeight="1.8">
-                            Our team is committed to your success. We provide responsive support and continuous updates to ensure you have the best experience possible.
-                        </Text>
-                    </Box>
-                </Box>
-
-                {/* Call to Action Section */}
-                <Box
-                    textAlign="center"
-                    padding="50px 20px"
-                    backgroundColor="#161b22"
-                    color="#f0f6fc"
-                    borderRadius="10px"
-                    marginTop="30px"
-                >
-                    <Heading size="lg" marginBottom="20px" color="#58a6ff">
-                        Ready to Transform Your Communication Skills?
-                    </Heading>
-                    <Text fontSize="lg" marginBottom="40px" color="#8b949e">
-                        Join thousands of users who trust ProComm to improve their speaking confidence and effectiveness.
-                    </Text>
-                    <Link to="/try-it">
-                        <Button
-                            size="lg"
-                            fontWeight="bold"
-                            padding="12px 24px"
-                            backgroundColor="#238636"
-                            color="#ffffff"
-                            _hover={{ backgroundColor: '#2ea043' }}
-                        >
-                            Try it Now
-                        </Button>
-                    </Link>
-                </Box>
-
-                {/* Our Team Section */}
-                <Box padding="50px 20px" textAlign="center">
-                    <Heading size="2xl" color="#58a6ff" marginBottom="40px">
-                        Our Team
-                    </Heading>
-                    <Text fontSize="lg" color="#8b949e" maxWidth="700px" margin="0 auto" marginBottom="40px" lineHeight="1.8">
-                        ProComm is built by a talented team of developers, designers, and speech experts dedicated to helping you become a better communicator.
-                    </Text>
-                </Box>
+                {/* Background effects */}
+                <Box 
+                    position="absolute" 
+                    top="0" 
+                    left="0" 
+                    width="100%" 
+                    height="100%" 
+                    opacity="0.3" 
+                    bgGradient="radial-gradient(circle at 25% 25%, #38bdf8 0%, transparent 50%)"
+                    zIndex="1"
+                />
+                <Box 
+                    position="absolute" 
+                    bottom="0" 
+                    right="0" 
+                    width="80%" 
+                    height="80%" 
+                    opacity="0.2" 
+                    bgGradient="radial-gradient(circle at 75% 75%, #c084fc 0%, transparent 60%)"
+                    zIndex="1"
+                />
                 
-                {/* Footer */}
-                <Box
-                    backgroundColor="#0d1117"
-                    color="#8b949e"
-                    textAlign="center"
-                    padding="20px"
-                    marginTop="50px"
-                >
-                    <Text fontSize="sm">
-                        © 2025 ProComm. All rights reserved.
+                <Container maxW="1200px" position="relative" zIndex="2">
+                    {/* Our Story badge */}
+                    <Flex justifyContent="center" mb={6}>
+                        <Badge 
+                            fontSize="sm" 
+                            colorScheme="blue" 
+                            p="2" 
+                            borderRadius="full"
+                            textTransform="uppercase"
+                            fontWeight="bold"
+                            letterSpacing="1px"
+                            bg={`rgba(56, 189, 248, 0.2)`}
+                            color={accentColor}
+                        >
+                            Our Story
+                        </Badge>
+                    </Flex>
+
+                    {/* Main heading */}
+                    <Heading 
+                        size={headingSize}
+                        textAlign="center" 
+                        marginBottom="40px" 
+                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                        bgClip="text"
+                        fontWeight="extrabold"
+                        letterSpacing="tight"
+                    >
+                        Revolutionizing Communication with ProComm
+                    </Heading>
+                    
+                    <Text 
+                        fontSize={{ base: "lg", md: "xl" }} 
+                        color={textColor} 
+                        textAlign="center" 
+                        maxWidth="800px" 
+                        margin="0 auto" 
+                        marginBottom="60px" 
+                        lineHeight="1.8"
+                    >
+                        ProComm is a cutting-edge platform designed to transform the way you communicate through 
+                        state-of-the-art speech analysis technology. Our mission is to provide seamless, 
+                        powerful tools that help you become a more effective and confident communicator.
                     </Text>
-                </Box>
+
+                    {/* About section with image */}
+                    <Flex 
+                        justifyContent="center" 
+                        alignItems="center" 
+                        gap="60px" 
+                        flexWrap={{base: "wrap", md: "nowrap"}}
+                        marginBottom="70px"
+                    >
+                        <Box 
+                            textAlign={{base: "center", md: "left"}} 
+                            maxWidth="500px" 
+                            bg={cardBg}
+                            padding="40px" 
+                            borderRadius="20px" 
+                            boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
+                            border="1px solid rgba(255, 255, 255, 0.1)"
+                            backdropFilter="blur(16px)"
+                            transform={{md: "rotate(-2deg)"}}
+                            transition="all 0.3s ease-in-out"
+                            _hover={{transform: "rotate(0deg) scale(1.02)", boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"}}
+                        >
+                            <Circle size="50px" bg={`rgba(56, 189, 248, 0.2)`} display="flex" alignItems="center" justifyContent="center" mb={5} mx="auto">
+                                <Icon as={FaLightbulb} color={highlightColor} w={6} h={6} />
+                            </Circle>
+                            <Heading size="xl" bgGradient={`linear-gradient(90deg, ${highlightColor}, ${accentColor})`} bgClip="text" marginBottom="20px">
+                                Our Vision
+                            </Heading>
+                            <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                At ProComm, we envision a world where anyone can communicate with clarity and confidence. 
+                                We're developing AI-powered tools that analyze speech patterns, detect filler words, 
+                                and provide real-time feedback to help you become a more polished communicator.
+                            </Text>
+                        </Box>
+                        <Image
+                            src={aboutImage}
+                            alt="About ProComm"
+                            width={{base: "300px", md: "450px"}}
+                            height={{base: "300px", md: "450px"}}
+                            objectFit="cover"
+                            borderRadius="20px"
+                            boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
+                            border="1px solid rgba(255, 255, 255, 0.1)"
+                            transform={{md: "rotate(2deg)"}}
+                            transition="all 0.3s ease-in-out"
+                            _hover={{transform: "rotate(0deg) scale(1.02)", boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"}}
+                        />
+                    </Flex>
+
+                    {/* Features section with improved styling */}
+                    <Box padding="20px 0 50px 0">
+                        <Heading 
+                            size={headingSize} 
+                            textAlign="center" 
+                            marginBottom="60px" 
+                            bgGradient={`linear-gradient(90deg, ${secondaryAccent}, ${accentColor})`}
+                            bgClip="text"
+                            fontWeight="extrabold"
+                        >
+                            Why Choose ProComm?
+                        </Heading>
+
+                        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8}>
+                            <Box 
+                                textAlign="center" 
+                                padding={{base: "30px 20px", md: "40px 30px"}} 
+                                bg={cardBg}
+                                borderRadius="16px" 
+                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
+                                border="1px solid rgba(255, 255, 255, 0.1)"
+                                backdropFilter="blur(16px)"
+                                transition="all 0.3s ease"
+                                _hover={{
+                                    transform: "translateY(-10px)",
+                                    boxShadow: "0 20px 35px -5px rgba(56, 189, 248, 0.3)"
+                                }}
+                            >
+                                <Circle size="60px" bg="rgba(56, 189, 248, 0.2)" mb={5} mx="auto" display="flex" alignItems="center" justifyContent="center">
+                                    <Icon as={FaWaveSquare} color={accentColor} w={7} h={7} />
+                                </Circle>
+                                <Heading size="lg" color={accentColor} marginBottom="16px">
+                                    Advanced Speech Analysis
+                                </Heading>
+                                <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                    Our platform features state-of-the-art speech recognition technology,
+                                    providing accurate transcription and meaningful insights into your speaking patterns.
+                                </Text>
+                            </Box>
+
+                            <Box 
+                                textAlign="center" 
+                                padding={{base: "30px 20px", md: "40px 30px"}} 
+                                bg={cardBg}
+                                borderRadius="16px" 
+                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
+                                border="1px solid rgba(255, 255, 255, 0.1)"
+                                backdropFilter="blur(16px)"
+                                transition="all 0.3s ease"
+                                _hover={{
+                                    transform: "translateY(-10px)",
+                                    boxShadow: "0 20px 35px -5px rgba(192, 132, 252, 0.3)"
+                                }}
+                            >
+                                <Circle size="60px" bg="rgba(192, 132, 252, 0.2)" mb={5} mx="auto" display="flex" alignItems="center" justifyContent="center">
+                                    <Icon as={FaHeadset} color={tertiaryAccent} w={7} h={7} />
+                                </Circle>
+                                <Heading size="lg" color={tertiaryAccent} marginBottom="16px">
+                                    Filler Word Detection
+                                </Heading>
+                                <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                    Our enhanced filler word detection identifies and tracks your use of words like 
+                                    "um," "uh," and "like," helping you develop more polished and professional speaking habits.
+                                </Text>
+                            </Box>
+
+                            <Box 
+                                textAlign="center" 
+                                padding={{base: "30px 20px", md: "40px 30px"}} 
+                                bg={cardBg}
+                                borderRadius="16px" 
+                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
+                                border="1px solid rgba(255, 255, 255, 0.1)"
+                                backdropFilter="blur(16px)"
+                                transition="all 0.3s ease"
+                                _hover={{
+                                    transform: "translateY(-10px)",
+                                    boxShadow: "0 20px 35px -5px rgba(74, 222, 128, 0.3)"
+                                }}
+                            >
+                                <Circle size="60px" bg="rgba(74, 222, 128, 0.2)" mb={5} mx="auto" display="flex" alignItems="center" justifyContent="center">
+                                    <Icon as={FaChartLine} color={secondaryAccent} w={7} h={7} />
+                                </Circle>
+                                <Heading size="lg" color={secondaryAccent} marginBottom="16px">
+                                    Real-Time Feedback
+                                </Heading>
+                                <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                    Get instant feedback on your speaking patterns, allowing you to make 
+                                    improvements on the spot and track your progress over time.
+                                </Text>
+                            </Box>
+                        </SimpleGrid>
+                    </Box>
+
+                    {/* Technology Info Section */}
+                    <Box 
+                        padding="50px 30px" 
+                        marginY="70px"
+                        bg={cardBg}
+                        borderRadius="20px"
+                        boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2)"
+                        border="1px solid rgba(255, 255, 255, 0.1)"
+                        backdropFilter="blur(16px)"
+                    >
+                        <VStack spacing={8}>
+                            <Heading 
+                                textAlign="center"
+                                size="xl"
+                                bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                                bgClip="text"
+                            >
+                                Powered by Advanced Technology
+                            </Heading>
+                            
+                            <Divider width="100px" borderColor={accentColor} opacity={0.6} />
+                            
+                            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} width="100%">
+                                <VStack align="flex-start" spacing={4}>
+                                    <HStack>
+                                        <Icon as={FaCode} color={accentColor} w={5} h={5} />
+                                        <Heading size="md" color={highlightColor}>Advanced Speech Recognition</Heading>
+                                    </HStack>
+                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        Our platform delivers unparalleled speech recognition accuracy,
+                                        even in noisy environments or with different accents. Our technology
+                                        provides excellent performance while maintaining efficiency.
+                                    </Text>
+                                </VStack>
+                                
+                                <VStack align="flex-start" spacing={4}>
+                                    <HStack>
+                                        <Icon as={FaGlobe} color={tertiaryAccent} w={5} h={5} />
+                                        <Heading size="md" color={highlightColor}>Secure Processing</Heading>
+                                    </HStack>
+                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        Your voice data never leaves our secure servers. Our implementation
+                                        processes all data locally, ensuring your privacy while still delivering 
+                                        state-of-the-art speech recognition capabilities.
+                                    </Text>
+                                </VStack>
+                                
+                                <VStack align="flex-start" spacing={4}>
+                                    <HStack>
+                                        <Icon as={FaTools} color={secondaryAccent} w={5} h={5} />
+                                        <Heading size="md" color={highlightColor}>Enhanced Filler Detection</Heading>
+                                    </HStack>
+                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        Our sophisticated algorithms detect not only standard filler words but also
+                                        variations and partial matches, giving you a comprehensive view of your
+                                        speaking habits.
+                                    </Text>
+                                </VStack>
+                                
+                                <VStack align="flex-start" spacing={4}>
+                                    <HStack>
+                                        <Icon as={FaRocket} color={accentColor} w={5} h={5} />
+                                        <Heading size="md" color={highlightColor}>Performance Optimization</Heading>
+                                    </HStack>
+                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        We've fine-tuned our speech analysis parameters specifically for filler word preservation,
+                                        ensuring that our system captures these often subtle speech patterns that other
+                                        technologies might miss.
+                                    </Text>
+                                </VStack>
+                            </SimpleGrid>
+                        </VStack>
+                    </Box>
+
+                    {/* Call to Action Section */}
+                    <Box
+                        textAlign="center"
+                        padding={{base: "40px 20px", md: "60px 40px"}}
+                        bg="rgba(15, 23, 42, 0.9)"
+                        color={textColor}
+                        borderRadius="20px"
+                        boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2)"
+                        marginY="70px"
+                        position="relative"
+                        overflow="hidden"
+                    >
+                        <Box 
+                            position="absolute" 
+                            top="0" 
+                            left="0" 
+                            width="100%" 
+                            height="100%" 
+                            opacity="0.3" 
+                            bgGradient="linear-gradient(135deg, #38bdf8 0%, #c084fc 100%)"
+                            zIndex="0"
+                        />
+                        
+                        <VStack spacing={6} position="relative" zIndex="1">
+                            <Heading 
+                                size="xl" 
+                                bgGradient={`linear-gradient(90deg, ${highlightColor}, #f0abfc)`}
+                                bgClip="text"
+                            >
+                                Ready to Transform Your Communication Skills?
+                            </Heading>
+                            <Text fontSize={{base: "md", md: "lg"}} maxW="700px" mx="auto">
+                                Join thousands of users who trust ProComm to improve their speaking confidence and effectiveness.
+                                Start your journey to better communication today!
+                            </Text>
+                            <Link to="/try-it">
+                                <Button
+                                    size="lg"
+                                    fontWeight="bold"
+                                    px={8}
+                                    py={6}
+                                    bg={secondaryAccent}
+                                    color="white"
+                                    _hover={{ bg: '#22c55e', transform: "translateY(-2px)" }}
+                                    _active={{ transform: "translateY(0)" }}
+                                    transition="all 0.2s"
+                                    boxShadow="0 4px 12px rgba(74, 222, 128, 0.4)"
+                                >
+                                    Try it Now — Free
+                                </Button>
+                            </Link>
+                        </VStack>
+                    </Box>
+
+                    {/* Our Team Section */}
+                    <Box padding={{base: "40px 20px", md: "70px 20px"}} textAlign="center">
+                        <Heading 
+                            size={headingSize}
+                            bgGradient={`linear-gradient(90deg, ${tertiaryAccent}, ${accentColor})`}
+                            bgClip="text"
+                            marginBottom="40px"
+                            fontWeight="extrabold"
+                        >
+                            Our Team
+                        </Heading>
+                        <Text fontSize="lg" color={textColor} maxWidth="800px" margin="0 auto" marginBottom="60px" lineHeight="1.8">
+                            ProComm is built by a talented team of developers, designers, and speech experts dedicated 
+                            to helping you become a better communicator through innovative technology and thoughtful design.
+                        </Text>
+                        
+                        <Wrap spacing="30px" justify="center">
+                            {[1, 2, 3].map((i) => (
+                                <WrapItem key={i}>
+                                    <VStack 
+                                        spacing={4} 
+                                        p={6} 
+                                        borderRadius="lg" 
+                                        bg="rgba(30, 41, 59, 0.6)"
+                                        border="1px solid rgba(255, 255, 255, 0.1)"
+                                        backdropFilter="blur(16px)"
+                                        minW="250px"
+                                        transition="all 0.3s ease"
+                                        _hover={{
+                                            transform: "translateY(-5px)",
+                                            boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.3)"
+                                        }}
+                                    >
+                                        <Circle size="80px" bg={`rgba(${i === 1 ? '56, 189, 248' : i === 2 ? '192, 132, 252' : '74, 222, 128'}, 0.2)`}>
+                                            <Icon 
+                                                as={i === 1 ? FaCode : i === 2 ? FaUserFriends : FaHeadset} 
+                                                color={i === 1 ? accentColor : i === 2 ? tertiaryAccent : secondaryAccent} 
+                                                w={8} 
+                                                h={8} 
+                                            />
+                                        </Circle>
+                                        <Heading size="md" color={i === 1 ? accentColor : i === 2 ? tertiaryAccent : secondaryAccent}>
+                                            {i === 1 ? 'Development' : i === 2 ? 'Design' : 'Support'}
+                                        </Heading>
+                                        <Text color={textColor}>
+                                            {i === 1 
+                                                ? 'Engineers building our speech technology platform' 
+                                                : i === 2 
+                                                    ? 'Creators of our intuitive user experience' 
+                                                    : 'Experts ready to help with any questions'
+                                            }
+                                        </Text>
+                                    </VStack>
+                                </WrapItem>
+                            ))}
+                        </Wrap>
+                    </Box>
+                    
+                    {/* Footer */}
+                    <Box
+                        backgroundColor="rgba(15, 23, 42, 0.9)"
+                        color="#94a3b8"
+                        textAlign="center"
+                        padding="30px"
+                        marginTop="50px"
+                        borderRadius="10px"
+                        boxShadow="0 -5px 20px -5px rgba(0, 0, 0, 0.1)"
+                    >
+                        <HStack justifyContent="center" spacing={4} mb={4}>
+                            <Circle size="36px" bg={`rgba(56, 189, 248, 0.1)`} display="flex" alignItems="center" justifyContent="center">
+                                <Icon as={FaMicrophone} color={accentColor} w={4} h={4} />
+                            </Circle>
+                            <Text fontWeight="bold" color={textColor}>ProComm</Text>
+                        </HStack>
+                        <Text fontSize="sm">
+                            © 2025 ProComm. All rights reserved.
+                        </Text>
+                    </Box>
+                </Container>
             </Box>
         </Box>
     );
