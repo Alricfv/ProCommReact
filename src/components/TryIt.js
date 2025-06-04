@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Stat, StatLabel, StatNumber, StatHelpText, 
     NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, FormControl, FormLabel, Select,
-    Tooltip } from '@chakra-ui/react';
+    Tooltip, useBreakpointValue, Flex } from '@chakra-ui/react';
 import { FaMicrophone, FaInfoCircle, FaChartLine, FaClock, FaQuestionCircle } from 'react-icons/fa';
 
 export default function TryIt() {
@@ -319,8 +319,7 @@ export default function TryIt() {
         // If no server score is available, calculate client-side score
         // Base score starts at 85 (minimum confidence)
         let score = 85;
-        
-        // 1. Add points based on recording duration source reliability
+          // 1. Add points based on recording duration source reliability
         // Audio context decoded is most accurate, timer-based least accurate
         switch(durationSource) {
             case 'audio-decoded':
@@ -333,6 +332,9 @@ export default function TryIt() {
                 score += 2;
                 break;
             case 'timer-based':
+                score += 0;
+                break;
+            default:
                 score += 0;
                 break;
         }
@@ -385,15 +387,7 @@ export default function TryIt() {
         const rateFeedback = generateSpeechRateFeedback(wordsPerMinute);
         
         // Calculate percentile compared to average speakers
-        const percentile = calculateSpeechPercentile(wordsPerMinute);
-
-        // Determine the source of the duration measurement for transparency
-        let source = "audio-metadata";
-        if (recordingDuration === actualRecordingDuration && !actualRecordingDuration) {
-            source = "timer-based";
-        } else if (recordingDuration === Math.round((Date.now() - recordingStartTime) / 1000)) {
-            source = "timestamp";
-        }
+        const percentile = calculateSpeechPercentile(wordsPerMinute);        // Note: We use durationSource parameter directly, no need for a separate source variable
         
         const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
         const avgSentenceLength = words.length / sentences.length;
@@ -644,7 +638,7 @@ export default function TryIt() {
                                     }
                                 } catch (e) {
                                     // If not valid JSON, try regex extraction
-                                    const match = /\"text\"\s*:\s*\"([^\"]*)\"/g.exec(part);
+                                    const match = /"text"\s*:\s*"([^"]*)"/g.exec(part);
                                     if (match && match[1]) {
                                         textParts.push(match[1]);
                                     }
@@ -772,42 +766,43 @@ export default function TryIt() {
             });
         }
         setIsAnalyzing(false);
-    };
-
+    };    // Modern color scheme with gradients (matching Home.js and About.js)
+    const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
+    const cardBg = "rgba(30, 41, 59, 0.8)";
+    const accentColor = "#38bdf8"; // Vibrant blue
+    const textColor = "#f8fafc";
+    const highlightColor = "#7dd3fc";
+    const secondaryAccent = "#4ade80"; // Green accent color
+    const tertiaryAccent = "#c084fc"; // Purple accent color
+    
+    const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
+    
     return (
         <Box 
             minHeight="100vh" 
-            background="linear-gradient(135deg, #000000, #ffffff)" 
-            backgroundSize="200% 200%" 
-            animation="gradientShift 8s ease-in-out infinite" 
+            bgGradient={bgGradient}
+            color={textColor}
+            fontFamily="'Inter', sans-serif"
             position="relative"
+            overflow="hidden"
         >
-            {/* Add a subtle black-and-white gradient animation */}
-            <style>
-                {`
-                @keyframes gradientShift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                `}
-            </style>
             <Container maxW="container.xl" py={10}>
                 <VStack spacing={8} align="center">
-                    <Box textAlign="center" mb={8}>
-                        <Heading 
-                            size="2xl" 
-                            bgGradient="linear(to-r, #00a6ff, #0074e4)" 
+                    <Box textAlign="center" mb={8}>                        <Heading 
+                            size={headingSize} 
+                            bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
                             bgClip="text"
+                            fontWeight="extrabold"
+                            letterSpacing="tight"
                             mb={4}
                         >
                             Speech Analyzer
                         </Heading>
-                        <Text fontSize="xl" color="#e0e0e0" maxW="800px">
+                        <Text fontSize={{ base: "lg", md: "xl" }} color={textColor} maxW="800px">
                             Enhance your speaking skills with real-time analysis. Simply record your voice
                             and get instant feedback on your speech patterns.
                         </Text>
-                        <Text fontSize="md" color="#aaaaaa" mt={2} maxW="800px" mx="auto">
+                        <Text fontSize="md" color={`${textColor}80`} mt={2} maxW="800px" mx="auto">
                             Speech rate is calculated using actual recording time for accuracy.
                         </Text>
                         {!isRecording && (
@@ -823,24 +818,29 @@ export default function TryIt() {
                                 </Badge>
                             </HStack>
                         )}
-                    </Box>
-
-                    <Box 
+                    </Box>                    <Box 
                         p={6} 
                         borderRadius="xl" 
-                        bg="rgba(255,255,255,0.05)"
+                        bg={cardBg}
                         backdropFilter="blur(10px)"
                         width="full"
                         maxW="800px"
-                        border="1px solid rgba(255,255,255,0.1)"
+                        border="1px solid rgba(255, 255, 255, 0.1)"
+                        boxShadow="0 15px 25px -5px rgba(0, 0, 0, 0.2)"
+                        transition="all 0.3s ease"
+                        _hover={{
+                            boxShadow: "0 20px 30px -5px rgba(0, 0, 0, 0.3)",
+                            transform: "translateY(-2px)"
+                        }}
+                        position="relative"
+                        overflow="hidden"
                     >
                         <VStack spacing={6}>
                             {/* Duration Selection */}
                             <HStack width="100%" spacing={4} alignItems="flex-end" justifyContent="space-between">
-                                <FormControl w="60%">
-                                    <FormLabel color="#e0e0e0">
+                                <FormControl w="60%">                                    <FormLabel color={textColor}>
                                         <HStack>
-                                            <Icon as={FaClock} color="#00a6ff" />
+                                            <Icon as={FaClock} color={accentColor} />
                                             <Text>Recording Duration</Text>
                                         </HStack>
                                     </FormLabel>
@@ -855,21 +855,19 @@ export default function TryIt() {
                                             w="120px"
                                             bg="rgba(0,0,0,0.2)"
                                             borderColor="rgba(255,255,255,0.1)"
-                                        >
-                                            <NumberInputField textColor="#e0e0e0" />
+                                        >                                            <NumberInputField textColor={textColor} />
                                             <NumberInputStepper>
-                                                <NumberIncrementStepper borderColor="rgba(255,255,255,0.1)" color="#e0e0e0" />
-                                                <NumberDecrementStepper borderColor="rgba(255,255,255,0.1)" color="#e0e0e0" />
+                                                <NumberIncrementStepper borderColor="rgba(255,255,255,0.1)" color={textColor} />
+                                                <NumberDecrementStepper borderColor="rgba(255,255,255,0.1)" color={textColor} />
                                             </NumberInputStepper>
-                                        </NumberInput>
-                                        <Select 
+                                        </NumberInput>                                        <Select 
                                             value={durationUnit} 
                                             onChange={handleDurationUnitChange}
                                             w="120px"
                                             isDisabled={isRecording}
                                             bg="rgba(0,0,0,0.2)"
                                             borderColor="rgba(255,255,255,0.1)"
-                                            textColor="#e0e0e0"
+                                            textColor={textColor}
                                         >
                                             <option value="seconds">Seconds</option>
                                             <option value="minutes">Minutes</option>
@@ -880,31 +878,36 @@ export default function TryIt() {
                                     </Text>
                                 </FormControl>
                                 
-                                <HStack spacing={4}>
-                                    <Button
+                                <HStack spacing={4}>                                    <Button
                                         size="lg"
-                                        colorScheme={isRecording ? "red" : "blue"}
+                                        bg={isRecording ? "red.500" : accentColor}
+                                        color="white"
                                         onClick={handleRecord}
                                         leftIcon={<FaMicrophone />}
                                         w="200px"
                                         h="60px"
                                         fontSize="lg"
-                                        boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
+                                        boxShadow="0 4px 10px rgba(0, 0, 0, 0.3)"
                                         _hover={{
                                             transform: 'translateY(-2px)',
-                                            boxShadow: '0 6px 8px rgba(0, 0, 0, 0.2)',
+                                            boxShadow: '0 6px 15px rgba(56, 189, 248, 0.4)',
+                                            bg: isRecording ? "red.600" : highlightColor
                                         }}
                                     >
                                         {isRecording ? `Stop (${formatDuration(timer)})` : "Start Recording"}
-                                    </Button>
-
-                                    <Button
+                                    </Button>                                    <Button
                                         onClick={handleAnalyze}
                                         isDisabled={!transcription}
                                         isLoading={isAnalyzing}
-                                        colorScheme="green"
+                                        bg={secondaryAccent}
+                                        color="white"
                                         size="lg"
                                         leftIcon={<FaChartLine />}
+                                        _hover={{
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 6px 15px rgba(74, 222, 128, 0.4)',
+                                            bg: "green.400"
+                                        }}
                                     >
                                         Analyze Speech
                                     </Button>
@@ -930,151 +933,236 @@ export default function TryIt() {
                                         </Text>
                                     </HStack>
                                 </VStack>
-                            )}
-
-                            <Box 
+                            )}                            <Box 
                                 p={6} 
                                 bg="rgba(0,0,0,0.3)" 
                                 borderRadius="lg" 
                                 width="100%"
                                 minHeight="150px"
                                 border="1px solid rgba(255,255,255,0.05)"
+                                position="relative"
+                                overflow="auto"
+                                sx={{
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                        background: 'rgba(0, 0, 0, 0.1)',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        background: `rgba(56, 189, 248, 0.5)`,
+                                        borderRadius: '4px',
+                                    },
+                                }}
                             >
-                                <Text color="#e0e0e0">
+                                <Text lineHeight="1.8" color={textColor}>
                                     {transcription || "Your transcription will appear here..."}
                                 </Text>
+                                
+                                {/* Decorative element */}
+                                <Box
+                                    position="absolute"
+                                    bottom="15px"
+                                    right="15px"
+                                    width="40px"
+                                    height="40px"
+                                    opacity="0.2"
+                                    bgGradient={`radial-gradient(circle, ${accentColor} 0%, transparent 70%)`}
+                                    zIndex="0"
+                                />
                             </Box>
                         </VStack>
                     </Box>
 
                     {analysis && (
-                        <>
-                            <SimpleGrid 
+                        <>                            <SimpleGrid 
                                 columns={{ base: 1, md: 2, lg: 3 }} 
                                 spacing={6} 
                                 width="100%"
                                 maxW="800px"
                             >
                                 <Stat
-                                    bg="rgba(255,255,255,0.05)"
+                                    bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
                                     border="1px solid rgba(255,255,255,0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
                                 >
                                     <StatLabel>Speech Rate</StatLabel>
-                                    <StatNumber color="#00a6ff">{analysis.speech_rate}</StatNumber>
+                                    <StatNumber color={accentColor}>{analysis.speech_rate}</StatNumber>
                                     <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
                                         <Badge colorScheme={analysis.rate_color}>{analysis.rate_quality}</Badge>
                                         <Text fontSize="xs">
                                             Percentile: {analysis.rate_percentile}%
                                         </Text>
                                     </StatHelpText>
-                                </Stat>
-
-                                <Stat
-                                    bg="rgba(255,255,255,0.05)"
+                                </Stat>                                <Stat
+                                    bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
                                     border="1px solid rgba(255,255,255,0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
                                 >
                                     <StatLabel>Recording Duration</StatLabel>
-                                    <StatNumber color="#00a6ff">{analysis.recording_duration}</StatNumber>
+                                    <StatNumber color={accentColor}>{analysis.recording_duration}</StatNumber>
                                     <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
                                         <Icon as={FaInfoCircle} mr={2} />
                                         <Badge size="sm" colorScheme="purple">{analysis.duration_source}</Badge>
                                     </StatHelpText>
-                                </Stat>
-
-                                <Stat
-                                    bg="rgba(255,255,255,0.05)"
+                                </Stat>                                <Stat
+                                    bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
                                     border="1px solid rgba(255,255,255,0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
                                 >
                                     <StatLabel>Vocabulary Richness</StatLabel>
-                                    <StatNumber color="#00a6ff">{analysis.vocabulary_richness}</StatNumber>
+                                    <StatNumber color={accentColor}>{analysis.vocabulary_richness}</StatNumber>
                                     <StatHelpText>
                                         <Icon as={FaInfoCircle} mr={2} />
                                         Higher is better
                                     </StatHelpText>
-                                </Stat>
-
-                                <Stat
-                                    bg="rgba(255,255,255,0.05)"
+                                </Stat>                                <Stat
+                                    bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
                                     border="1px solid rgba(255,255,255,0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
                                 >
                                     <StatLabel>Word Count</StatLabel>
-                                    <StatNumber color="#00a6ff">{analysis.total_words} words</StatNumber>
+                                    <StatNumber color={accentColor}>{analysis.total_words} words</StatNumber>
                                     <StatHelpText>
                                         <Icon as={FaInfoCircle} mr={2} />
                                         Total spoken words
                                     </StatHelpText>
-                                </Stat>
-
-                                <Stat
-                                    bg="rgba(255,255,255,0.05)"
+                                </Stat>                                <Stat
+                                    bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
                                     border="1px solid rgba(255,255,255,0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
                                 >
                                     <StatLabel>Confidence Score</StatLabel>
-                                    <StatNumber color="#00a6ff">{analysis.confidence_score}%</StatNumber>
+                                    <StatNumber color={accentColor}>{analysis.confidence_score}%</StatNumber>
                                     <StatHelpText>
                                         <Icon as={FaInfoCircle} mr={2} />
                                         Speech clarity
                                     </StatHelpText>
-                                </Stat>
-
-                                {emotion && (
+                                </Stat>                                {emotion && (
                                     <Stat
-                                        bg="rgba(255,255,255,0.05)"
+                                        bg={cardBg}
                                         p={4}
                                         borderRadius="lg"
                                         border="1px solid rgba(255,255,255,0.1)"
+                                        boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                        transition="all 0.3s ease"
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                        }}
+                                        position="relative"
+                                        overflow="hidden"
                                     >
                                         <StatLabel>Emotion</StatLabel>
-                                        <StatNumber color="#00a6ff">{emotion}</StatNumber>
+                                        <StatNumber color={accentColor}>{emotion}</StatNumber>
                                         <StatHelpText>
                                             <Icon as={FaInfoCircle} mr={2} />
                                             Score: {(emotionScore * 100).toFixed(2)}%
                                         </StatHelpText>
                                     </Stat>
                                 )}
-                                
-                                {fillerWords && (
+                                  {fillerWords && (
                                     <Stat
-                                        bg="rgba(255,255,255,0.05)"
+                                        bg={cardBg}
                                         p={4}
                                         borderRadius="lg"
                                         border="1px solid rgba(255,255,255,0.1)"
+                                        boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                        transition="all 0.3s ease"
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                        }}
+                                        position="relative"
+                                        overflow="hidden"
                                     >
                                         <StatLabel>Filler Words</StatLabel>
-                                        <StatNumber color="#00a6ff">{fillerWords.total_count}</StatNumber>
+                                        <StatNumber color={accentColor}>{fillerWords.total_count}</StatNumber>
                                         <StatHelpText>
                                             <Icon as={FaInfoCircle} mr={2} />
                                             {fillerWords.frequency_per_minute.toFixed(1)} per minute
                                         </StatHelpText>
                                     </Stat>
                                 )}
-                            </SimpleGrid>
-
-                            {/* Filler Word Analysis */}
+                            </SimpleGrid>                            {/* Filler Word Analysis */}
                             {fillerWords && fillerWords.total_count > 0 && (
                                 <Box 
                                     width="100%" 
                                     maxW="800px"
-                                    mt={4}
-                                    p={4}
-                                    bg="rgba(255,255,255,0.05)"
+                                    mt={8}
+                                    p={6}
+                                    bg={cardBg}
                                     borderRadius="xl"
                                     border="1px solid rgba(255,255,255,0.1)"
+                                    boxShadow="0 15px 25px -5px rgba(0, 0, 0, 0.2)"
+                                    backdropFilter="blur(16px)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        boxShadow: "0 20px 30px -5px rgba(0, 0, 0, 0.3)",
+                                        transform: "translateY(-2px)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
                                 >
+                                    {/* Background accent */}
+                                    <Box 
+                                        position="absolute" 
+                                        top="0" 
+                                        right="0" 
+                                        width="200px" 
+                                        height="200px" 
+                                        opacity="0.1" 
+                                        bgGradient={`radial-gradient(circle, ${tertiaryAccent} 0%, transparent 70%)`}
+                                        zIndex="0"
+                                    />
+                                
                                     <HStack alignItems="center" mb={3}>
-                                        <Icon as={FaInfoCircle} color="#00a6ff" boxSize={5} />
-                                        <Text fontWeight="bold" color="#e0e0e0">Filler Word Analysis</Text>
-                                        <Tooltip 
+                                        <Icon as={FaInfoCircle} color={accentColor} boxSize={5} />
+                                        <Text fontWeight="bold" color={textColor}>Filler Word Analysis</Text>                                        <Tooltip 
                                             hasArrow
                                             label="Filler words are sounds, words, or phrases that don't add meaning to your speech but fill pauses. Common examples include 'um', 'uh', 'like', and 'you know'."
                                             bg="gray.700"
@@ -1082,14 +1170,14 @@ export default function TryIt() {
                                             placement="top"
                                             p={3}
                                         >
-                                            <Icon as={FaQuestionCircle} color="#aaaaaa" cursor="pointer" ml={2} />
+                                            <Icon as={FaQuestionCircle} color={`${textColor}80`} cursor="pointer" ml={2} />
                                         </Tooltip>
                                     </HStack>
 
                                     {/* Filler Word Categories */}
                                     {Object.keys(fillerWords.categories).length > 0 && (
                                         <Box mb={4}>
-                                            <Text color="#e0e0e0" fontSize="sm" mb={2}>Filler Word Categories:</Text>
+                                            <Text color={textColor} fontSize="sm" mb={2}>Filler Word Categories:</Text>
                                             <HStack flexWrap="wrap" spacing={2}>
                                                 {Object.entries(fillerWords.categories).map(([category, count]) => (
                                                     <Badge 
@@ -1109,22 +1197,33 @@ export default function TryIt() {
                                                 ))}
                                             </HStack>
                                         </Box>
-                                    )}
-
-                                    {/* Filler Word Instances */}
+                                    )}                                    {/* Filler Word Instances */}
                                     {fillerWords.instances.length > 0 && (
                                         <Box>
-                                            <Text color="#e0e0e0" fontSize="sm" mb={2}>Examples:</Text>
-                                            <VStack align="start" spacing={2} maxHeight="200px" overflowY="auto" p={2}>
+                                            <Text color={textColor} fontSize="sm" mb={2}>Examples:</Text>
+                                            <VStack align="start" spacing={2} maxHeight="200px" overflowY="auto" p={2}
+                                                sx={{
+                                                    '&::-webkit-scrollbar': {
+                                                        width: '6px',
+                                                        background: 'rgba(0, 0, 0, 0.1)',
+                                                        borderRadius: '4px',
+                                                    },
+                                                    '&::-webkit-scrollbar-thumb': {
+                                                        background: `rgba(56, 189, 248, 0.5)`,
+                                                        borderRadius: '4px',
+                                                    },
+                                                }}
+                                            >
                                                 {fillerWords.instances.slice(0, 5).map((instance, index) => (
                                                     <Box 
                                                         key={index}
-                                                        p={2}
+                                                        p={3}
                                                         borderRadius="md"
                                                         bg="rgba(0,0,0,0.2)"
                                                         width="100%"
+                                                        border="1px solid rgba(255,255,255,0.05)"
                                                     >
-                                                        <Text fontSize="sm" color="#e0e0e0">
+                                                        <Text fontSize="sm" color={textColor}>
                                                             "...{instance.context}..."
                                                         </Text>
                                                         <Badge 
@@ -1142,43 +1241,61 @@ export default function TryIt() {
                                                     </Box>
                                                 ))}
                                             </VStack>
-                                            
-                                            {/* Tips for improvement */}
-                                            <Box mt={4} p={3} bg="rgba(0,166,255,0.1)" borderRadius="md">
-                                                <Text color="#e0e0e0" fontSize="sm" fontWeight="bold">
+                                              {/* Tips for improvement */}
+                                            <Box mt={4} p={4} bg={`rgba(56, 189, 248, 0.1)`} borderRadius="md" borderLeft={`3px solid ${accentColor}`}>
+                                                <Text color={textColor} fontSize="sm" fontWeight="bold">
                                                     Tips to reduce filler words:
                                                 </Text>
-                                                <Text color="#e0e0e0" fontSize="sm" mt={2}>
+                                                <Text color={textColor} fontSize="sm" mt={2}>
                                                     • Practice pausing instead of using fillers
                                                 </Text>
-                                                <Text color="#e0e0e0" fontSize="sm">
+                                                <Text color={textColor} fontSize="sm">
                                                     • Record yourself to become aware of your patterns
                                                 </Text>
-                                                <Text color="#e0e0e0" fontSize="sm">
+                                                <Text color={textColor} fontSize="sm">
                                                     • Slow down your speech slightly
                                                 </Text>
-                                                <Text color="#e0e0e0" fontSize="sm">
+                                                <Text color={textColor} fontSize="sm">
                                                     • Prepare key points before speaking
                                                 </Text>
                                             </Box>
                                         </Box>
                                     )}
                                 </Box>
-                            )}
-
-                            {/* Speech Rate Feedback */}
+                            )}                            {/* Speech Rate Feedback */}
                             <Box 
                                 width="100%" 
                                 maxW="800px"
-                                mt={4}
-                                p={4}
-                                bg="rgba(255,255,255,0.05)"
+                                mt={8}
+                                p={6}
+                                bg={cardBg}
                                 borderRadius="xl"
                                 border="1px solid rgba(255,255,255,0.1)"
+                                boxShadow="0 15px 25px -5px rgba(0, 0, 0, 0.2)"
+                                backdropFilter="blur(16px)"
+                                transition="all 0.3s ease"
+                                _hover={{
+                                    boxShadow: "0 20px 30px -5px rgba(0, 0, 0, 0.3)",
+                                    transform: "translateY(-2px)"
+                                }}
+                                position="relative"
+                                overflow="hidden"
                             >
-                                <HStack alignItems="center" mb={2}>
-                                    <Icon as={FaInfoCircle} color="#00a6ff" boxSize={5} />
-                                    <Text fontWeight="bold" color="#e0e0e0">Speech Rate Analysis</Text>
+                                {/* Background accent */}
+                                <Box 
+                                    position="absolute" 
+                                    top="0" 
+                                    left="0" 
+                                    width="200px" 
+                                    height="200px" 
+                                    opacity="0.1" 
+                                    bgGradient={`radial-gradient(circle, ${secondaryAccent} 0%, transparent 70%)`}
+                                    zIndex="0"
+                                />
+                                
+                                <HStack alignItems="center" mb={4}>
+                                    <Icon as={FaInfoCircle} color={accentColor} boxSize={5} />
+                                    <Text fontWeight="bold" color={textColor}>Speech Rate Analysis</Text>
                                     <Tooltip 
                                         hasArrow
                                         label="Speech rate is calculated by dividing total spoken words by the actual recording duration in minutes. The accuracy depends on the duration measurement method used."
@@ -1187,104 +1304,159 @@ export default function TryIt() {
                                         placement="top"
                                         p={3}
                                     >
-                                        <Icon as={FaQuestionCircle} color="#aaaaaa" cursor="pointer" ml={2} />
+                                        <Icon as={FaQuestionCircle} color={`${textColor}80`} cursor="pointer" ml={2} />
                                     </Tooltip>
                                 </HStack>
-                                
-                                {/* Speech Rate Gauge */}
-                                <Box my={3}>
-                                    <Text color="#e0e0e0" fontSize="sm" mb={1}>Speech Rate Range:</Text>
-                                    <HStack width="100%" height="30px" position="relative" mb={3}>
+                                  {/* Speech Rate Gauge */}
+                                <Box my={4}>
+                                    <Text color={textColor} fontSize="sm" mb={2}>Speech Rate Range:</Text>
+                                    <HStack width="100%" height="35px" position="relative" mb={3}>
                                         {/* Gauge Background */}
-                                        <Box flex={1} height="100%" bg="rgba(0,0,0,0.3)" borderRadius="full" position="relative" overflow="hidden">
+                                        <Box flex={1} height="100%" bg="rgba(0,0,0,0.3)" borderRadius="full" position="relative" overflow="hidden" borderWidth="1px" borderColor="rgba(255,255,255,0.05)">
                                             {/* Rate Range Zones */}
                                             <HStack height="100%" width="100%" spacing={0}>
-                                                <Box width="25%" bg="yellow.500" opacity={0.6} height="100%" />
-                                                <Box width="25%" bg="green.500" opacity={0.6} height="100%" />
-                                                <Box width="25%" bg="blue.500" opacity={0.6} height="100%" />
-                                                <Box width="25%" bg="red.500" opacity={0.6} height="100%" />
+                                                <Box width="25%" bg={`${highlightColor}50`} height="100%" />
+                                                <Box width="25%" bg={`${secondaryAccent}50`} height="100%" />
+                                                <Box width="25%" bg={`${accentColor}50`} height="100%" />
+                                                <Box width="25%" bg={`${tertiaryAccent}50`} height="100%" />
                                             </HStack>
-                                            
-                                            {/* Position Indicator */}
-                                            <Box 
+                                              {/* Position Indicator */}
+                                            <Flex
                                                 position="absolute" 
                                                 left={`${Math.min(Math.max(analysis.raw_rate / 2.5, 0), 100)}%`} 
                                                 top="0" 
                                                 height="100%" 
-                                                width="4px" 
-                                                bg="white" 
-                                                transform="translateX(-50%)"
-                                                borderRadius="full"
-                                            />
+                                                width="4px"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                            >
+                                                <Box 
+                                                    width="6px" 
+                                                    height="110%" 
+                                                    bgGradient={`linear-gradient(to bottom, ${accentColor}, ${tertiaryAccent})`}
+                                                    borderRadius="full"
+                                                    boxShadow={`0 0 10px ${accentColor}80`}
+                                                />
+                                            </Flex>
                                         </Box>
                                     </HStack>
                                     
                                     {/* Legend */}
                                     <HStack justifyContent="space-between" width="100%" px={1}>
-                                        <Text fontSize="xs" color="#e0e0e0">0</Text>
-                                        <Text fontSize="xs" color="#e0e0e0">100</Text>
-                                        <Text fontSize="xs" color="#e0e0e0">150</Text>
-                                        <Text fontSize="xs" color="#e0e0e0">200</Text>
-                                        <Text fontSize="xs" color="#e0e0e0">250</Text>
+                                        <Text fontSize="xs" color={`${textColor}80`}>0</Text>
+                                        <Text fontSize="xs" color={`${textColor}80`}>100</Text>
+                                        <Text fontSize="xs" color={`${textColor}80`}>150</Text>
+                                        <Text fontSize="xs" color={`${textColor}80`}>200</Text>
+                                        <Text fontSize="xs" color={`${textColor}80`}>250</Text>
                                     </HStack>
                                 </Box>
                                 
-                                <Text color="#e0e0e0">{analysis.rate_feedback}</Text>
-                                
-                                {/* Show calculation details */}
-                                <Box mt={3} p={2} bg="rgba(0,0,0,0.2)" borderRadius="md">
-                                    <Text fontSize="sm" color="#e0e0e0" fontFamily="monospace">
+                                <Text color={textColor} lineHeight="1.7">{analysis.rate_feedback}</Text>
+                                  {/* Show calculation details */}
+                                <Box mt={4} p={3} bg="rgba(0,0,0,0.2)" borderRadius="md" border="1px solid rgba(255,255,255,0.05)">
+                                    <Text fontSize="sm" color={`${textColor}80`} fontFamily="monospace">
                                         Formula: {analysis.total_words} words ÷ {(analysis.duration_seconds / 60).toFixed(2)} minutes = {analysis.raw_rate} WPM
                                     </Text>
                                 </Box>
                                 
                                 {/* Show accuracy note about duration measurement */}
-                                <Text fontSize="xs" color="#aaaaaa" mt={2}>
-                                    Note: Speech rate calculated using {
-                                        analysis.duration_source === "audio-decoded" 
-                                            ? "audio waveform decoding (highest accuracy)" 
-                                            : analysis.duration_source === "audio-metadata" 
-                                                ? "audio file metadata (high accuracy)" 
-                                                : analysis.duration_source === "timestamp" 
-                                                    ? "recording timestamps (medium accuracy)"
-                                                    : "timer estimation (lower accuracy)"
-                                    }
-                                </Text>
+                                <Flex align="center" mt={3}>
+                                    <Icon as={FaInfoCircle} color={`${textColor}60`} mr={2} fontSize="xs" />
+                                    <Text fontSize="xs" color={`${textColor}80`}>
+                                        Note: Speech rate calculated using {
+                                            analysis.duration_source === "audio-decoded" 
+                                                ? "audio waveform decoding (highest accuracy)" 
+                                                : analysis.duration_source === "audio-metadata" 
+                                                    ? "audio file metadata (high accuracy)" 
+                                                    : analysis.duration_source === "timestamp" 
+                                                        ? "recording timestamps (medium accuracy)"
+                                                        : "timer estimation (lower accuracy)"
+                                        }
+                                    </Text>
+                                </Flex>
                             </Box>
                         </>
-                    )}
-
-                    {recordingHistory.length > 0 && (
+                    )}                    {recordingHistory.length > 0 && (
                         <Box 
                             width="100%" 
                             maxW="800px"
-                            mt={8}
+                            mt={10}
                             p={6}
-                            bg="rgba(255,255,255,0.05)"
+                            bg={cardBg}
                             borderRadius="xl"
                             border="1px solid rgba(255,255,255,0.1)"
-                            maxHeight="600px" // Set a maximum height
-                            overflowY="auto" // Enable vertical scrolling
+                            boxShadow="0 15px 25px -5px rgba(0, 0, 0, 0.2)"
+                            maxHeight="600px"
+                            overflowY="auto"
+                            sx={{
+                                '&::-webkit-scrollbar': {
+                                    width: '8px',
+                                    background: 'rgba(0, 0, 0, 0.1)',
+                                    borderRadius: '4px',
+                                },
+                                '&::-webkit-scrollbar-thumb': {
+                                    background: `rgba(56, 189, 248, 0.5)`,
+                                    borderRadius: '4px',
+                                },
+                            }}
+                            position="relative"
                         >
-                            <Heading size="md" mb={4}>Recording History</Heading>
+                            {/* Background accent */}
+                            <Box 
+                                position="absolute" 
+                                bottom="0" 
+                                right="0" 
+                                width="200px" 
+                                height="200px" 
+                                opacity="0.05" 
+                                bgGradient={`radial-gradient(circle, ${highlightColor} 0%, transparent 70%)`}
+                                zIndex="0"
+                            />
+                            
+                            <Heading 
+                                size="md" 
+                                mb={5} 
+                                bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                                bgClip="text"
+                                display="inline-block"
+                            >
+                                Recording History
+                            </Heading>
                             <VStack spacing={4} align="stretch">
                                 {recordingHistory.slice(-3).map((record, index) => (
                                     <Box 
                                         key={index}
-                                        p={4}
-                                        bg="rgba(0,0,0,0.3)"
+                                        p={5}
+                                        bg="rgba(0,0,0,0.2)"
                                         borderRadius="lg"
                                         border="1px solid rgba(255,255,255,0.05)"
+                                        transition="all 0.3s ease"
+                                        _hover={{
+                                            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                                            transform: "translateY(-2px)",
+                                            borderColor: `rgba(${accentColor.replace('#', '')}, 0.3)`
+                                        }}
                                     >
-                                        <Text fontSize="sm" color="#888" mb={2}>
+                                        <Text fontSize="sm" color={`${textColor}60`} mb={2}>
                                             {record.timestamp.toLocaleTimeString()} | Duration: {formatDuration(record.duration || 180)}
                                         </Text>
-                                        <Text noOfLines={2} mb={2}>{record.transcription}</Text>
-                                        <HStack spacing={4}>
-                                            <Badge colorScheme={record.analysis.rate_color || "blue"}>
+                                        <Text noOfLines={2} mb={3} color={textColor}>{record.transcription}</Text>                                        <HStack spacing={4}>
+                                            <Badge 
+                                                colorScheme={record.analysis.rate_color || "blue"}
+                                                px={3}
+                                                py={1}
+                                                borderRadius="md"
+                                            >
                                                 {record.analysis.speech_rate}
                                             </Badge>
-                                            <Badge colorScheme="green">
+                                            <Badge 
+                                                bg={`${secondaryAccent}30`}
+                                                color={secondaryAccent}
+                                                px={3}
+                                                py={1}
+                                                borderRadius="md"
+                                                border={`1px solid ${secondaryAccent}50`}
+                                            >
                                                 Score: {record.analysis.confidence_score}%
                                             </Badge>
                                         </HStack>
