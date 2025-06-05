@@ -2,7 +2,7 @@
     "name": "my-react-app",
     "version": "1.0.0",
     "private": true,
-    "homepage": "https://Alricfv.github.io/ProCommReact",
+    "homepage": "https://alricfv.github.io/ProCommReact",
     "dependencies": {
         "@chakra-ui/react": "^2.0.0",
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

@@ -9,7 +9,7 @@ scipy==1.11.3
 ffmpeg-python==0.2.0
 numpy==1.26.0
 transformers==4.34.0
-torch==2.1.0
+torch==2.2.0
 openai-whisper==20231117  # Local Whisper model for speech recognition and filler word detection
 
 # HTTP and data handling

@@ -597,9 +597,14 @@ export default function TryIt() {
                     formData.append('duration', recordingDuration.toString());
 
                     // Use environment variable for API URL
-                    const API_BASE_URL = process.env.REACT_APP_API_URL //|| 'http://127.0.0.1:5000';
-                    const API_URL = `${API_BASE_URL}/transcribe`;
+                    const API_BASE_URL = process.env.REACT_APP_API_URL;
+                    console.log('Environment API URL:', process.env.REACT_APP_API_URL);
                     
+                    if (!API_BASE_URL) {
+                        throw new Error('API URL not found in environment variables. Please check your .env file.');
+                    }
+                    
+                    const API_URL = `${API_BASE_URL}/transcribe`;
                     console.log('Using API endpoint:', API_URL);
                         
                     const response = await fetch(API_URL, {
