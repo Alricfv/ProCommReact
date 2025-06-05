@@ -400,7 +400,7 @@ export default function Home() {
                             </Heading>
                             <Text fontSize={{base: "md", md: "lg"}} maxW="700px" mx="auto">
                                 Join thousands of users who trust ProComm to improve their speaking confidence and effectiveness.
-                                Start your journey to better communication today!
+                                Start your journey to better communication today!!
                             </Text>
                             <Link to="/try-it">
                                 <Button
