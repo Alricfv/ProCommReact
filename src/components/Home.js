@@ -156,6 +156,7 @@ export default function Home() {
                             <Button
                                 size="lg"
                                 fontWeight="bold"
+                                marginTop={5}
                                 px={8}
                                 py={6}
                                 bg={secondaryAccent}

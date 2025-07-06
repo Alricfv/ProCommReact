@@ -28,6 +28,7 @@
         "predeploy": "npm run build",
         "deploy": "gh-pages -d build"
     },
+    "proxy": "https://40.76.138.219.nip.io",
     "eslintConfig": {
         "extends": [
             "react-app",
