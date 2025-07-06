@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Stat, StatLabel, StatNumber, StatHelpText, 
     NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, FormControl, FormLabel, Select,
     Tooltip, useBreakpointValue, Flex, Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton,
-    Tabs, TabList, TabPanels, Tab, TabPanel, useDisclosure, IconButton, Divider, Alert, AlertIcon } from '@chakra-ui/react';
+    Tabs, TabList, TabPanels, Tab, TabPanel, useDisclosure, IconButton, Divider, Alert, AlertIcon, Switch, Slider, SliderTrack,
+    SliderFilledTrack, SliderThumb } from '@chakra-ui/react';
 import { FaMicrophone, FaInfoCircle, FaChartLine, FaClock, FaQuestionCircle, FaBars, FaCog, FaUser, FaHome, FaSave, FaHistory, 
     FaTrash, FaDownload, FaUpload, FaDatabase } from 'react-icons/fa';
 
@@ -57,8 +58,20 @@ const storageUtils = {
             // Ensure we don't exceed the maximum number of items
             const limitedRecordings = recordings.slice(-MAX_STORAGE_ITEMS);
             
+            // Process recordings for storage - we can't store Blob objects in localStorage
+            const processedRecordings = limitedRecordings.map(recording => {
+                const { audioBlob, audioUrl, ...rest } = recording;
+                
+                // We'll only save metadata without the actual audio blob
+                // as localStorage has limited space
+                return {
+                    ...rest,
+                    hasAudio: !!audioBlob,  // Flag to indicate this recording had audio
+                };
+            });
+            
             // Convert Date objects to strings for storage
-            const serializedRecordings = JSON.stringify(limitedRecordings, (key, value) => {
+            const serializedRecordings = JSON.stringify(processedRecordings, (key, value) => {
                 if (key === 'timestamp' && value instanceof Date) {
                     return { __type: 'Date', value: value.toISOString() };
                 }
@@ -176,6 +189,13 @@ export default function TryIt() {
     const [storageUsage, setStorageUsage] = useState(0); // Storage usage in KB
     const [storagePercentage, setStoragePercentage] = useState(0); // Storage usage percentage
     const [isLocalStorageAvailable, setIsLocalStorageAvailable] = useState(true); // Whether localStorage is available
+    const [currentAudioBlob, setCurrentAudioBlob] = useState(null); // Store the current recording blob
+    const [currentAudioUrl, setCurrentAudioUrl] = useState(''); // URL for the current recording
+    // Voice Activity Detection states
+    const [isVoiceDetected, setIsVoiceDetected] = useState(false);
+    const [vadThreshold, setVadThreshold] = useState(15); // Adjustable threshold (5-30)
+    const [silenceThreshold, setSilenceThreshold] = useState(2000); // 2 seconds of silence to auto-stop
+    const [enableVAD, setEnableVAD] = useState(true); // Toggle VAD functionality
     const toast = useToast();
     
     // Side menu state
@@ -185,7 +205,16 @@ export default function TryIt() {
 
     const mediaRecorderRef = useRef(null);
     const chunksRef = useRef([]);
+    // VAD refs
+    const analyserRef = useRef(null);
+    const audioContextRef = useRef(null);
+    const vadAnimationRef = useRef(null);
+    const silenceTimerRef = useRef(null);
+    const voiceActivityTimeRef = useRef(null); // Track when voice was last detected
+    const totalSilenceDurationRef = useRef(0); // Total silence duration
+    const totalVoiceDurationRef = useRef(0); // Total voice activity duration
 
+    // Cleanup effect for MediaRecorder and VAD when component unmounts
     useEffect(() => {
         return () => {
             // Clean up MediaRecorder on component unmount
@@ -195,6 +224,10 @@ export default function TryIt() {
                         mediaRecorderRef.current.stop();
                     }
                     // Release any media stream tracks
+                    
+                    // Also stop voice activity detection
+                    stopVoiceDetection();
+                
                     const tracks = mediaRecorderRef.current.stream?.getTracks();
                     if (tracks && tracks.length) {
                         tracks.forEach(track => track.stop());
@@ -203,11 +236,254 @@ export default function TryIt() {
                     console.error("Error cleaning up MediaRecorder:", error);
                 }
             }
+            
+            // Clean up VAD resources
+            cleanupVAD();
+            
             // Reset recording state
             setIsRecording(false);
         };
     }, []);
 
+    // Utility function to create an object URL from a blob
+    const createAudioUrl = (blob) => {
+        // Revoke previous URL to prevent memory leaks
+        if (currentAudioUrl) {
+            URL.revokeObjectURL(currentAudioUrl);
+        }
+        return blob ? URL.createObjectURL(blob) : '';
+    };
+    
+    // Function to download audio as MP3
+    const downloadAudioAsMp3 = (blob, filename = 'recording.mp3') => {
+        // If the blob is already MP3, download directly
+        if (blob.type === 'audio/mp3') {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            return;
+        }
+        
+        // If it's webm or other format, create an audio element to convert
+        const audioElement = new Audio();
+        const audioUrl = URL.createObjectURL(blob);
+        audioElement.src = audioUrl;
+        
+        // Create an audio context and connect nodes for conversion
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+        const destination = audioContext.createMediaStreamDestination();
+        const source = audioContext.createMediaElementSource(audioElement);
+        source.connect(destination);
+        
+        // Also connect to audio output for monitoring
+        source.connect(audioContext.destination);
+        
+        // Record the output stream
+        const recorder = new MediaRecorder(destination.stream, { mimeType: 'audio/webm' });
+        const chunks = [];
+        
+        recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) {
+                chunks.push(e.data);
+            }
+        };
+        
+        recorder.onstop = () => {
+            const mpBlob = new Blob(chunks, { type: 'audio/mp3' });
+            const url = URL.createObjectURL(mpBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            URL.revokeObjectURL(audioUrl);
+        };
+        
+        // Start recording and playback
+        recorder.start();
+        audioElement.play();
+        
+        audioElement.onended = () => {
+            recorder.stop();
+            audioContext.close();
+        };
+    };
+    
+    // Voice Activity Detection functions
+    
+    // Reset silence timer - call this whenever voice is detected
+    const resetSilenceTimer = () => {
+        // Clear any existing timer
+        if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+        }
+        
+        // Only set a new timer if we're recording and VAD is enabled
+        if (isRecording && enableVAD && silenceThreshold > 0) {
+            silenceTimerRef.current = setTimeout(() => {
+                if (isRecording && mediaRecorderRef.current?.state === 'recording') {
+                    console.log("Auto-stopping recording due to silence");
+                    handleRecord(); // Stop the recording
+                    
+                    toast({
+                        title: "Recording stopped",
+                        description: "Extended silence detected",
+                        status: "info",
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                }
+            }, silenceThreshold);
+        }
+    };
+    
+    // Detect voice activity from audio data
+    const detectVoiceActivity = () => {
+        if (!analyserRef.current || !enableVAD) return false;
+        
+        const bufferLength = analyserRef.current.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserRef.current.getByteFrequencyData(dataArray);
+        
+        // Calculate average volume level
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+            sum += dataArray[i];
+        }
+        const average = sum / bufferLength;
+        
+        // Detect if the current volume is above threshold
+        const voiceDetected = average > vadThreshold;
+        
+        if (voiceDetected !== isVoiceDetected) {
+            setIsVoiceDetected(voiceDetected);
+            
+            // Track voice/silence durations
+            const now = Date.now();
+            if (voiceActivityTimeRef.current) {
+                const elapsedTime = now - voiceActivityTimeRef.current;
+                
+                if (voiceDetected) {
+                    // We were silent, now detecting voice
+                    totalSilenceDurationRef.current += elapsedTime;
+                } else {
+                    // We had voice, now silent
+                    totalVoiceDurationRef.current += elapsedTime;
+                }
+            }
+            voiceActivityTimeRef.current = now;
+        }
+        
+        // Handle silence detection for auto-stop
+        if (voiceDetected) {
+            resetSilenceTimer();
+        }
+        
+        return voiceDetected;
+    };
+    
+    // Start VAD detection loop
+    const startVoiceDetection = () => {
+        // Reset tracking variables
+        voiceActivityTimeRef.current = Date.now();
+        totalSilenceDurationRef.current = 0;
+        totalVoiceDurationRef.current = 0;
+        
+        const detectLoop = () => {
+            detectVoiceActivity();
+            vadAnimationRef.current = requestAnimationFrame(detectLoop);
+        };
+        detectLoop();
+    };
+    
+    // Stop VAD detection
+    const stopVoiceDetection = () => {
+        if (vadAnimationRef.current) {
+            cancelAnimationFrame(vadAnimationRef.current);
+            vadAnimationRef.current = null;
+        }
+        
+        if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+        }
+        
+        // Clean up audio context if needed
+        if (audioContextRef.current) {
+            try {
+                audioContextRef.current.close();
+            } catch (err) {
+                console.warn("Error closing audio context:", err);
+            }
+            audioContextRef.current = null;
+        }
+        
+        analyserRef.current = null;
+        setIsVoiceDetected(false);
+    };
+    
+    // Complete cleanup of VAD resources
+    const cleanupVAD = () => {
+        // Stop the VAD animation frame loop
+        if (vadAnimationRef.current) {
+            cancelAnimationFrame(vadAnimationRef.current);
+            vadAnimationRef.current = null;
+        }
+        
+        // Clear any silence timers
+        if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+        }
+        
+        // Close audio context
+        if (audioContextRef.current) {
+            try {
+                audioContextRef.current.close();
+            } catch (err) {
+                console.warn("Error closing audio context:", err);
+            }
+            audioContextRef.current = null;
+        }
+        
+        // Reset refs
+        analyserRef.current = null;
+        voiceActivityTimeRef.current = null;
+        totalSilenceDurationRef.current = 0;
+        totalVoiceDurationRef.current = 0;
+        
+        // Reset state
+        setIsVoiceDetected(false);
+    };
+    
+    // Get speech metrics that take into account actual voice activity
+    const getVoiceActivityMetrics = () => {
+        if (!voiceActivityTimeRef.current) return null;
+        
+        const voiceDuration = totalVoiceDurationRef.current / 1000; // convert to seconds
+        const silenceDuration = totalSilenceDurationRef.current / 1000; // convert to seconds
+        const totalDuration = voiceDuration + silenceDuration;
+        
+        if (totalDuration <= 0) return null;
+        
+        return {
+            voiceDuration,
+            silenceDuration,
+            totalDuration,
+            voicePercentage: (voiceDuration / totalDuration) * 100,
+            silencePercentage: (silenceDuration / totalDuration) * 100,
+        };
+    };
+    
     // Check localStorage availability and load initial data
     useEffect(() => {
         // Check if localStorage is available
@@ -810,6 +1086,17 @@ export default function TryIt() {
         const vocabularyRichness = ((uniqueWords / words.length) * 100).toFixed(1);
         const adjustedRichness = Math.min(parseFloat(vocabularyRichness), 100); // Cap richness at 100%
         
+        // Get voice activity metrics if available
+        const vadMetrics = getVoiceActivityMetrics();
+        
+        // Calculate effective speech rate based on voice activity if available
+        let effectiveWordsPerMinute = wordsPerMinute;
+        if (vadMetrics && vadMetrics.voiceDuration > 0) {
+            // Recalculate words per minute using only active speech time
+            effectiveWordsPerMinute = Math.round(words.length / (vadMetrics.voiceDuration / 60));
+            console.log(`Adjusted speech rate: ${words.length} words / ${vadMetrics.voiceDuration}s = ${effectiveWordsPerMinute} WPM`);
+        }
+        
         return {
             rate_feedback: rateFeedback, // Add detailed speech rate feedback
             rate_percentile: percentile, // Add percentile compared to average speakers
@@ -821,6 +1108,9 @@ export default function TryIt() {
             recording_duration: `${formatDuration(recordingDuration)}`, // Include the recording duration
             duration_seconds: recordingDuration, // Raw seconds for calculations
             duration_source: durationSource, // Add the source of duration measurement
+            // Voice activity detection metrics
+            vad_metrics: vadMetrics,
+            effective_wpm: effectiveWordsPerMinute, // Speech rate adjusted for actual speaking time
             // Calculate a deterministic confidence score based on multiple quality factors
             confidence_score: calculateConfidenceScore(
                 text,                   // Transcribed text
@@ -862,6 +1152,9 @@ export default function TryIt() {
             // Reset recording start time
             setRecordingStartTime(null);
             
+            // Stop voice activity detection
+            stopVoiceDetection();
+            
             toast({
                 title: "Recording Stopped",
                 description: "Your recording has been stopped manually.",
@@ -898,6 +1191,38 @@ export default function TryIt() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             chunksRef.current = [];
+            
+            // Set up Voice Activity Detection if enabled
+            if (enableVAD) {
+                try {
+                    // Clean up any previous instances
+                    stopVoiceDetection();
+                    
+                    // Create audio context and analyzer
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioContextRef.current = new AudioContext();
+                    const source = audioContextRef.current.createMediaStreamSource(stream);
+                    analyserRef.current = audioContextRef.current.createAnalyser();
+                    
+                    // Configure analyzer
+                    analyserRef.current.fftSize = 256;
+                    analyserRef.current.minDecibels = -90;
+                    analyserRef.current.maxDecibels = -10;
+                    analyserRef.current.smoothingTimeConstant = 0.85;
+                    
+                    // Connect source to analyzer but not to destination (to avoid echo)
+                    source.connect(analyserRef.current);
+                    
+                    // Start VAD detection loop
+                    startVoiceDetection();
+                    
+                    console.log("Voice Activity Detection enabled");
+                } catch (vadError) {
+                    console.error("Failed to set up Voice Activity Detection:", vadError);
+                    // Continue with recording even if VAD setup fails
+                }
+            }
+            
             const mimeType = 'audio/webm';
             if (!MediaRecorder.isTypeSupported(mimeType)) {
                 console.warn(`${mimeType} is not supported, falling back to default`);
@@ -939,6 +1264,13 @@ export default function TryIt() {
                     });
                     return;
                 }
+                
+                // Store the audio blob for playback and download
+                setCurrentAudioBlob(audioBlob);
+                
+                // Create a URL for the audio blob for playback
+                const audioUrl = createAudioUrl(audioBlob);
+                setCurrentAudioUrl(audioUrl);
                 
                 // Calculate recording duration using multiple methods in order of accuracy:
                 // 1. AudioContext decoding (most accurate)
@@ -1152,7 +1484,9 @@ export default function TryIt() {
                     transcription, 
                     analysis: results, 
                     timestamp: new Date(),
-                    duration: recordingDuration
+                    duration: recordingDuration,
+                    audioBlob: currentAudioBlob,
+                    audioUrl: createAudioUrl(currentAudioBlob)
                 }
             ]);
             
@@ -1392,7 +1726,7 @@ export default function TryIt() {
                             </HStack>
                         </FormControl>
                         
-                        <FormControl>
+                        <FormControl mb={5}>
                             <FormLabel color={textColor}>Audio Quality</FormLabel>
                             <Select 
                                 defaultValue="high"
@@ -1405,6 +1739,75 @@ export default function TryIt() {
                                 <option value="high">High (128kbps)</option>
                             </Select>
                         </FormControl>
+                        
+                        <FormControl mb={5}>
+                            <FormLabel color={textColor} display="flex" alignItems="center">
+                                Voice Activity Detection
+                                <Tooltip 
+                                    label="Automatically detects when you're speaking and can stop recording after silence" 
+                                    placement="top"
+                                    hasArrow
+                                >
+                                    <Icon as={FaInfoCircle} ml={1} fontSize="xs" color={`${textColor}60`} />
+                                </Tooltip>
+                            </FormLabel>
+                            <Switch 
+                                isChecked={enableVAD} 
+                                onChange={(e) => setEnableVAD(e.target.checked)}
+                                colorScheme="blue"
+                            />
+                            <Text fontSize="xs" color={`${textColor}60`} mt={1}>
+                                Enhances speech analysis by detecting actual speaking time
+                            </Text>
+                        </FormControl>
+                        
+                        {enableVAD && (
+                            <>
+                                <FormControl mb={5}>
+                                    <FormLabel color={textColor}>Voice Detection Sensitivity</FormLabel>
+                                    <HStack>
+                                        <Text fontSize="sm" color={`${textColor}80`}>Low</Text>
+                                        <Slider
+                                            value={vadThreshold}
+                                            min={5}
+                                            max={30}
+                                            step={1}
+                                            onChange={(val) => setVadThreshold(val)}
+                                            flex="1"
+                                        >
+                                            <SliderTrack bg="rgba(0,0,0,0.3)">
+                                                <SliderFilledTrack bg={accentColor} />
+                                            </SliderTrack>
+                                            <SliderThumb boxSize={4} bg={accentColor} />
+                                        </Slider>
+                                        <Text fontSize="sm" color={`${textColor}80`}>High</Text>
+                                    </HStack>
+                                    <Text fontSize="xs" color={`${textColor}60`} mt={1}>
+                                        Adjust if voice detection is too sensitive or not sensitive enough
+                                    </Text>
+                                </FormControl>
+                                
+                                <FormControl>
+                                    <FormLabel color={textColor}>Auto-Stop After Silence</FormLabel>
+                                    <Select 
+                                        value={silenceThreshold}
+                                        onChange={(e) => setSilenceThreshold(Number(e.target.value))}
+                                        bg="rgba(0,0,0,0.2)"
+                                        borderColor="rgba(255,255,255,0.1)"
+                                        color={textColor}
+                                    >
+                                        <option value={1000}>1 second</option>
+                                        <option value={2000}>2 seconds</option>
+                                        <option value={3000}>3 seconds</option>
+                                        <option value={5000}>5 seconds</option>
+                                        <option value={0}>Disabled</option>
+                                    </Select>
+                                    <Text fontSize="xs" color={`${textColor}60`} mt={1}>
+                                        Automatically stops recording after extended silence
+                                    </Text>
+                                </FormControl>
+                            </>
+                        )}
                     </Box>
                     
                     <Box 
@@ -1726,9 +2129,9 @@ export default function TryIt() {
                     <>
                         <Box 
                             p={4} 
+                            borderRadius="lg" 
                             bg="rgba(0,0,0,0.2)"
-                            borderRadius="lg"
-                            width="100%"
+                            border="1px solid rgba(255,255,255,0.05)"
                         >
                             <Flex 
                                 justifyContent="space-between" 
@@ -1888,7 +2291,7 @@ export default function TryIt() {
                                             : record.transcription}
                                     </Text>
                                     
-                                    <Flex justifyContent="space-between" alignItems="center">
+                                    <Flex justifyContent="space-between" alignItems="center" mb={3}>
                                         <Text fontSize="sm" color={`${textColor}60`}>
                                             {record.timestamp.toLocaleString()}
                                         </Text>
@@ -1917,6 +2320,33 @@ export default function TryIt() {
                                             </Badge>
                                         </HStack>
                                     </Flex>
+                                    
+                                    {/* Audio player and download button */}
+                                    {record.audioUrl && record.audioBlob && (
+                                        <Box mt={2}>
+                                            <Flex justifyContent="space-between" alignItems="center">
+                                                <audio 
+                                                    controls 
+                                                    src={record.audioUrl}
+                                                    style={{ 
+                                                        height: '40px', 
+                                                        borderRadius: '8px', 
+                                                        backgroundColor: 'rgba(0,0,0,0.2)' 
+                                                    }}
+                                                />
+                                                <Button
+                                                    size="sm"
+                                                    leftIcon={<Icon as={FaDownload} />}
+                                                    colorScheme="blue"
+                                                    variant="outline"
+                                                    onClick={() => downloadAudioAsMp3(record.audioBlob, `recording-${record.timestamp.toISOString().slice(0,10)}.mp3`)}
+                                                    ml={2}
+                                                >
+                                                    MP3
+                                                </Button>
+                                            </Flex>
+                                        </Box>
+                                    )}
                                 </Box>
                             ))}
                         </VStack>
@@ -1933,9 +2363,9 @@ export default function TryIt() {
                         bg="rgba(0,0,0,0.2)"
                         border="1px dashed rgba(255,255,255,0.1)"
                     >
-                        <Icon as={FaHistory} boxSize={12} color={`${textColor}40`} mb={4} />
-                        <Text color={textColor} mb={2}>No recordings found</Text>
-                        <Text color={`${textColor}60`} fontSize="sm">Your recordings will appear here after you analyze speech</Text>
+                        <Text color={`${textColor}80`} textAlign="center" py={8}>
+                            No recordings yet. Start recording to see your history here.
+                        </Text>
                     </Box>
                 )}
             </VStack>
@@ -2323,7 +2753,34 @@ export default function TryIt() {
                                         }}
                                     >
                                         {isRecording ? `Stop (${formatDuration(timer)})` : "Start Recording"}
-                                    </Button>                                    <Button
+                                    </Button>
+                                    
+                                    {/* Voice Activity Indicator */}
+                                    {isRecording && enableVAD && (
+                                        <HStack 
+                                            mt={2} 
+                                            p={2} 
+                                            borderRadius="md" 
+                                            bg="rgba(0,0,0,0.2)"
+                                            justify="center"
+                                            spacing={2}
+                                            width="100%"
+                                        >
+                                            <Box 
+                                                width="10px" 
+                                                height="10px" 
+                                                borderRadius="full" 
+                                                bg={isVoiceDetected ? "green.400" : "red.400"} 
+                                                boxShadow={isVoiceDetected ? "0 0 8px #4ade80" : "none"}
+                                                transition="all 0.2s"
+                                            />
+                                            <Text fontSize="sm" color={textColor}>
+                                                {isVoiceDetected ? "Voice detected" : "Silence"}
+                                            </Text>
+                                        </HStack>
+                                    )}
+                                    
+                                    <Button
                                         onClick={handleAnalyze}
                                         isDisabled={!transcription}
                                         isLoading={isAnalyzing}
@@ -2382,9 +2839,45 @@ export default function TryIt() {
                                     },
                                 }}
                             >
-                                <Text lineHeight="1.8" color={textColor}>
+                                <Text lineHeight="1.8" color={textColor} mb={4}>
                                     {transcription || "Your transcription will appear here..."}
                                 </Text>
+                                
+                                {currentAudioUrl && (
+                                    <Box mt={4} pt={4} borderTop="1px solid rgba(255,255,255,0.1)">
+                                        <HStack spacing={4} alignItems="center">
+                                            <Heading size="xs" color={highlightColor}>
+                                                <Icon as={FaMicrophone} mr={2} />
+                                                Your Recording
+                                            </Heading>
+                                            
+                                            <Box flex="1">
+                                                <audio 
+                                                    src={currentAudioUrl} 
+                                                    controls 
+                                                    style={{ 
+                                                        width: '100%', 
+                                                        height: '36px', 
+                                                        filter: 'invert(0.8) hue-rotate(180deg)' 
+                                                    }} 
+                                                />
+                                            </Box>
+                                            
+                                            <Button
+                                                size="sm"
+                                                leftIcon={<Icon as={FaDownload} />}
+                                                colorScheme="blue"
+                                                variant="ghost"
+                                                onClick={() => downloadAudioAsMp3(
+                                                    currentAudioBlob, 
+                                                    `procomm-recording-${new Date().toISOString().slice(0,10)}.mp3`
+                                                )}
+                                            >
+                                                Download
+                                            </Button>
+                                        </HStack>
+                                    </Box>
+                                )}
                                 
                                 {/* Decorative element */}
                                 <Box
@@ -2431,7 +2924,48 @@ export default function TryIt() {
                                             Percentile: {analysis.rate_percentile}%
                                         </Text>
                                     </StatHelpText>
-                                </Stat>                                <Stat
+                                </Stat>
+                                
+                                {analysis.vad_metrics && (
+                                    <Stat
+                                        bg={cardBg}
+                                        p={4}
+                                        borderRadius="lg"
+                                        border="1px solid rgba(255,255,255,0.1)"
+                                        boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                        transition="all 0.3s ease"
+                                        _hover={{
+                                            transform: "translateY(-2px)",
+                                            boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                        }}
+                                        position="relative"
+                                        overflow="hidden"
+                                    >
+                                        <StatLabel>Voice Activity</StatLabel>
+                                        <StatNumber color={tertiaryAccent}>
+                                            {Math.round(analysis.vad_metrics.voicePercentage)}%
+                                        </StatNumber>
+                                        <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
+                                            <Badge colorScheme="purple">Active Speech</Badge>
+                                            <Text fontSize="xs">
+                                                {Math.round(analysis.vad_metrics.voiceDuration)}s speaking
+                                            </Text>
+                                        </StatHelpText>
+                                        
+                                        <Box mt={2}>
+                                            <Progress 
+                                                value={analysis.vad_metrics.voicePercentage} 
+                                                size="xs" 
+                                                colorScheme="purple"
+                                                borderRadius="md"
+                                            />
+                                            <Flex justify="space-between" mt={1} fontSize="xs" color={`${textColor}60`}>
+                                                <Text>Speaking</Text>
+                                                <Text>Silence</Text>
+                                            </Flex>
+                                        </Box>
+                                    </Stat>
+                                )}                                <Stat
                                     bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
@@ -2867,7 +3401,39 @@ export default function TryIt() {
                                         <Text fontSize="sm" color={`${textColor}60`} mb={2}>
                                             {record.timestamp.toLocaleTimeString()} | Duration: {formatDuration(record.duration || 180)}
                                         </Text>
-                                        <Text noOfLines={2} mb={3} color={textColor}>{record.transcription}</Text>                                        <HStack spacing={4}>
+                                        <Text noOfLines={2} mb={3} color={textColor}>{record.transcription}</Text>
+                                        
+                                        {record.audioBlob && record.audioUrl && (
+                                            <Box mb={3}>
+                                                <HStack>
+                                                    <Box flex="1">
+                                                        <audio 
+                                                            src={record.audioUrl} 
+                                                            controls 
+                                                            style={{ 
+                                                                width: '100%', 
+                                                                height: '30px', 
+                                                                filter: 'invert(0.8) hue-rotate(180deg)' 
+                                                            }} 
+                                                        />
+                                                    </Box>
+                                                    <Button
+                                                        size="xs"
+                                                        leftIcon={<Icon as={FaDownload} />}
+                                                        colorScheme="blue"
+                                                        variant="ghost"
+                                                        onClick={() => downloadAudioAsMp3(
+                                                            record.audioBlob, 
+                                                            `procomm-recording-${record.timestamp.toISOString().slice(0,10)}.mp3`
+                                                        )}
+                                                    >
+                                                        MP3
+                                                    </Button>
+                                                </HStack>
+                                            </Box>
+                                        )}
+                                        
+                                        <HStack spacing={4}>
                                             <Badge 
                                                 colorScheme={record.analysis.rate_color || "blue"}
                                                 px={3}
