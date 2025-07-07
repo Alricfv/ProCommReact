@@ -1098,6 +1098,9 @@ export default function TryIt() {
         }
         
         return {
+            speech_rate: `${wordsPerMinute} WPM`, // Standard speech rate
+            rate_quality: rateQuality.quality, // Quality assessment (Slow, Ideal, Fast, Very Fast)
+            rate_color: rateQuality.color, // Color for the quality badge
             rate_feedback: rateFeedback, // Add detailed speech rate feedback
             rate_percentile: percentile, // Add percentile compared to average speakers
             avg_word_length: `${avgWordLength.toFixed(1)} characters`,
@@ -2924,6 +2927,13 @@ export default function TryIt() {
                                             Percentile: {analysis.rate_percentile}%
                                         </Text>
                                     </StatHelpText>
+                                    {analysis.vad_metrics && analysis.effective_wpm && analysis.effective_wpm !== analysis.speech_rate && (
+                                        <Text fontSize="sm" mt={2} fontStyle="italic" color={highlightColor}>
+                                            Effective rate: {analysis.effective_wpm} WPM <Tooltip label="Speaking rate calculated using only active speech time, excluding silences">
+                                                <Icon as={FaInfoCircle} boxSize="0.7em" ml={1} />
+                                            </Tooltip>
+                                        </Text>
+                                    )}
                                 </Stat>
                                 
                                 {analysis.vad_metrics && (
