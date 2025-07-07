@@ -368,6 +368,24 @@ export default function TryIt() {
         const voiceDetected = average > vadThreshold;
         const now = Date.now();
         
+        // Track voice activity continuously (updated every detection cycle)
+        if (voiceActivityTimeRef.current) {
+            const elapsedTime = now - voiceActivityTimeRef.current;
+            
+            // Update our duration counters based on current state
+            // This ensures we capture all speech/silence even if the state hasn't changed
+            if (isVoiceDetected) {
+                // We were speaking during this period
+                totalVoiceDurationRef.current += elapsedTime;
+            } else {
+                // We were silent during this period
+                totalSilenceDurationRef.current += elapsedTime;
+            }
+            
+            // Reset the timer for the next cycle
+            voiceActivityTimeRef.current = now;
+        }
+        
         // Track significant silences (>1.5 seconds)
         if (voiceDetected) {
             if (silenceStartTimeRef.current) {
@@ -387,22 +405,9 @@ export default function TryIt() {
             silenceStartTimeRef.current = now;
         }
         
+        // Update the voice detection state if it changed
         if (voiceDetected !== isVoiceDetected) {
             setIsVoiceDetected(voiceDetected);
-            
-            // Track voice/silence durations
-            if (voiceActivityTimeRef.current) {
-                const elapsedTime = now - voiceActivityTimeRef.current;
-                
-                if (voiceDetected) {
-                    // We were silent, now detecting voice
-                    totalSilenceDurationRef.current += elapsedTime;
-                } else {
-                    // We had voice, now silent
-                    totalVoiceDurationRef.current += elapsedTime;
-                }
-            }
-            voiceActivityTimeRef.current = now;
         }
         
         return voiceDetected;
@@ -427,6 +432,25 @@ export default function TryIt() {
     
     // Stop VAD detection
     const stopVoiceDetection = () => {
+        // Account for any final voice/silence period
+        if (voiceActivityTimeRef.current) {
+            const now = Date.now();
+            const elapsedSinceLastUpdate = now - voiceActivityTimeRef.current;
+            
+            // Add the final segment of time to the appropriate counter
+            if (isVoiceDetected) {
+                totalVoiceDurationRef.current += elapsedSinceLastUpdate;
+            } else {
+                totalSilenceDurationRef.current += elapsedSinceLastUpdate;
+            }
+            
+            // Check for any final significant silence
+            if (silenceStartTimeRef.current && (now - silenceStartTimeRef.current > 1500)) {
+                significantSilenceRef.current += 1;
+                setSignificantSilenceCount(significantSilenceRef.current);
+            }
+        }
+        
         if (vadAnimationRef.current) {
             cancelAnimationFrame(vadAnimationRef.current);
             vadAnimationRef.current = null;
@@ -481,6 +505,8 @@ export default function TryIt() {
         totalSilenceDurationRef.current = 0;
         totalVoiceDurationRef.current = 0;
         silenceStartTimeRef.current = null;
+        significantSilenceRef.current = 0; // Reset significant silence counter
+        setSignificantSilenceCount(0); // Reset the state variable as well
         
         // Reset state
         setIsVoiceDetected(false);
@@ -488,16 +514,52 @@ export default function TryIt() {
     
     // Get speech metrics that take into account actual voice activity
     const getVoiceActivityMetrics = () => {
-        if (!voiceActivityTimeRef.current) return null;
+        // If no voice activity was tracked, return defaults to avoid null values
+        if (!voiceActivityTimeRef.current) {
+            return {
+                voiceDuration: 0,
+                silenceDuration: 0,
+                totalDuration: 0,
+                voicePercentage: 0,
+                silencePercentage: 0,
+                significantSilenceCount: 0
+            };
+        }
         
-        const voiceDuration = totalVoiceDurationRef.current / 1000; // convert to seconds
-        const silenceDuration = totalSilenceDurationRef.current / 1000; // convert to seconds
+        // Calculate final durations, accounting for current state at the end of recording
+        let finalVoiceDuration = totalVoiceDurationRef.current;
+        let finalSilenceDuration = totalSilenceDurationRef.current;
+        
+        // Account for the ongoing state (speaking or silent) at the end of the recording
+        const now = Date.now();
+        const elapsedSinceLastUpdate = now - voiceActivityTimeRef.current;
+        
+        if (isVoiceDetected) {
+            // If we're still speaking at the end, add this duration to voice time
+            finalVoiceDuration += elapsedSinceLastUpdate;
+        } else {
+            // If we ended in silence, add this duration to silence time
+            finalSilenceDuration += elapsedSinceLastUpdate;
+        }
+        
+        // Convert to seconds
+        const voiceDuration = finalVoiceDuration / 1000;
+        const silenceDuration = finalSilenceDuration / 1000;
         const totalDuration = voiceDuration + silenceDuration;
         
-        if (totalDuration <= 0) return null;
+        // If no duration was detected, return defaults to avoid incorrect calculations
+        if (totalDuration <= 0) {
+            return {
+                voiceDuration: 0,
+                silenceDuration: 0,
+                totalDuration: 0,
+                voicePercentage: 0,
+                silencePercentage: 0,
+                significantSilenceCount: significantSilenceRef.current || 0
+            };
+        }
         
         // Handle any ongoing significant silence at the end of recording
-        const now = Date.now();
         let finalSilenceCount = significantSilenceRef.current;
         if (silenceStartTimeRef.current && (now - silenceStartTimeRef.current > 1500)) {
             finalSilenceCount += 1;
@@ -1486,6 +1548,9 @@ export default function TryIt() {
             return;
         }
 
+        // Clean up any lingering VAD data from previous analyses
+        cleanupVAD();
+        
         setIsAnalyzing(true);
         try {
             // Use the actual recorded duration instead of timer-based calculation
@@ -3002,10 +3067,10 @@ export default function TryIt() {
                                         
                                         <Flex justify="space-between" mt={2} alignItems="center">
                                             <Text fontSize="xs" color={`${textColor}80`}>
-                                                {Math.round(analysis.vad_metrics.voiceDuration)}s speaking
+                                                {Math.round(analysis.vad_metrics.voiceDuration) || 0}s speaking
                                             </Text>
                                             <Text fontSize="xs" color={`${textColor}80`}>
-                                                {Math.round(analysis.vad_metrics.silenceDuration)}s silent
+                                                {Math.round(analysis.vad_metrics.silenceDuration) || 0}s silent
                                             </Text>
                                         </Flex>
                                     </Stat>
