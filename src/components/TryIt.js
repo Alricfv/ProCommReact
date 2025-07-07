@@ -196,6 +196,7 @@ export default function TryIt() {
     const [vadThreshold, setVadThreshold] = useState(15); // Adjustable threshold (5-30)
     const [silenceThreshold, setSilenceThreshold] = useState(2000); // 2 seconds of silence to auto-stop
     const [enableVAD, setEnableVAD] = useState(true); // Toggle VAD functionality
+    const [significantSilenceCount, setSignificantSilenceCount] = useState(0); // Count of silences > 1.5s
     const toast = useToast();
     
     // Side menu state
@@ -213,6 +214,8 @@ export default function TryIt() {
     const voiceActivityTimeRef = useRef(null); // Track when voice was last detected
     const totalSilenceDurationRef = useRef(0); // Total silence duration
     const totalVoiceDurationRef = useRef(0); // Total voice activity duration
+    const silenceStartTimeRef = useRef(null); // Track when silence started
+    const significantSilenceRef = useRef(0); // Count of significant silences (>1.5s)
 
     // Cleanup effect for MediaRecorder and VAD when component unmounts
     useEffect(() => {
@@ -363,12 +366,31 @@ export default function TryIt() {
         
         // Detect if the current volume is above threshold
         const voiceDetected = average > vadThreshold;
+        const now = Date.now();
+        
+        // Track significant silences (>1.5 seconds)
+        if (voiceDetected) {
+            if (silenceStartTimeRef.current) {
+                // We were in silence and now we're speaking
+                const silenceDuration = now - silenceStartTimeRef.current;
+                
+                // Check if this silence was significant (>1.5s)
+                if (silenceDuration > 1500) {
+                    significantSilenceRef.current += 1;
+                    setSignificantSilenceCount(significantSilenceRef.current);
+                }
+                silenceStartTimeRef.current = null;
+            }
+            resetSilenceTimer();
+        } else if (!silenceStartTimeRef.current) {
+            // We just entered silence
+            silenceStartTimeRef.current = now;
+        }
         
         if (voiceDetected !== isVoiceDetected) {
             setIsVoiceDetected(voiceDetected);
             
             // Track voice/silence durations
-            const now = Date.now();
             if (voiceActivityTimeRef.current) {
                 const elapsedTime = now - voiceActivityTimeRef.current;
                 
@@ -383,11 +405,6 @@ export default function TryIt() {
             voiceActivityTimeRef.current = now;
         }
         
-        // Handle silence detection for auto-stop
-        if (voiceDetected) {
-            resetSilenceTimer();
-        }
-        
         return voiceDetected;
     };
     
@@ -397,6 +414,9 @@ export default function TryIt() {
         voiceActivityTimeRef.current = Date.now();
         totalSilenceDurationRef.current = 0;
         totalVoiceDurationRef.current = 0;
+        silenceStartTimeRef.current = null;
+        significantSilenceRef.current = 0;
+        setSignificantSilenceCount(0);
         
         const detectLoop = () => {
             detectVoiceActivity();
@@ -460,6 +480,7 @@ export default function TryIt() {
         voiceActivityTimeRef.current = null;
         totalSilenceDurationRef.current = 0;
         totalVoiceDurationRef.current = 0;
+        silenceStartTimeRef.current = null;
         
         // Reset state
         setIsVoiceDetected(false);
@@ -475,12 +496,20 @@ export default function TryIt() {
         
         if (totalDuration <= 0) return null;
         
+        // Handle any ongoing significant silence at the end of recording
+        const now = Date.now();
+        let finalSilenceCount = significantSilenceRef.current;
+        if (silenceStartTimeRef.current && (now - silenceStartTimeRef.current > 1500)) {
+            finalSilenceCount += 1;
+        }
+        
         return {
             voiceDuration,
             silenceDuration,
             totalDuration,
             voicePercentage: (voiceDuration / totalDuration) * 100,
             silencePercentage: (silenceDuration / totalDuration) * 100,
+            significantSilenceCount: finalSilenceCount, // Number of silences > 1.5s
         };
     };
     
@@ -2951,29 +2980,34 @@ export default function TryIt() {
                                         position="relative"
                                         overflow="hidden"
                                     >
-                                        <StatLabel>Voice Activity</StatLabel>
+                                        <StatLabel>Speech Pauses</StatLabel>
                                         <StatNumber color={tertiaryAccent}>
-                                            {Math.round(analysis.vad_metrics.voicePercentage)}%
+                                            {analysis.vad_metrics.significantSilenceCount || 0}
                                         </StatNumber>
                                         <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
-                                            <Badge colorScheme="purple">Active Speech</Badge>
-                                            <Text fontSize="xs">
-                                                {Math.round(analysis.vad_metrics.voiceDuration)}s speaking
-                                            </Text>
+                                            <Badge colorScheme="purple">Significant Pauses</Badge>
+                                            <Tooltip label="Moments of silence longer than 1.5 seconds">
+                                                <Icon as={FaInfoCircle} boxSize="0.7em" />
+                                            </Tooltip>
                                         </StatHelpText>
                                         
-                                        <Box mt={2}>
-                                            <Progress 
-                                                value={analysis.vad_metrics.voicePercentage} 
-                                                size="xs" 
-                                                colorScheme="purple"
-                                                borderRadius="md"
-                                            />
-                                            <Flex justify="space-between" mt={1} fontSize="xs" color={`${textColor}60`}>
-                                                <Text>Speaking</Text>
-                                                <Text>Silence</Text>
-                                            </Flex>
-                                        </Box>
+                                        <Text mt={2} fontSize="sm">
+                                            {analysis.vad_metrics.significantSilenceCount > 8 ? 
+                                                "Consider reducing the number of long pauses in your speech." : 
+                                                analysis.vad_metrics.significantSilenceCount > 3 ?
+                                                "Your speech has a moderate number of pauses." :
+                                                "Good job! Your speech has few significant pauses."
+                                            }
+                                        </Text>
+                                        
+                                        <Flex justify="space-between" mt={2} alignItems="center">
+                                            <Text fontSize="xs" color={`${textColor}80`}>
+                                                {Math.round(analysis.vad_metrics.voiceDuration)}s speaking
+                                            </Text>
+                                            <Text fontSize="xs" color={`${textColor}80`}>
+                                                {Math.round(analysis.vad_metrics.silenceDuration)}s silent
+                                            </Text>
+                                        </Flex>
                                     </Stat>
                                 )}                                <Stat
                                     bg={cardBg}
