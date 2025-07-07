@@ -6,6 +6,7 @@ import logging
 import sys
 import tempfile
 import time
+import librosa
 from flask import Flask, request, jsonify, send_from_directory
 from scipy.io import wavfile
 from transformers import pipeline
@@ -183,6 +184,89 @@ def perform_emotion_detection(text):
     }
 
 # Function to calculate confidence score based on audio properties using numpy and scipy
+def analyze_volume_with_librosa(audio_data):
+    """Analyze volume/loudness in audio using librosa.feature.rms"""
+    try:
+        # Load audio data with librosa
+        # First save wav data to a temporary file
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+            temp_path = temp_wav.name
+            temp_wav.write(audio_data)
+        
+        # Load the audio file with librosa
+        y, sr = librosa.load(temp_path, sr=None)
+        
+        # Calculate RMS energy
+        S, phase = librosa.magphase(librosa.stft(y))
+        rms = librosa.feature.rms(S=S)[0]
+        
+        # Calculate statistics
+        rms_mean = float(np.mean(rms))
+        rms_std = float(np.std(rms))
+        rms_max = float(np.max(rms))
+        rms_min = float(np.min(rms) if len(rms) > 0 else 0)
+        
+        # Calculate variation coefficient (higher values mean more variation)
+        variation_coef = float(rms_std / rms_mean if rms_mean > 0 else 0)
+        
+        # Determine if volume is too low or has too much variation
+        is_too_quiet = rms_mean < 0.05  # Threshold can be adjusted based on testing
+        has_high_variation = variation_coef > 0.75  # Threshold can be adjusted based on testing
+        
+        # Clean up the temporary file
+        try:
+            os.unlink(temp_path)
+        except:
+            pass
+            
+        return {
+            "rms_mean": rms_mean,
+            "rms_std": rms_std,
+            "rms_max": rms_max,
+            "rms_min": rms_min,
+            "variation_coefficient": variation_coef,
+            "is_too_quiet": is_too_quiet,
+            "has_high_variation": has_high_variation,
+            "feedback": generate_volume_feedback(rms_mean, variation_coef)
+        }
+    except Exception as e:
+        logging.error(f"Error analyzing volume: {str(e)}")
+        return {
+            "error": str(e),
+            "rms_mean": 0,
+            "rms_std": 0,
+            "variation_coefficient": 0,
+            "is_too_quiet": False,
+            "has_high_variation": False,
+            "feedback": "Could not analyze volume."
+        }
+
+def generate_volume_feedback(rms_mean, variation_coef):
+    """Generate human-readable feedback on volume metrics"""
+    feedback = []
+    
+    # Volume level feedback
+    if rms_mean < 0.03:
+        feedback.append("Your audio is very quiet. Consider speaking louder or positioning the microphone closer.")
+    elif rms_mean < 0.05:
+        feedback.append("Your audio is somewhat quiet. A slightly louder voice would improve clarity.")
+    elif rms_mean > 0.25:
+        feedback.append("Your audio is very loud. Consider speaking more softly or moving the microphone further away.")
+    elif rms_mean > 0.15:
+        feedback.append("Your audio is a bit loud, but still clear.")
+    else:
+        feedback.append("Your volume level is good.")
+    
+    # Volume consistency feedback
+    if variation_coef > 0.9:
+        feedback.append("Your volume has significant variation. Try to maintain a more consistent speaking volume.")
+    elif variation_coef > 0.75:
+        feedback.append("Your volume varies somewhat throughout the recording. More consistency would improve clarity.")
+    else:
+        feedback.append("Your volume consistency is good.")
+    
+    return " ".join(feedback)
+
 def calculate_confidence_from_audio(audio_data):
     """Calculate confidence score based on audio properties."""
     # Read WAV data
@@ -241,6 +325,43 @@ def transcribe_with_whisper(audio_data):
         logging.error(f"Error in Whisper transcription: {e}")
         raise
 
+@app.route('/analyze-volume', methods=['POST'])
+def analyze_volume():
+    """Endpoint to analyze volume/loudness in audio using librosa"""
+    try:
+        logging.info("Received a volume analysis request.")
+        if 'audio' not in request.files:
+            logging.warning("No audio file provided in the request.")
+            return jsonify({"error": "No audio file provided"}), 400
+
+        audio_file = request.files['audio']
+        webm_data = audio_file.read()
+
+        # Convert WebM to WAV in memory
+        logging.info("Converting WebM to WAV for volume analysis...")
+        process = (
+            ffmpeg
+            .input('pipe:0', format='webm')
+            .output('pipe:1', format='wav', acodec='pcm_s16le', ac=1, ar='16000')
+            .run_async(pipe_stdin=True, pipe_stdout=True, pipe_stderr=True)
+        )
+        wav_data, _ = process.communicate(input=webm_data)
+
+        # Analyze volume using librosa
+        volume_metrics = analyze_volume_with_librosa(wav_data)
+        
+        return jsonify({
+            "volume_metrics": volume_metrics,
+            "success": True
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in volume analysis: {str(e)}")
+        return jsonify({
+            "error": str(e),
+            "success": False
+        }), 500
+
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
         
@@ -264,7 +385,12 @@ def transcribe():
         wav_data, _ = process.communicate(input=webm_data)
 
         # Calculate confidence score from audio
-        confidence_score = calculate_confidence_from_audio(wav_data)        # Transcribe with Whisper
+        confidence_score = calculate_confidence_from_audio(wav_data)
+        
+        # Analyze volume using librosa (optional - this might increase response time)
+        volume_metrics = analyze_volume_with_librosa(wav_data)
+        
+        # Transcribe with Whisper
         whisper_result = transcribe_with_whisper(wav_data)
         # Extract the transcribed text
         transcription = whisper_result['text']
@@ -331,6 +457,7 @@ def transcribe():
             "emotion": emotion_analysis["emotion"],
             "emotion_score": emotion_analysis["emotion_score"],
             "filler_words": filler_word_analysis,
+            "volume_metrics": volume_metrics,
             "transcription_source": "whisper"
         }
         

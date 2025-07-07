@@ -11,6 +11,7 @@ numpy==1.26.0
 transformers==4.34.0
 torch==2.2.0
 openai-whisper==20231117  # Local Whisper model for speech recognition and filler word detection
+librosa==0.10.1  # Audio analysis including RMS energy extraction
 
 # HTTP and data handling
 requests==2.31.0
