@@ -2249,6 +2249,7 @@ export default function TryIt() {
                                         variant="outline"
                                         leftIcon={<Icon as={FaTrash} />}
                                         onClick={handleClearHistory}
+                                        isDisabled={recordingHistory.length === 0}
                                     >
                                         Clear
                                     </Button>
@@ -2259,6 +2260,7 @@ export default function TryIt() {
                                         variant="outline"
                                         leftIcon={<Icon as={FaDownload} />}
                                         onClick={handleExportRecordings}
+                                        isDisabled={recordingHistory.length === 0}
                                     >
                                         Export
                                     </Button>
@@ -2400,7 +2402,7 @@ export default function TryIt() {
                                                 px={2}
                                                 py={1}
                                                 borderRadius="md"
-                                                fontSize="xs"
+                                                border={`1px solid ${secondaryAccent}50`}
                                             >
                                                 Score: {record.analysis.confidence_score}%
                                             </Badge>
@@ -2852,7 +2854,6 @@ export default function TryIt() {
                                         {isRecording ? `Stop (${formatDuration(timer)})` : "Start Recording"}
                                     </Button>
                                     
-                                    {/* Voice Activity Indicator */}
                                     {isRecording && enableVAD && (
                                         <HStack 
                                             mt={2} 
@@ -2877,22 +2878,25 @@ export default function TryIt() {
                                         </HStack>
                                     )}
                                     
-                                    <Button
-                                        onClick={handleAnalyze}
-                                        isDisabled={!transcription}
-                                        isLoading={isAnalyzing}
-                                        bg={secondaryAccent}
-                                        color="white"
-                                        size="lg"
-                                        leftIcon={<FaChartLine />}
-                                        _hover={{
-                                            transform: 'translateY(-2px)',
-                                            boxShadow: '0 6px 15px rgba(74, 222, 128, 0.4)',
-                                            bg: "green.400"
-                                        }}
-                                    >
-                                        Analyze Speech
-                                    </Button>
+                                    {/* Hide Analyze Speech button while recording */}
+                                    {!isRecording && (
+                                        <Button
+                                            onClick={handleAnalyze}
+                                            isDisabled={!transcription}
+                                            isLoading={isAnalyzing}
+                                            bg={secondaryAccent}
+                                            color="white"
+                                            size="lg"
+                                            leftIcon={<FaChartLine />}
+                                            _hover={{
+                                                transform: 'translateY(-2px)',
+                                                boxShadow: '0 6px 15px rgba(74, 222, 128, 0.4)',
+                                                bg: "green.400"
+                                            }}
+                                        >
+                                            Analyze Speech
+                                        </Button>
+                                    )}
                                 </HStack>
                             </HStack>
 
@@ -3527,7 +3531,7 @@ export default function TryIt() {
                                                         />
                                                     </Box>
                                                     <Button
-                                                        size="xs"
+                                                        size="sm"
                                                         leftIcon={<Icon as={FaDownload} />}
                                                         colorScheme="blue"
                                                         variant="ghost"
