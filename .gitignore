@@ -9,6 +9,7 @@ build
 
 # Environment variables
 .env
+venv38
 
 
 # Config files (removing the config file approach)

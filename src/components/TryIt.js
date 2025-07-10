@@ -6,6 +6,11 @@ import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Pr
     SliderFilledTrack, SliderThumb } from '@chakra-ui/react';
 import { FaMicrophone, FaInfoCircle, FaChartLine, FaClock, FaQuestionCircle, FaBars, FaCog, FaUser, FaHome, FaSave, FaHistory, 
     FaTrash, FaDownload, FaUpload, FaDatabase } from 'react-icons/fa';
+// Import tab components individually to avoid any bundling issues
+import AboutTab from './TryIt/AboutTab';
+import SettingsTab from './TryIt/SettingsTab';
+import ProfileTab from './TryIt/ProfileTab';
+import RecordingsTab from './TryIt/RecordingsTab';
 
 // Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
@@ -169,6 +174,7 @@ const storageUtils = {
 };
 
 export default function TryIt() {
+    const [pauseAnalysis, setPauseAnalysis] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [transcription, setTranscription] = useState('');
@@ -220,31 +226,14 @@ export default function TryIt() {
     // Cleanup effect for MediaRecorder and VAD when component unmounts
     useEffect(() => {
         return () => {
-            // Clean up MediaRecorder on component unmount
             if (mediaRecorderRef.current) {
-                try {
-                    if (mediaRecorderRef.current.state === 'recording') {
-                        mediaRecorderRef.current.stop();
-                    }
-                    // Release any media stream tracks
-                    
-                    // Also stop voice activity detection
-                    stopVoiceDetection();
-                
-                    const tracks = mediaRecorderRef.current.stream?.getTracks();
-                    if (tracks && tracks.length) {
-                        tracks.forEach(track => track.stop());
-                    }
-                } catch (error) {
-                    console.error("Error cleaning up MediaRecorder:", error);
+                if (mediaRecorderRef.current.state === "recording") {
+                    mediaRecorderRef.current.stop();
+                }
+                if (mediaRecorderRef.current.stream) {
+                    mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
                 }
             }
-            
-            // Clean up VAD resources
-            cleanupVAD();
-            
-            // Reset recording state
-            setIsRecording(false);
         };
     }, []);
 
@@ -1423,24 +1412,48 @@ export default function TryIt() {
                     // Add recording duration to form data for server-side calculations if needed
                     formData.append('duration', recordingDuration.toString());
 
-                    // Use environment variable for API URL
-                    const API_BASE_URL = process.env.REACT_APP_API_URL;
-                    console.log('Environment API URL:', process.env.REACT_APP_API_URL);
+                    // Get API URLs from environment variables with fallback values
+                    const PRIMARY_API_URL = process.env.REACT_APP_PRIMARY_API_URL || "https://40.76.138.219.nip.io";
+                    const FALLBACK_API_URL = process.env.REACT_APP_FALLBACK_API_URL || "http://localhost:5000";
                     
-                    if (!API_BASE_URL) {
-                        throw new Error('API URL not found in environment variables. Please check your .env file.');
-                    }
+                    console.log('Attempting transcription with primary API (VM):', PRIMARY_API_URL);
                     
-                    const API_URL = `${API_BASE_URL}/transcribe`;
-                    console.log('Using API endpoint:', API_URL);
+                    // Try primary (VM) API first
+                    let response;
+                    try {
+                        // Create a timeout for the VM request
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
                         
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Accept': 'application/json',
-                        },
-                    });
+                        response = await fetch(`${PRIMARY_API_URL}/transcribe`, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Accept': 'application/json',
+                            },
+                            signal: controller.signal
+                        });
+                        
+                        clearTimeout(timeoutId);
+                        
+                        if (response.ok) {
+                            console.log('Primary API request successful');
+                        } else {
+                            throw new Error(`Primary API returned status: ${response.status}`);
+                        }
+                    } catch (e) {
+                        // If primary fails, use fallback (local) API
+                        console.log('Primary API request failed, trying fallback:', e.message);
+                        console.log('Attempting fallback API:', FALLBACK_API_URL);
+                        
+                        response = await fetch(`${FALLBACK_API_URL}/transcribe`, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'Accept': 'application/json',
+                            }
+                        });
+                    }
 
                     if (!response.ok) {
                         throw new Error('Failed to transcribe audio');
@@ -1449,6 +1462,17 @@ export default function TryIt() {
                     const data = await response.json();
                     if (data.error) {
                         throw new Error(data.error);
+                    }
+
+                    // Handle pause analysis data
+                    if (data.pauses || data.speech_pauses) {
+                        setPauseAnalysis({
+                            total: data.speech_pauses?.total || 0,
+                            speakingTime: data.speech_pauses?.speaking_time || 0,
+                            silenceTime: data.speech_pauses?.silence_time || 0,
+                            totalDuration: data.speech_pauses?.total_duration || 0,
+                            pauses: data.pauses?.total_pauses|| [],
+                        });
                     }
 
                     // Clean up transcription text if it still contains JSON
@@ -1575,17 +1599,31 @@ export default function TryIt() {
             const results = analyzeSpeech(transcription, recordingDuration, sourceMeasurement);
             setAnalysis(results);
             
-            setRecordingHistory([
-                ...recordingHistory, 
-                { 
-                    transcription, 
-                    analysis: results, 
-                    timestamp: new Date(),
-                    duration: recordingDuration,
-                    audioBlob: currentAudioBlob,
-                    audioUrl: createAudioUrl(currentAudioBlob)
-                }
-            ]);
+            // Create new recording entry with enhanced debug logging
+            const newRecording = { 
+                transcription, 
+                analysis: results, 
+                timestamp: new Date(),
+                duration: recordingDuration,
+                audioBlob: currentAudioBlob,
+                audioUrl: createAudioUrl(currentAudioBlob)
+            };
+            console.log("Adding new recording:", newRecording);
+            console.log("Current recording history:", recordingHistory);
+            console.log("Storage preference:", storagePreference);
+            console.log("Is local storage available:", isLocalStorageAvailable);
+            
+            const updatedHistory = [...recordingHistory, newRecording];
+            setRecordingHistory(updatedHistory);
+            
+            console.log("New recording history length:", updatedHistory.length);
+            
+            // Additional check to log persistence
+            if (storagePreference === 'local' && isLocalStorageAvailable) {
+                console.log("Will save to localStorage since storagePreference is 'local'");
+            } else if (storagePreference === 'none') {
+                console.log("WARNING: Storage preference is set to 'none', recordings won't persist between sessions");
+            }
             
             toast({
                 title: "Analysis complete",
@@ -1614,862 +1652,13 @@ export default function TryIt() {
     
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
 
-    // Side Menu Tab Components
-    const AboutTab = () => (
-        <Box 
-            bg={cardBg}
-            borderRadius="xl"
-            border="1px solid rgba(255, 255, 255, 0.1)"
-            boxShadow="0 10px 30px -5px rgba(0, 0, 0, 0.3)"
-            p={8}
-            maxW="800px"
-            mx="auto"
-        >
-            <VStack spacing={6} align="start">
-                <Heading 
-                    size="lg" 
-                    bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                    bgClip="text"
-                >
-                    About ProComm
-                </Heading>
-                
-                <Text color={textColor} fontSize="lg" lineHeight="1.7">
-                    ProComm is an advanced speech analysis tool designed to help you improve your communication skills.
-                    Record your speech and get instant feedback on pace, clarity, and vocabulary.
-                </Text>
-                
-                <Divider borderColor="gray.700" />
-                
-                <Heading size="md" color={highlightColor}>How it works</Heading>
-                
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} width="100%">
-                    <Box 
-                        p={5}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <HStack mb={3}>
-                            <Box 
-                                bg={accentColor} 
-                                color="white" 
-                                borderRadius="full" 
-                                w="30px" 
-                                h="30px" 
-                                display="flex" 
-                                alignItems="center" 
-                                justifyContent="center"
-                                fontWeight="bold"
-                            >
-                                1
-                            </Box>
-                            <Text fontWeight="bold" color={textColor}>Set Duration</Text>
-                        </HStack>
-                        <Text color={textColor}>Choose how long you want to record your speech.</Text>
-                    </Box>
-                    
-                    <Box 
-                        p={5}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <HStack mb={3}>
-                            <Box 
-                                bg={accentColor} 
-                                color="white" 
-                                borderRadius="full" 
-                                w="30px" 
-                                h="30px" 
-                                display="flex" 
-                                alignItems="center" 
-                                justifyContent="center"
-                                fontWeight="bold"
-                            >
-                                2
-                            </Box>
-                            <Text fontWeight="bold" color={textColor}>Start Recording</Text>
-                        </HStack>
-                        <Text color={textColor}>Click "Start Recording" and speak naturally into your microphone.</Text>
-                    </Box>
-                    
-                    <Box 
-                        p={5}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <HStack mb={3}>
-                            <Box 
-                                bg={accentColor} 
-                                color="white" 
-                                borderRadius="full" 
-                                w="30px" 
-                                h="30px" 
-                                display="flex" 
-                                alignItems="center" 
-                                justifyContent="center"
-                                fontWeight="bold"
-                            >
-                                3
-                            </Box>
-                            <Text fontWeight="bold" color={textColor}>Analyze Results</Text>
-                        </HStack>
-                        <Text color={textColor}>View the transcription and click "Analyze Speech".</Text>
-                    </Box>
-                    
-                    <Box 
-                        p={5}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <HStack mb={3}>
-                            <Box 
-                                bg={accentColor} 
-                                color="white" 
-                                borderRadius="full" 
-                                w="30px" 
-                                h="30px" 
-                                display="flex" 
-                                alignItems="center" 
-                                justifyContent="center"
-                                fontWeight="bold"
-                            >
-                                4
-                            </Box>
-                            <Text fontWeight="bold" color={textColor}>Get Feedback</Text>
-                        </HStack>
-                        <Text color={textColor}>Receive detailed analytics about your speaking pattern.</Text>
-                    </Box>
-                </SimpleGrid>
-                
-                <Box 
-                    p={4} 
-                    bg={`rgba(192, 132, 252, 0.1)`} 
-                    borderRadius="md" 
-                    borderLeft={`3px solid ${tertiaryAccent}`}
-                    width="100%"
-                    mt={4}
-                >
-                    <Text color={tertiaryAccent} fontWeight="bold">
-                        Practice regularly to track your improvement over time!
-                    </Text>
-                </Box>
-            </VStack>
-        </Box>
-    );
+    // Tab components are now imported from separate files
 
-    const SettingsTab = () => (
-        <Box 
-            bg={cardBg}
-            borderRadius="xl"
-            border="1px solid rgba(255, 255, 255, 0.1)"
-            boxShadow="0 10px 30px -5px rgba(0, 0, 0, 0.3)"
-            p={8}
-            maxW="800px"
-            mx="auto"
-        >
-            <VStack spacing={8} align="start" width="100%">
-                <Heading 
-                    size="lg" 
-                    bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                    bgClip="text"
-                >
-                    Settings
-                </Heading>
-                
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} width="100%">
-                    <Box 
-                        p={6}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <HStack mb={4}>
-                            <Icon as={FaClock} color={accentColor} boxSize={5} />
-                            <Heading size="md" color={textColor}>Recording Settings</Heading>
-                        </HStack>
-                        
-                        <FormControl mb={5}>
-                            <FormLabel color={textColor}>Default Recording Duration</FormLabel>
-                            <HStack>
-                                <NumberInput 
-                                    min={1} 
-                                    max={30} 
-                                    value={durationValue}
-                                    onChange={handleDurationChange}
-                                    bg="rgba(0,0,0,0.2)"
-                                    borderColor="rgba(255,255,255,0.1)"
-                                >
-                                    <NumberInputField color={textColor} />
-                                    <NumberInputStepper>
-                                        <NumberIncrementStepper borderColor="rgba(255,255,255,0.1)" color={textColor} />
-                                        <NumberDecrementStepper borderColor="rgba(255,255,255,0.1)" color={textColor} />
-                                    </NumberInputStepper>
-                                </NumberInput>
-                                <Select 
-                                    value={durationUnit} 
-                                    onChange={handleDurationUnitChange}
-                                    width="120px"
-                                    bg="rgba(0,0,0,0.2)"
-                                    borderColor="rgba(255,255,255,0.1)"
-                                    color={textColor}
-                                >
-                                    <option value="seconds">Seconds</option>
-                                    <option value="minutes">Minutes</option>
-                                </Select>
-                            </HStack>
-                        </FormControl>
-                        
-                        <FormControl mb={5}>
-                            <FormLabel color={textColor}>Audio Quality</FormLabel>
-                            <Select 
-                                defaultValue="high"
-                                bg="rgba(0,0,0,0.2)"
-                                borderColor="rgba(255,255,255,0.1)"
-                                color={textColor}
-                            >
-                                <option value="low">Low (64kbps)</option>
-                                <option value="medium">Medium (96kbps)</option>
-                                <option value="high">High (128kbps)</option>
-                            </Select>
-                        </FormControl>
-                        
-                        <FormControl mb={5}>
-                            <FormLabel color={textColor} display="flex" alignItems="center">
-                                Voice Activity Detection
-                                <Tooltip 
-                                    label="Automatically detects when you're speaking and can stop recording after silence" 
-                                    placement="top"
-                                    hasArrow
-                                >
-                                    <Icon as={FaInfoCircle} ml={1} fontSize="xs" color={`${textColor}60`} />
-                                </Tooltip>
-                            </FormLabel>
-                            <Switch 
-                                isChecked={enableVAD} 
-                                onChange={(e) => setEnableVAD(e.target.checked)}
-                                colorScheme="blue"
-                            />
-                            <Text fontSize="xs" color={`${textColor}60`} mt={1}>
-                                Enhances speech analysis by detecting actual speaking time
-                            </Text>
-                        </FormControl>
-                        
-                        {enableVAD && (
-                            <>
-                                <FormControl mb={5}>
-                                    <FormLabel color={textColor}>Voice Detection Sensitivity</FormLabel>
-                                    <HStack>
-                                        <Text fontSize="sm" color={`${textColor}80`}>Low</Text>
-                                        <Slider
-                                            value={vadThreshold}
-                                            min={5}
-                                            max={30}
-                                            step={1}
-                                            onChange={(val) => setVadThreshold(val)}
-                                            flex="1"
-                                        >
-                                            <SliderTrack bg="rgba(0,0,0,0.3)">
-                                                <SliderFilledTrack bg={accentColor} />
-                                            </SliderTrack>
-                                            <SliderThumb boxSize={4} bg={accentColor} />
-                                        </Slider>
-                                        <Text fontSize="sm" color={`${textColor}80`}>High</Text>
-                                    </HStack>
-                                    <Text fontSize="xs" color={`${textColor}60`} mt={1}>
-                                        Adjust if voice detection is too sensitive or not sensitive enough
-                                    </Text>
-                                </FormControl>
-                                
-                                <FormControl>
-                                    <FormLabel color={textColor}>Auto-Stop After Silence</FormLabel>
-                                    <Select 
-                                        value={silenceThreshold}
-                                        onChange={(e) => setSilenceThreshold(Number(e.target.value))}
-                                        bg="rgba(0,0,0,0.2)"
-                                        borderColor="rgba(255,255,255,0.1)"
-                                        color={textColor}
-                                    >
-                                        <option value={1000}>1 second</option>
-                                        <option value={2000}>2 seconds</option>
-                                        <option value={3000}>3 seconds</option>
-                                        <option value={5000}>5 seconds</option>
-                                        <option value={0}>Disabled</option>
-                                    </Select>
-                                    <Text fontSize="xs" color={`${textColor}60`} mt={1}>
-                                        Automatically stops recording after extended silence
-                                    </Text>
-                                </FormControl>
-                            </>
-                        )}
-                    </Box>
-                    
-                    <Box 
-                        p={6}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <HStack mb={4}>
-                            <Icon as={FaChartLine} color={secondaryAccent} boxSize={5} />
-                            <Heading size="md" color={textColor}>Analysis Settings</Heading>
-                        </HStack>
-                        
-                        <FormControl mb={5}>
-                            <FormLabel color={textColor}>Theme</FormLabel>
-                            <Select 
-                                defaultValue="dark"
-                                bg="rgba(0,0,0,0.2)"
-                                borderColor="rgba(255,255,255,0.1)"
-                                color={textColor}
-                            >
-                                <option value="dark">Dark Theme</option>
-                                <option value="light">Light Theme</option>
-                            </Select>
-                        </FormControl>
-                        
-                        <FormControl>
-                            <FormLabel color={textColor}>Data Storage</FormLabel>
-                            <Select 
-                                value={storagePreference}
-                                onChange={handleStoragePreferenceChange}
-                                bg="rgba(0,0,0,0.2)"
-                                borderColor="rgba(255,255,255,0.1)"
-                                color={textColor}
-                            >
-                                <option value="none">Don't Store Data</option>
-                                <option value="session">Store in Session</option>
-                                <option value="local">Store Locally</option>
-                            </Select>
-                        </FormControl>
-                    </Box>
-                </SimpleGrid>
-                
-                <Box 
-                    p={6}
-                    borderRadius="lg"
-                    bg="rgba(0,0,0,0.2)"
-                    border="1px solid rgba(255,255,255,0.05)"
-                    width="100%"
-                >
-                    <HStack mb={4}>
-                        <Icon as={FaDatabase} color={tertiaryAccent} boxSize={5} />
-                        <Heading size="md" color={textColor}>Data Management</Heading>
-                    </HStack>
-                    
-                    <VStack spacing={4} align="start" width="100%">
-                        <Text color={textColor}>
-                            {recordingHistory.length} recordings stored ({storagePreference === 'local' ? 'local storage' : 'session only'})
-                        </Text>
-                        
-                        {storagePreference === 'local' && isLocalStorageAvailable && (
-                            <>
-                                <Box width="100%">
-                                    <HStack justify="space-between" mb={1}>
-                                        <Text color={textColor} fontSize="sm">Storage Usage</Text>
-                                        <Text color={textColor} fontSize="sm">{storageUsage} KB / {ESTIMATED_MAX_STORAGE_MB * 1024} KB</Text>
-                                    </HStack>
-                                    <Progress 
-                                        value={storagePercentage} 
-                                        size="sm" 
-                                        borderRadius="md"
-                                        colorScheme={storagePercentage > 80 ? "red" : storagePercentage > 60 ? "yellow" : "green"}
-                                    />
-                                    {storagePercentage > 80 && (
-                                        <Text color="red.300" fontSize="xs" mt={1}>
-                                            <Icon as={FaInfoCircle} mr={1} />
-                                            Storage nearly full. Consider clearing old recordings.
-                                        </Text>
-                                    )}
-                                </Box>
-                                
-                                {!isLocalStorageAvailable && (
-                                    <Alert status="warning" variant="left-accent" borderRadius="md">
-                                        <AlertIcon />
-                                        Local storage is not available in your browser. Your recordings won't persist.
-                                    </Alert>
-                                )}
-                            </>
-                        )}
-                        
-                        <HStack width="100%" spacing={4}>
-                            <Button 
-                                colorScheme="red" 
-                                variant="outline" 
-                                size="md"
-                                leftIcon={<Icon as={FaTrash} />}
-                                onClick={handleClearHistory}
-                                isDisabled={recordingHistory.length === 0}
-                                flex="1"
-                            >
-                                Clear History
-                            </Button>
-                            
-                            <Button 
-                                colorScheme="blue" 
-                                variant="outline" 
-                                size="md"
-                                leftIcon={<Icon as={FaDownload} />}
-                                onClick={handleExportRecordings}
-                                isDisabled={recordingHistory.length === 0}
-                                flex="1"
-                            >
-                                Export
-                            </Button>
-                            
-                            <Button 
-                                colorScheme="green" 
-                                variant="outline" 
-                                size="md"
-                                leftIcon={<Icon as={FaUpload} />}
-                                onClick={() => fileInputRef.current?.click()}
-                                flex="1"
-                            >
-                                Import
-                                <input 
-                                    type="file" 
-                                    ref={fileInputRef}
-                                    style={{ display: 'none' }}
-                                    accept=".json"
-                                    onChange={handleImportRecordings}
-                                />
-                            </Button>
-                        </HStack>
-                    </VStack>
-                </Box>
-                
-                <Box 
-                    p={4} 
-                    bg={`rgba(192, 132, 252, 0.1)`} 
-                    borderRadius="md" 
-                    borderLeft={`3px solid ${tertiaryAccent}`}
-                    width="100%"
-                    mt={2}
-                >
-                    <Text color={tertiaryAccent} fontSize="sm">
-                        <Icon as={FaInfoCircle} mr={2} />
-                        Local storage persists between browser sessions but has limited space (5-10MB). Session storage is cleared when you close the browser.
-                    </Text>
-                </Box>
-            </VStack>
-        </Box>
-    );
+    // Settings tab has been moved to a separate file
     
-    const ProfileTab = () => (
-        <Box 
-            bg={cardBg}
-            borderRadius="xl"
-            border="1px solid rgba(255, 255, 255, 0.1)"
-            boxShadow="0 10px 30px -5px rgba(0, 0, 0, 0.3)"
-            p={8}
-            maxW="800px"
-            mx="auto"
-        >
-            <VStack spacing={8} align="stretch" width="100%">
-                <Heading 
-                    size="lg" 
-                    bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                    bgClip="text"
-                >
-                    User Profile
-                </Heading>
-                
-                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} width="100%">
-                    <Box 
-                        p={6}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <VStack spacing={5} align="center">
-                            <Icon as={FaUser} boxSize={20} color={accentColor} />
-                            <Heading size="lg" color={textColor}>Guest User</Heading>
-                            <Badge colorScheme="purple" fontSize="md" py={1} px={3}>Free Plan</Badge>
-                            
-                            <VStack spacing={3} width="100%" mt={3}>
-                                <Button 
-                                    colorScheme="blue" 
-                                    size="md"
-                                    width="100%"
-                                    leftIcon={<Icon as={FaUser} />}
-                                >
-                                    Create Account
-                                </Button>
-                                
-                                <Button 
-                                    variant="outline"
-                                    size="md"
-                                    width="100%"
-                                    borderColor="rgba(255, 255, 255, 0.2)"
-                                    _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
-                                    color="white"
-                                >
-                                    Login
-                                </Button>
-                            </VStack>
-                        </VStack>
-                    </Box>
-                
-                    <Box 
-                        p={6}
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <Heading size="md" color={highlightColor} mb={4}>Recent Activity</Heading>
-                        
-                        {recordingHistory.length > 0 ? (
-                            <VStack align="start" spacing={4}>
-                                <Text color={textColor}>
-                                    You have {recordingHistory.length} saved recordings
-                                </Text>
-                                
-                                {recordingHistory.slice(-2).map((record, index) => (
-                                    <Box 
-                                        key={index} 
-                                        p={3} 
-                                        borderRadius="md" 
-                                        bg="rgba(0,0,0,0.3)" 
-                                        width="100%"
-                                        border="1px solid rgba(255, 255, 255, 0.05)"
-                                    >
-                                        <Text fontSize="sm" color={`${textColor}60`}>
-                                            {record.timestamp.toLocaleTimeString()}
-                                        </Text>
-                                        <Badge colorScheme={record.analysis.rate_color || "blue"} mt={1}>
-                                            {record.analysis.speech_rate}
-                                        </Badge>
-                                    </Box>
-                                ))}
-                                
-                                <Button 
-                                    colorScheme="blue" 
-                                    size="sm" 
-                                    variant="ghost"
-                                    alignSelf="center"
-                                    mt={2}
-                                    onClick={() => setActiveTab("recordings")}
-                                >
-                                    View All Activity
-                                </Button>
-                            </VStack>
-                        ) : (
-                            <Text color={textColor}>No recording history yet</Text>
-                        )}
-                    </Box>
-                </SimpleGrid>
-                
-                <Divider borderColor="gray.700" />
-                
-                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} width="100%">
-                    <Stat
-                        bg="rgba(0,0,0,0.2)"
-                        p={4}
-                        borderRadius="lg"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <StatLabel>Total Recordings</StatLabel>
-                        <StatNumber color={accentColor}>{recordingHistory.length}</StatNumber>
-                    </Stat>
-                    
-                    <Stat
-                        bg="rgba(0,0,0,0.2)"
-                        p={4}
-                        borderRadius="lg"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <StatLabel>Average Speech Rate</StatLabel>
-                        <StatNumber color={accentColor}>
-                            {recordingHistory.length > 0 
-                                ? Math.round(recordingHistory.reduce((sum, record) => sum + record.analysis.raw_rate, 0) / recordingHistory.length) 
-                                : 0} WPM
-                        </StatNumber>
-                    </Stat>
-                    
-                    <Stat
-                        bg="rgba(0,0,0,0.2)"
-                        p={4}
-                        borderRadius="lg"
-                        border="1px solid rgba(255,255,255,0.05)"
-                    >
-                        <StatLabel>User Since</StatLabel>
-                        <StatNumber color={accentColor} fontSize="md">Today</StatNumber>
-                    </Stat>
-                </SimpleGrid>
-            </VStack>
-        </Box>
-    );
+    // Profile tab has been moved to a separate file
     
-    const RecordingsTab = () => (
-        <Box 
-            bg={cardBg}
-            borderRadius="xl"
-            border="1px solid rgba(255, 255, 255, 0.1)"
-            boxShadow="0 10px 30px -5px rgba(0, 0, 0, 0.3)"
-            p={8}
-            maxW="800px"
-            mx="auto"
-        >
-            <VStack spacing={8} align="start" width="100%">
-                <Heading 
-                    size="lg" 
-                    bgGradient={`linear-gradient(90deg, ${accentColor}, ${secondaryAccent})`}
-                    bgClip="text"
-                >
-                    Recordings
-                </Heading>
-                
-                {recordingHistory.length > 0 ? (
-                    <>
-                        <Box 
-                            p={4} 
-                            borderRadius="lg" 
-                            bg="rgba(0,0,0,0.2)"
-                            border="1px solid rgba(255,255,255,0.05)"
-                        >
-                            <Flex 
-                                justifyContent="space-between" 
-                                alignItems="center" 
-                                mb={storagePreference === 'local' ? 3 : 0}
-                                flexWrap="wrap"
-                                gap={2}
-                            >
-                                <Text color={textColor} fontWeight="medium">
-                                    <Icon as={FaHistory} mr={2} />
-                                    {recordingHistory.length} Total Recordings
-                                </Text>
-                                
-                                <HStack spacing={2}>
-                                    <Button 
-                                        size="sm" 
-                                        colorScheme="red" 
-                                        variant="outline"
-                                        leftIcon={<Icon as={FaTrash} />}
-                                        onClick={handleClearHistory}
-                                        isDisabled={recordingHistory.length === 0}
-                                    >
-                                        Clear
-                                    </Button>
-                                    
-                                    <Button 
-                                        size="sm" 
-                                        colorScheme="blue" 
-                                        variant="outline"
-                                        leftIcon={<Icon as={FaDownload} />}
-                                        onClick={handleExportRecordings}
-                                        isDisabled={recordingHistory.length === 0}
-                                    >
-                                        Export
-                                    </Button>
-                                    
-                                    <Button 
-                                        size="sm" 
-                                        colorScheme="green" 
-                                        variant="outline"
-                                        leftIcon={<Icon as={FaUpload} />}
-                                        onClick={() => fileInputRef.current?.click()}
-                                    >
-                                        Import
-                                        <input 
-                                            type="file" 
-                                            ref={fileInputRef}
-                                            style={{ display: 'none' }}
-                                            accept=".json"
-                                            onChange={handleImportRecordings}
-                                        />
-                                    </Button>
-                                </HStack>
-                            </Flex>
-                            
-                            {storagePreference === 'local' && isLocalStorageAvailable && (
-                                <>
-                                    <HStack justify="space-between" mb={1} fontSize="xs">
-                                        <Text color={`${textColor}80`}>Storage: {storageUsage} KB</Text>
-                                        <Text color={`${textColor}80`}>{storagePercentage}% used</Text>
-                                    </HStack>
-                                    <Progress 
-                                        value={storagePercentage} 
-                                        size="xs" 
-                                        borderRadius="md"
-                                        colorScheme={storagePercentage > 80 ? "red" : storagePercentage > 60 ? "yellow" : "green"}
-                                    />
-                                </>
-                            )}
-                        </Box>
-                        
-                        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} width="100%">
-                            <Stat
-                                bg="rgba(0,0,0,0.2)"
-                                p={4}
-                                borderRadius="lg"
-                                border="1px solid rgba(255,255,255,0.05)"
-                            >
-                                <StatLabel>Average Speech Rate</StatLabel>
-                                <StatNumber color={accentColor}>
-                                    {Math.round(recordingHistory.reduce((sum, record) => sum + record.analysis.raw_rate, 0) / recordingHistory.length)} WPM
-                                </StatNumber>
-                            </Stat>
-                            
-                            <Stat
-                                bg="rgba(0,0,0,0.2)"
-                                p={4}
-                                borderRadius="lg"
-                                border="1px solid rgba(255,255,255,0.05)"
-                            >
-                                <StatLabel>Total Speaking Time</StatLabel>
-                                <StatNumber color={secondaryAccent}>
-                                    {formatDuration(recordingHistory.reduce((sum, record) => sum + record.duration, 0))}
-                                </StatNumber>
-                            </Stat>
-                            
-                            <Stat
-                                bg="rgba(0,0,0,0.2)"
-                                p={4}
-                                borderRadius="lg"
-                                border="1px solid rgba(255,255,255,0.05)"
-                            >
-                                <StatLabel>Most Recent</StatLabel>
-                                <StatNumber color={tertiaryAccent} fontSize="md">
-                                    {recordingHistory[recordingHistory.length - 1].timestamp.toLocaleString()}
-                                </StatNumber>
-                            </Stat>
-                        </SimpleGrid>
-                        
-                        <VStack spacing={4} width="100%" align="stretch" maxHeight="500px" overflowY="auto"
-                            sx={{
-                                '&::-webkit-scrollbar': {
-                                    width: '8px',
-                                    background: 'rgba(0, 0, 0, 0.1)',
-                                    borderRadius: '4px',
-                                },
-                                '&::-webkit-scrollbar-thumb': {
-                                    background: `rgba(56, 189, 248, 0.5)`,
-                                    borderRadius: '4px',
-                                },
-                            }}
-                        >
-                            {recordingHistory.map((record, index) => (
-                                <Box 
-                                    key={index} 
-                                    p={5}
-                                    bg="rgba(0,0,0,0.2)"
-                                    borderRadius="lg"
-                                    border="1px solid rgba(255,255,255,0.05)"
-                                    transition="all 0.3s ease"
-                                    _hover={{
-                                        boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                                        transform: "translateY(-2px)",
-                                        borderColor: `rgba(${accentColor.replace('#', '')}, 0.3)`
-                                    }}
-                                >
-                                    <Flex justifyContent="space-between" alignItems="center" mb={3}>
-                                        <Badge 
-                                            colorScheme={record.analysis.rate_color || "blue"}
-                                            px={3}
-                                            py={1}
-                                            borderRadius="md"
-                                            fontSize="sm"
-                                        >
-                                            {record.analysis.speech_rate}
-                                        </Badge>
-                                        
-                                        <HStack>
-                                            <Icon as={FaClock} color={`${textColor}60`} />
-                                            <Text fontSize="sm" color={`${textColor}60`}>
-                                                {formatDuration(record.duration || 180)}
-                                            </Text>
-                                        </HStack>
-                                    </Flex>
-                                    
-                                    <Text noOfLines={2} mb={3} color={textColor} fontWeight="medium">
-                                        {record.transcription.length > 100 
-                                            ? record.transcription.substring(0, 100) + "..." 
-                                            : record.transcription}
-                                    </Text>
-                                    
-                                    <Flex justifyContent="space-between" alignItems="center" mb={3}>
-                                        <Text fontSize="sm" color={`${textColor}60`}>
-                                            {record.timestamp.toLocaleString()}
-                                        </Text>
-                                        
-                                        <HStack spacing={3}>
-                                            <Badge 
-                                                bg={`${secondaryAccent}30`}
-                                                color={secondaryAccent}
-                                                px={2}
-                                                py={1}
-                                                borderRadius="md"
-                                                border={`1px solid ${secondaryAccent}50`}
-                                            >
-                                                Score: {record.analysis.confidence_score}%
-                                            </Badge>
-                                            
-                                            <Badge 
-                                                bg={`${tertiaryAccent}30`}
-                                                color={tertiaryAccent}
-                                                px={2}
-                                                py={1}
-                                                borderRadius="md"
-                                                fontSize="xs"
-                                            >
-                                                Words: {record.analysis.total_words}
-                                            </Badge>
-                                        </HStack>
-                                    </Flex>
-                                    
-                                    {/* Audio player and download button */}
-                                    {record.audioUrl && record.audioBlob && (
-                                        <Box mt={2}>
-                                            <Flex justifyContent="space-between" alignItems="center">
-                                                <audio 
-                                                    controls 
-                                                    src={record.audioUrl}
-                                                    style={{ 
-                                                        height: '40px', 
-                                                        borderRadius: '8px', 
-                                                        backgroundColor: 'rgba(0,0,0,0.2)' 
-                                                    }}
-                                                />
-                                                <Button
-                                                    size="sm"
-                                                    leftIcon={<Icon as={FaDownload} />}
-                                                    colorScheme="blue"
-                                                    variant="outline"
-                                                    onClick={() => downloadAudioAsMp3(record.audioBlob, `recording-${record.timestamp.toISOString().slice(0,10)}.mp3`)}
-                                                    ml={2}
-                                                >
-                                                    MP3
-                                                </Button>
-                                            </Flex>
-                                        </Box>
-                                    )}
-                                </Box>
-                            ))}
-                        </VStack>
-                    </>
-                ) : (
-                    <Box 
-                        width="100%" 
-                        py={12} 
-                        display="flex" 
-                        flexDirection="column" 
-                        alignItems="center" 
-                        justifyContent="center"
-                        borderRadius="lg"
-                        bg="rgba(0,0,0,0.2)"
-                        border="1px dashed rgba(255,255,255,0.1)"
-                    >
-                        <Text color={`${textColor}80`} textAlign="center" py={8}>
-                            No recordings yet. Start recording to see your history here.
-                        </Text>
-                    </Box>
-                )}
-            </VStack>
-        </Box>
-    );
+    // Recordings tab has been moved to a separate file
     
     // Active tab state for the permanent side menu
     const [activeTab, setActiveTab] = useState("main");
@@ -2840,6 +2029,7 @@ export default function TryIt() {
                                         bg={isRecording ? "red.500" : accentColor}
                                         color="white"
                                         onClick={handleRecord}
+
                                         leftIcon={<FaMicrophone />}
                                         w="200px"
                                         h="60px"
@@ -3051,30 +2241,28 @@ export default function TryIt() {
                                     >
                                         <StatLabel>Speech Pauses</StatLabel>
                                         <StatNumber color={tertiaryAccent}>
-                                            {analysis.vad_metrics.significantSilenceCount || 0}
+                                            {pauseAnalysis.total || 0}
                                         </StatNumber>
                                         <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
-                                            <Badge colorScheme="purple">Significant Pauses</Badge>
-                                            <Tooltip label="Moments of silence longer than 1.5 seconds">
+                                            <Badge colorScheme="purple">Total Pauses</Badge>
+                                            <Tooltip label="Total number of pauses detected in your speech">
                                                 <Icon as={FaInfoCircle} boxSize="0.7em" />
                                             </Tooltip>
                                         </StatHelpText>
-                                        
                                         <Text mt={2} fontSize="sm">
-                                            {analysis.vad_metrics.significantSilenceCount > 8 ? 
-                                                "Consider reducing the number of long pauses in your speech." : 
-                                                analysis.vad_metrics.significantSilenceCount > 3 ?
+                                            {pauseAnalysis.total > 8 ?
+                                                "Your speech contains many pauses." :
+                                                pauseAnalysis.total > 3 ?
                                                 "Your speech has a moderate number of pauses." :
-                                                "Good job! Your speech has few significant pauses."
+                                                "Your speech has very few pauses."
                                             }
                                         </Text>
-                                        
                                         <Flex justify="space-between" mt={2} alignItems="center">
                                             <Text fontSize="xs" color={`${textColor}80`}>
-                                                {Math.round(analysis.vad_metrics.voiceDuration) || 0}s speaking
+                                                {Math.round(pauseAnalysis.speakingTime) || 0}s speaking
                                             </Text>
                                             <Text fontSize="xs" color={`${textColor}80`}>
-                                                {Math.round(analysis.vad_metrics.silenceDuration) || 0}s silent
+                                                {Math.round(pauseAnalysis.silenceTime) || 0}s silent
                                             </Text>
                                         </Flex>
                                     </Stat>
@@ -3575,19 +2763,79 @@ export default function TryIt() {
             </Container>
                 ) : activeTab === "recordings" ? (
                     <Container maxW="container.xl" py={6}>
-                        <RecordingsTab />
+                        <RecordingsTab 
+                            recordingHistory={recordingHistory}
+                            handleClearHistory={handleClearHistory}
+                            handleExportRecordings={handleExportRecordings}
+                            handleImportRecordings={handleImportRecordings}
+                            fileInputRef={fileInputRef}
+                            storagePreference={storagePreference}
+                            isLocalStorageAvailable={isLocalStorageAvailable}
+                            storageUsage={storageUsage}
+                            storagePercentage={storagePercentage}
+                            accentColor={accentColor}
+                            secondaryAccent={secondaryAccent}
+                            tertiaryAccent={tertiaryAccent}
+                            textColor={textColor}
+                            formatDuration={formatDuration}
+                            downloadAudioAsMp3={downloadAudioAsMp3}
+                            cardBg={cardBg}
+                        />
                     </Container>
                 ) : activeTab === "about" ? (
                     <Container maxW="container.xl" py={6}>
-                        <AboutTab />
+                        <AboutTab 
+                            accentColor={accentColor}
+                            tertiaryAccent={tertiaryAccent}
+                            cardBg={cardBg}
+                            textColor={textColor}
+                            highlightColor={highlightColor}
+                        />
                     </Container>
                 ) : activeTab === "settings" ? (
                     <Container maxW="container.xl" py={6}>
-                        <SettingsTab />
+                        <SettingsTab 
+                            durationValue={durationValue}
+                            durationUnit={durationUnit}
+                            handleDurationChange={handleDurationChange}
+                            handleDurationUnitChange={handleDurationUnitChange}
+                            enableVAD={enableVAD}
+                            setEnableVAD={setEnableVAD}
+                            vadThreshold={vadThreshold}
+                            setVadThreshold={setVadThreshold}
+                            silenceThreshold={silenceThreshold}
+                            setSilenceThreshold={setSilenceThreshold}
+                            storagePreference={storagePreference}
+                            handleStoragePreferenceChange={handleStoragePreferenceChange}
+                            isLocalStorageAvailable={isLocalStorageAvailable}
+                            storageUsage={storageUsage}
+                            storagePercentage={storagePercentage}
+                            ESTIMATED_MAX_STORAGE_MB={ESTIMATED_MAX_STORAGE_MB}
+                            fileInputRef={fileInputRef}
+                            handleImportRecordings={handleImportRecordings}
+                            handleClearHistory={handleClearHistory}
+                            handleExportRecordings={handleExportRecordings}
+                            recordingHistory={recordingHistory}
+                            accentColor={accentColor}
+                            secondaryAccent={secondaryAccent}
+                            tertiaryAccent={tertiaryAccent}
+                            cardBg={cardBg}
+                            textColor={textColor}
+                            highlightColor={highlightColor}
+                        />
                     </Container>
                 ) : activeTab === "profile" ? (
                     <Container maxW="container.xl" py={6}>
-                        <ProfileTab />
+                        <ProfileTab 
+                            recordingHistory={recordingHistory}
+                            accentColor={accentColor}
+                            secondaryAccent={secondaryAccent}
+                            tertiaryAccent={tertiaryAccent}
+                            cardBg={cardBg}
+                            textColor={textColor}
+                            highlightColor={highlightColor}
+                            setActiveTab={setActiveTab}
+                        />
                     </Container>
                 ) : (
                     <Container maxW="container.xl" py={6}>

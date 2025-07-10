@@ -6,8 +6,8 @@ import logging
 import sys
 import tempfile
 import time
-import librosa
 from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
 from scipy.io import wavfile
 from transformers import pipeline
 import whisper # type: ignore
@@ -25,6 +25,11 @@ logging.basicConfig(
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = Flask(__name__, static_folder='static')
+
+# Initialize CORS to allow requests from localhost for development
+allowed_origins = ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"]
+CORS(app, resources={r"/*": {"origins": allowed_origins}})
+logging.info(f"CORS has been configured to accept requests from: {allowed_origins}")
 
 # Load Whisper model
 whisper_model_size = os.environ.get("WHISPER_MODEL_SIZE", "small")
@@ -184,89 +189,6 @@ def perform_emotion_detection(text):
     }
 
 # Function to calculate confidence score based on audio properties using numpy and scipy
-def analyze_volume_with_librosa(audio_data):
-    """Analyze volume/loudness in audio using librosa.feature.rms"""
-    try:
-        # Load audio data with librosa
-        # First save wav data to a temporary file
-        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
-            temp_path = temp_wav.name
-            temp_wav.write(audio_data)
-        
-        # Load the audio file with librosa
-        y, sr = librosa.load(temp_path, sr=None)
-        
-        # Calculate RMS energy
-        S, phase = librosa.magphase(librosa.stft(y))
-        rms = librosa.feature.rms(S=S)[0]
-        
-        # Calculate statistics
-        rms_mean = float(np.mean(rms))
-        rms_std = float(np.std(rms))
-        rms_max = float(np.max(rms))
-        rms_min = float(np.min(rms) if len(rms) > 0 else 0)
-        
-        # Calculate variation coefficient (higher values mean more variation)
-        variation_coef = float(rms_std / rms_mean if rms_mean > 0 else 0)
-        
-        # Determine if volume is too low or has too much variation
-        is_too_quiet = rms_mean < 0.05  # Threshold can be adjusted based on testing
-        has_high_variation = variation_coef > 0.75  # Threshold can be adjusted based on testing
-        
-        # Clean up the temporary file
-        try:
-            os.unlink(temp_path)
-        except:
-            pass
-            
-        return {
-            "rms_mean": rms_mean,
-            "rms_std": rms_std,
-            "rms_max": rms_max,
-            "rms_min": rms_min,
-            "variation_coefficient": variation_coef,
-            "is_too_quiet": is_too_quiet,
-            "has_high_variation": has_high_variation,
-            "feedback": generate_volume_feedback(rms_mean, variation_coef)
-        }
-    except Exception as e:
-        logging.error(f"Error analyzing volume: {str(e)}")
-        return {
-            "error": str(e),
-            "rms_mean": 0,
-            "rms_std": 0,
-            "variation_coefficient": 0,
-            "is_too_quiet": False,
-            "has_high_variation": False,
-            "feedback": "Could not analyze volume."
-        }
-
-def generate_volume_feedback(rms_mean, variation_coef):
-    """Generate human-readable feedback on volume metrics"""
-    feedback = []
-    
-    # Volume level feedback
-    if rms_mean < 0.03:
-        feedback.append("Your audio is very quiet. Consider speaking louder or positioning the microphone closer.")
-    elif rms_mean < 0.05:
-        feedback.append("Your audio is somewhat quiet. A slightly louder voice would improve clarity.")
-    elif rms_mean > 0.25:
-        feedback.append("Your audio is very loud. Consider speaking more softly or moving the microphone further away.")
-    elif rms_mean > 0.15:
-        feedback.append("Your audio is a bit loud, but still clear.")
-    else:
-        feedback.append("Your volume level is good.")
-    
-    # Volume consistency feedback
-    if variation_coef > 0.9:
-        feedback.append("Your volume has significant variation. Try to maintain a more consistent speaking volume.")
-    elif variation_coef > 0.75:
-        feedback.append("Your volume varies somewhat throughout the recording. More consistency would improve clarity.")
-    else:
-        feedback.append("Your volume consistency is good.")
-    
-    return " ".join(feedback)
-
 def calculate_confidence_from_audio(audio_data):
     """Calculate confidence score based on audio properties."""
     # Read WAV data
@@ -288,6 +210,94 @@ def calculate_confidence_from_audio(audio_data):
     # Combine factors to calculate confidence score
     confidence_score = max(50, min(100, (loudness + 40) * 0.5 + speech_ratio * 50))
     return round(confidence_score)
+
+def detect_speech_pauses(audio_data):
+    """Detect pauses in speech from audio data."""
+    try:
+        # Read WAV data
+        sample_rate, samples = wavfile.read(io.BytesIO(audio_data))
+
+        # Convert to mono if stereo
+        if len(samples.shape) > 1:
+            samples = np.mean(samples, axis=1)
+
+        # Normalize audio samples
+        samples = samples / np.max(np.abs(samples))
+
+        # Calculate RMS energy in small windows
+        window_size = int(0.05 * sample_rate)  # 50ms windows
+        step_size = int(0.025 * sample_rate)   # 25ms step (50% overlap)
+
+        energy_windows = []
+        for i in range(0, len(samples) - window_size, step_size):
+            window = samples[i:i + window_size]
+            energy = np.sqrt(np.mean(window**2))
+            energy_windows.append(energy)
+
+        energy_windows = np.array(energy_windows)
+
+        # Adaptive threshold for silence
+        silence_threshold = np.percentile(energy_windows, 20)  # Bottom 20% considered silence
+
+        # Detect silence segments
+        is_silence = energy_windows < silence_threshold
+
+        # Convert to time segments
+        time_per_window = step_size / sample_rate
+
+        # Group consecutive silence windows
+        silence_segments = []
+        in_silence = False
+        silence_start = 0
+
+        for i, silent in enumerate(is_silence):
+            if silent and not in_silence:
+                in_silence = True
+                silence_start = i * time_per_window
+            elif not silent and in_silence:
+                in_silence = False
+                silence_duration = i * time_per_window - silence_start
+                if silence_duration > 0.3:  # Only count pauses longer than 0.3 seconds
+                    silence_segments.append({
+                        "start": silence_start,
+                        "end": i * time_per_window,
+                        "duration": silence_duration
+                    })
+
+        # Handle case where audio ends during silence
+        if in_silence:
+            silence_duration = len(is_silence) * time_per_window - silence_start
+            if silence_duration > 0.3:
+                silence_segments.append({
+                    "start": silence_start,
+                    "end": len(is_silence) * time_per_window,
+                    "duration": silence_duration
+                })
+
+        # Calculate total duration of speech and silence
+        total_duration = len(samples) / sample_rate
+        silence_duration = sum(segment["duration"] for segment in silence_segments)
+        speech_duration = total_duration - silence_duration
+
+        return {
+            "total_pauses": len(silence_segments),
+            "pause_segments": silence_segments,
+            "speaking_time": speech_duration,
+            "silence_time": silence_duration,
+            "total_duration": total_duration,
+            "pause_percentage": (silence_duration / total_duration) * 100 if total_duration > 0 else 0
+        }
+    except Exception as e:
+        logging.error(f"Error detecting speech pauses: {str(e)}")
+        return {
+            "total_pauses": 0,
+            "pause_segments": [],
+            "speaking_time": 0,
+            "silence_time": 0,
+            "total_duration": 0,
+            "pause_percentage": 0,
+            "error": str(e)
+        }
 
 def transcribe_with_whisper(audio_data):
     """Transcribe audio using Whisper."""
@@ -325,46 +335,8 @@ def transcribe_with_whisper(audio_data):
         logging.error(f"Error in Whisper transcription: {e}")
         raise
 
-@app.route('/analyze-volume', methods=['POST'])
-def analyze_volume():
-    """Endpoint to analyze volume/loudness in audio using librosa"""
-    try:
-        logging.info("Received a volume analysis request.")
-        if 'audio' not in request.files:
-            logging.warning("No audio file provided in the request.")
-            return jsonify({"error": "No audio file provided"}), 400
-
-        audio_file = request.files['audio']
-        webm_data = audio_file.read()
-
-        # Convert WebM to WAV in memory
-        logging.info("Converting WebM to WAV for volume analysis...")
-        process = (
-            ffmpeg
-            .input('pipe:0', format='webm')
-            .output('pipe:1', format='wav', acodec='pcm_s16le', ac=1, ar='16000')
-            .run_async(pipe_stdin=True, pipe_stdout=True, pipe_stderr=True)
-        )
-        wav_data, _ = process.communicate(input=webm_data)
-
-        # Analyze volume using librosa
-        volume_metrics = analyze_volume_with_librosa(wav_data)
-        
-        return jsonify({
-            "volume_metrics": volume_metrics,
-            "success": True
-        })
-        
-    except Exception as e:
-        logging.error(f"Error in volume analysis: {str(e)}")
-        return jsonify({
-            "error": str(e),
-            "success": False
-        }), 500
-
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
-        
     try:
         logging.info("Received a transcription request.")
         if 'audio' not in request.files:
@@ -386,70 +358,24 @@ def transcribe():
 
         # Calculate confidence score from audio
         confidence_score = calculate_confidence_from_audio(wav_data)
-        
-        # Analyze volume using librosa (optional - this might increase response time)
-        volume_metrics = analyze_volume_with_librosa(wav_data)
-        
+
+        # Detect speech pauses
+        pause_analysis = detect_speech_pauses(wav_data)
+        logging.info(f"Pause analysis: {pause_analysis['total_pauses']} total pauses")
+
         # Transcribe with Whisper
         whisper_result = transcribe_with_whisper(wav_data)
-        # Extract the transcribed text
         transcription = whisper_result['text']
         logging.info(f"Whisper transcription: {transcription}")
-        
-        # Check for segments that might contain filler words
-        logging.info(f"Examining whisper_result structure: {whisper_result.keys()}")
-        
-        if 'segments' in whisper_result:
-            segment_texts = []
-            logging.info(f"Number of segments: {len(whisper_result['segments'])}")
-            
-            for i, segment in enumerate(whisper_result['segments']):
-                if 'text' in segment:
-                    segment_text = segment['text']
-                    segment_texts.append(segment_text)
-                    logging.info(f"Segment {i} text: '{segment_text}'")
-                  # Log words if available
-                if 'words' in segment:
-                    words = segment.get('words', [])
-                    words_text = " ".join([w.get('word', '') for w in words])
-                    logging.info(f"Segment {i} words: '{words_text}'")
-                    
-                    # Extract individual words for filler detection
-                    for j, word_info in enumerate(words):
-                        if 'word' in word_info:
-                            word = word_info['word'].strip().lower()
-                            if word in ['um', 'uh', 'er', 'ah', 'like', 'hmm']:
-                                logging.info(f"Found potential filler word '{word}' in segment {i}, word {j}")
-                  # Extract raw words from all segments
-            raw_words_list = []
-            for segment in whisper_result['segments']:
-                if 'words' in segment:
-                    for word_info in segment['words']:
-                        if 'word' in word_info:
-                            raw_words_list.append(word_info['word'])
-            
-            # Add a separate raw words text to improve filler detection
-            raw_words_text = " ".join(raw_words_list)
-            logging.info(f"Raw words extracted from whisper: '{raw_words_text}'")
-            
-            # Combine all texts for a more comprehensive analysis
-            combined_text = f"{transcription} {' '.join(segment_texts)} {raw_words_text}"
-            logging.info(f"Combined text for analysis: '{combined_text}'")
-        else:
-            combined_text = transcription
-            
+
         # Perform emotion detection
         emotion_analysis = perform_emotion_detection(transcription)
-        
-        # Perform filler word detection with detailed logging
-        logging.info(f"Starting filler word detection on text: '{combined_text}'")
-        normalized_text = combined_text.lower()
-        logging.info(f"Normalized text for filler detection: '{normalized_text}'")
-        filler_word_analysis = detect_filler_words(combined_text)
-        logging.info(f"Filler word analysis result: {filler_word_analysis}")
-        
+
+        # Perform filler word detection
+        filler_word_analysis = detect_filler_words(transcription)
+
         logging.info("Transcription and analysis completed successfully.")
-        
+
         # Prepare response
         response_data = {
             "transcription": transcription,
@@ -457,16 +383,19 @@ def transcribe():
             "emotion": emotion_analysis["emotion"],
             "emotion_score": emotion_analysis["emotion_score"],
             "filler_words": filler_word_analysis,
-            "volume_metrics": volume_metrics,
-            "transcription_source": "whisper"
+            "transcription_source": "whisper",
+            "pauses": pause_analysis,  # Include pause analysis in the response
+            "speech_pauses": {  # Additional formatted data for frontend
+                "total": pause_analysis["total_pauses"],
+                "speaking_time": round(pause_analysis["speaking_time"], 2),
+                "silence_time": round(pause_analysis["silence_time"], 2),
+                "total_duration": round(pause_analysis["total_duration"], 2),
+                "pause_percentage": round(pause_analysis["pause_percentage"], 1)
+            }
         }
-        
-        # Include word-level timestamps for visualization
-        if whisper_result and 'segments' in whisper_result:
-            response_data["segments"] = whisper_result.get('segments', [])
-            
+
         return jsonify(response_data)
-    
+
     except Exception as e:
         logging.error(f"Error during transcription: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
