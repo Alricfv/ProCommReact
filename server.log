@@ -62169,3 +62169,10 @@ label 74:
 2025-07-10 17:18:18,332 - INFO - Detected filler word: 'like' as comparison
 2025-07-10 17:18:18,332 - DEBUG - Checking word 'men.' for filler
 2025-07-10 17:18:18,337 - INFO - Transcription and analysis completed successfully.
+2025-07-10 17:32:32,170 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-10 17:32:32,170 - INFO - Loading Whisper model: small
+2025-07-10 17:32:35,724 - INFO - Whisper model loaded successfully
+2025-07-10 17:32:35,731 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-10 17:32:36,155 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-10 17:32:36,200 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-10 17:32:37,332 - INFO - Serving on http://0.0.0.0:5000
