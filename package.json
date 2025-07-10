@@ -28,7 +28,7 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "predeploy": "npm run build",
+        "predeploy": "npm run build && copy build\\index.html build\\404.html",
         "deploy": "gh-pages -d build"
     },
     "proxy": "https://40.76.138.219.nip.io",
