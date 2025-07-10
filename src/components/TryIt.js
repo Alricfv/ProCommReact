@@ -1644,7 +1644,8 @@ export default function TryIt(props) {
         }
         setIsAnalyzing(false);
     };    // Modern color scheme with gradients (matching Home.js and About.js)
-    const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
+    // Brighter left edge for more vibrancy and a purplish tinge
+    const bgGradient = "linear-gradient(120deg, #0a1120 0%,rgb(92, 67, 189) 40%, #2563eb 75%, #7c3aed 100%)";
     const cardBg = "rgba(30, 41, 59, 0.8)";
     const accentColor = "#38bdf8"; // Vibrant blue
     const textColor = "#f8fafc";
@@ -1678,7 +1679,7 @@ export default function TryIt(props) {
             direction={{ base: 'column', md: 'row' }} 
             height="100vh" 
             overflow="hidden"
-            bg="#0f172a"
+            bgGradient={bgGradient}
         >
             {/* Mobile Menu Button */}
             <Box 
@@ -1706,21 +1707,21 @@ export default function TryIt(props) {
             {/* Side Navigation for Desktop */}
             <Box 
                 width={{ base: "full", md: "250px" }} 
-                bg="#0f172a"
-                borderRight="1px solid rgba(255, 255, 255, 0.1)"
+                borderRight="1px solid rgba(56, 189, 248, 0.15)"
                 p={4}
                 display={{ base: "none", md: "block" }}
                 overflowY="auto"
+                boxShadow="2px 0 16px 0 rgba(30,41,59,0.15)"
             >
                 <VStack spacing={8} align="stretch" height="full">
                     <Box py={4}>
                         <Heading 
-                            size="md" 
+                            size="lg" 
                             textAlign="center" 
                             bgGradient="linear-gradient(90deg, #38bdf8, #818cf8)"
                             bgClip="text"
                         >
-                            ProComm
+                            ProComm 
                         </Heading>
                     </Box>
                     
@@ -1934,7 +1935,6 @@ export default function TryIt(props) {
             <Box 
                 flex="1" 
                 overflow="auto"
-                bg="#0f172a" /* match the sidebar background */
                 position="relative"
                 pb={10}
             >
@@ -1976,15 +1976,16 @@ export default function TryIt(props) {
                     <Box 
                         p={8} 
                         borderRadius="20" 
-                        bg={cardBg}
+                        // Card gradient background
+                        bgGradient="linear-gradient(135deg, #1e293b 60%, #2563eb 100%)"
                         backdropFilter="blur(10px)"
                         width="full"
                         maxW="800px"
-                        border="1px solid rgba(255, 255, 255, 0.1)"
-                        boxShadow="0 15px 25px -5px rgba(0, 0, 0, 0.2)"
+                        border="1px solid rgba(56, 189, 248, 0.15)"
+                        boxShadow="0px 4px 20px rgba(0, 0, 0, 0.1)"
                         transition="all 0.3s ease"
                         _hover={{
-                            boxShadow: "0 20px 30px -5px rgba(0, 0, 0, 0.3)",
+                            boxShadow: "0px 8px 30px rgba(0, 0, 0, 0.2)",
                             transform: "translateY(-2px)"
                         }}
                         position="relative"
@@ -2549,8 +2550,7 @@ export default function TryIt(props) {
                                 backdropFilter="blur(16px)"
                                 transition="all 0.3s ease"
                                 _hover={{
-                                    boxShadow: "0 20px 30px -5px rgba(0, 0, 0, 0.3)",
-                                    transform: "translateY(-2px)"
+                                    boxShadow: "0 20px 30px -5px rgba(37,99,235,0.25)",
                                 }}
                                 position="relative"
                                 overflow="hidden"
@@ -2558,7 +2558,7 @@ export default function TryIt(props) {
                                 {/* Background accent */}
                                 <Box 
                                     position="absolute" 
-                                    top="0" 
+                                    top="0"
                                     left="0" 
                                     width="200px" 
                                     height="200px" 

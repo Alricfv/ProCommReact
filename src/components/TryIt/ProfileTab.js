@@ -53,27 +53,29 @@ const ProfileTab = ({
                 </Button>
               )}
               
-              <VStack spacing={3} width="100%" mt={3}>
-                <Button 
-                  colorScheme="blue" 
-                  size="md"
-                  width="100%"
-                  leftIcon={<Icon as={FaUser} />}
-                >
-                  Create Account
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  size="md"
-                  width="100%"
-                  borderColor="rgba(255, 255, 255, 0.2)"
-                  _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
-                  color="white"
-                >
-                  Login
-                </Button>
-              </VStack>
+              {!isAuthenticated && (
+                <VStack spacing={3} width="100%" mt={3}>
+                  <Button 
+                    colorScheme="blue" 
+                    size="md"
+                    width="100%"
+                    leftIcon={<Icon as={FaUser} />}
+                  >
+                    Create Account
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    size="md"
+                    width="100%"
+                    borderColor="rgba(255, 255, 255, 0.2)"
+                    _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+                    color="white"
+                  >
+                    Login
+                  </Button>
+                </VStack>
+              )}
             </VStack>
           </Box>
         
