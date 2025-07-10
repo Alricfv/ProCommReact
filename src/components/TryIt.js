@@ -11,6 +11,7 @@ import AboutTab from './TryIt/AboutTab';
 import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
@@ -173,7 +174,8 @@ const storageUtils = {
     }
 };
 
-export default function TryIt() {
+export default function TryIt(props) {
+  const { isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
     const [pauseAnalysis, setPauseAnalysis] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -1662,6 +1664,14 @@ export default function TryIt() {
     
     // Active tab state for the permanent side menu
     const [activeTab, setActiveTab] = useState("main");
+    
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+    if (!isAuthenticated) {
+        loginWithRedirect();
+        return <div>Redirecting to login...</div>;
+    }
     
     return (
         <Flex 
