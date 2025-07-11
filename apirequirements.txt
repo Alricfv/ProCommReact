@@ -2,3 +2,4 @@ flask
 pymongo
 python-jose
 requests
+gunicorn
