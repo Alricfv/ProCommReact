@@ -21,3 +21,14 @@ pydantic==2.4.2
 # Additional dependencies
 python-multipart==0.0.6
 "pymongo[srv]==3.12"  # MongoDB driver with SRV support
+
+# Database and storage - New additions for MongoDB integration
+pymongo==3.12.3  # MongoDB driver with GridFS included for audio file storage
+# Note: gridfs and bson are included in pymongo package
+
+# Authentication - New additions for JWT authentication
+python-jose==3.3.0  # JWT token validation for authentication
+cryptography==41.0.3  # Required by python-jose for token verification
+
+# Configuration - New addition for environment management
+python-dotenv==1.0.0  # Environment variable management

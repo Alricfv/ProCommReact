@@ -12,8 +12,23 @@ import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
 import { useAuth0 } from "@auth0/auth0-react";
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+
+/**
+ * STORAGE BEHAVIOR IMPLEMENTATION:
+ * 
+ * The application supports three storage modes:
+ * 1. 'local': Stores recordings in browser localStorage only, no API calls are made
+ * 2. 'none': No persistence, recordings are lost on refresh
+ * 3. 'session': Stores in MongoDB (through API) if authenticated, lost on browser close otherwise
+ * 
+ * Authentication and API Storage Logic:
+ * - When authenticated with Auth0 and NOT using local storage, recordings are saved to MongoDB
+ * - Auth0 tokens are fetched directly using getAccessTokenSilently() to ensure freshness
+ * - The /transcribe endpoint handles 'storage' query parameter to respect user preference
+ * - MongoDB and local storage can be used together if needed for redundancy
+ */
 
 // Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
@@ -177,7 +192,7 @@ const storageUtils = {
 };
 
 export default function TryIt(props) {
-  const { isAuthenticated, loginWithRedirect, isLoading } = useAuth0();
+  const { isAuthenticated, loginWithRedirect, isLoading, getAccessTokenSilently } = useAuth0();
     const [pauseAnalysis, setPauseAnalysis] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -573,6 +588,7 @@ export default function TryIt(props) {
         // Check if localStorage is available
         const localStorageAvailable = storageUtils.isLocalStorageAvailable();
         setIsLocalStorageAvailable(localStorageAvailable);
+        console.log("localStorage available:", localStorageAvailable);
         
         if (!localStorageAvailable) {
             toast({
@@ -583,13 +599,25 @@ export default function TryIt(props) {
                 isClosable: true,
             });
             setStoragePreference('none');
+            console.log("Setting storage preference to 'none' due to unavailable localStorage");
             return;
         }
 
         // Load storage preference
         const savedPreference = localStorage.getItem(STORAGE_PREFERENCE_KEY);
+        console.log("Loaded storage preference from localStorage:", savedPreference);
+        
         if (savedPreference) {
+            // Make sure we update the state with the saved preference
             setStoragePreference(savedPreference);
+            console.log("Applied storage preference:", savedPreference);
+            
+            // Verify the state was updated correctly in next render cycle
+            setTimeout(() => {
+                console.log("After initialization, storage preference state is:", storagePreference);
+            }, 0);
+        } else {
+            console.log("No saved preference found, using default:", storagePreference);
         }
 
         // Load recording history if storage preference is local
@@ -669,7 +697,17 @@ export default function TryIt(props) {
     // Handle storage preference change
     const handleStoragePreferenceChange = (e) => {
         const newPreference = e.target.value;
+        console.log("Changing storage preference to:", newPreference);
+        console.log("Previous storage preference was:", storagePreference);
+        
+        // Verify that the React state is updated correctly
         setStoragePreference(newPreference);
+        console.log("State should now be updated to:", newPreference);
+        
+        // In the next render cycle, verify the state was updated
+        setTimeout(() => {
+            console.log("After state update, storage preference is now:", storagePreference);
+        }, 0);
         
         if (!isLocalStorageAvailable && newPreference === 'local') {
             toast({
@@ -684,10 +722,16 @@ export default function TryIt(props) {
         
         // Save the preference to localStorage if available
         if (isLocalStorageAvailable) {
+            console.log("Saving preference to localStorage:", newPreference);
             localStorage.setItem(STORAGE_PREFERENCE_KEY, newPreference);
+            
+            // Verify localStorage was updated correctly
+            const savedValue = localStorage.getItem(STORAGE_PREFERENCE_KEY);
+            console.log("Verified localStorage value after save:", savedValue);
             
             // If changing from local to none, clear local storage
             if (newPreference === 'none' && localStorage.getItem(RECORDING_HISTORY_KEY)) {
+                console.log("Clearing recordings from localStorage");
                 storageUtils.clearRecordings();
             }
         }
@@ -1429,12 +1473,40 @@ export default function TryIt(props) {
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), 100000); // 5 second timeout
                         
-                        response = await fetch(`${PRIMARY_API_URL}/transcribe`, {
+                        // Get Auth0 token if user is authenticated
+                        let headers = {
+                            'Accept': 'application/json',
+                        };
+                        
+                        // Only add Authorization header and storage flag if user is authenticated
+                        if (isAuthenticated) {
+                            try {
+                                const token = await getAccessTokenSilently();
+                                headers['Authorization'] = `Bearer ${token}`;
+                            } catch (err) {
+                                console.error('Failed to get access token:', err);
+                            }
+                        }
+                        
+                        // Add storage preference as query parameter
+                        const queryParams = new URLSearchParams();
+                        
+                        // Double check the current storage preference state
+                        console.log("Current storage preference before API call:", storagePreference);
+                        console.log("localStorage preference value:", localStorage.getItem(STORAGE_PREFERENCE_KEY));
+                        
+                        // Ensure we're using the correct value from state
+                        queryParams.append('storage', storagePreference);
+                        console.log("Sending API request with storage preference:", storagePreference);
+                        
+                        const apiUrl = `${PRIMARY_API_URL}/transcribe?${queryParams.toString()}`;
+                        console.log("API request URL with query parameters:", apiUrl);
+                        console.log("API request URL:", apiUrl);
+                        
+                        response = await fetch(apiUrl, {
                             method: 'POST',
                             body: formData,
-                            headers: {
-                                'Accept': 'application/json',
-                            },
+                            headers: headers,
                             signal: controller.signal
                         });
                         
@@ -1450,12 +1522,33 @@ export default function TryIt(props) {
                         console.log('Primary API request failed, trying fallback:', e.message);
                         console.log('Attempting fallback API:', FALLBACK_API_URL);
                         
-                        response = await fetch(`${FALLBACK_API_URL}/transcribe`, {
+                        // Get Auth0 token if user is authenticated
+                        let headers = {
+                            'Accept': 'application/json',
+                        };
+                        
+                        // Only add Authorization header and storage flag if user is authenticated
+                        if (isAuthenticated) {
+                            try {
+                                const token = await getAccessTokenSilently();
+                                headers['Authorization'] = `Bearer ${token}`;
+                            } catch (err) {
+                                console.error('Failed to get access token:', err);
+                            }
+                        }
+                        
+                        // Add storage preference as query parameter
+                        const queryParams = new URLSearchParams();
+                        queryParams.append('storage', storagePreference);
+                        console.log("Sending fallback API request with storage preference:", storagePreference);
+                        
+                        const apiUrl = `${FALLBACK_API_URL}/transcribe?${queryParams.toString()}`;
+                        console.log("Fallback API request URL:", apiUrl);
+                        
+                        response = await fetch(apiUrl, {
                             method: 'POST',
                             body: formData,
-                            headers: {
-                                'Accept': 'application/json',
-                            }
+                            headers: headers
                         });
                     }
 
@@ -1466,6 +1559,18 @@ export default function TryIt(props) {
                     const data = await response.json();
                     if (data.error) {
                         throw new Error(data.error);
+                    }
+                    
+                    console.log("API response received:", data);
+                    
+                    // Log if the recording was saved on the server
+                    if (data.saved) {
+                        console.log("Recording saved on server with ID:", data.recording_id);
+                        if (data.audio_id) {
+                            console.log("Audio file saved with ID:", data.audio_id);
+                        }
+                    } else {
+                        console.log("Recording was not saved on server");
                     }
 
                     // Handle pause analysis data
@@ -1609,24 +1714,40 @@ export default function TryIt(props) {
                 analysis: results, 
                 timestamp: new Date(),
                 duration: recordingDuration,
-                audioBlob: currentAudioBlob,
-                audioUrl: createAudioUrl(currentAudioBlob)
+                title: `Recording ${new Date().toLocaleString()}`,
+                notes: `Analyzed using ProComm. Duration: ${recordingDuration}s. Emotion: ${emotion}.`
+                // Exclude audioBlob and audioUrl for MongoDB storage - too large
             };
             console.log("Adding new recording:", newRecording);
             console.log("Current recording history:", recordingHistory);
             console.log("Storage preference:", storagePreference);
             console.log("Is local storage available:", isLocalStorageAvailable);
             
-            const updatedHistory = [...recordingHistory, newRecording];
+            // For local storage, include audio blob and URL
+            const localRecording = {
+                ...newRecording,
+                audioBlob: currentAudioBlob,
+                audioUrl: createAudioUrl(currentAudioBlob)
+            };
+            
+            const updatedHistory = [...recordingHistory, localRecording];
             setRecordingHistory(updatedHistory);
             
             console.log("New recording history length:", updatedHistory.length);
             
-            // Additional check to log persistence
+            // Handle persistence based on storage preference
             if (storagePreference === 'local' && isLocalStorageAvailable) {
-                console.log("Will save to localStorage since storagePreference is 'local'");
+                console.log("Saving to localStorage since storagePreference is 'local'");
             } else if (storagePreference === 'none') {
                 console.log("WARNING: Storage preference is set to 'none', recordings won't persist between sessions");
+            } else if (isAuthenticated) {
+                // Save to MongoDB if not using local storage and user is authenticated
+                console.log("Saving to MongoDB via API");
+                try {
+                    saveRecording(newRecording);
+                } catch (error) {
+                    console.error("Failed to save to MongoDB:", error);
+                }
             }
             
             toast({
@@ -1669,10 +1790,81 @@ export default function TryIt(props) {
     const [activeTab, setActiveTab] = useState("main");
     
     // Add handler for sidebar Home button
+    const navigate = useNavigate();
     const handleSidebarHomeClick = () => {
-        history.push('/'); // Assumes '/' is the route for LandingPage
+        navigate('/'); // Assumes '/' is the route for LandingPage
     };
     
+    // Function to send JWT in Authorization header
+    const sendApiRequest = async (endpoint, method = 'GET', data = null) => {
+        try {
+            // Get fresh token directly from Auth0
+            const token = await getAccessTokenSilently();
+            
+            // Use API URL from environment if available, otherwise fallback to localhost
+            const apiBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+            
+            const response = await axios({
+                url: `${apiBaseUrl}/api${endpoint}`,
+                method,
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                data,
+            });
+            return response.data;
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw error;
+        }
+    };
+    
+    // Fetch recordings from the API
+    const fetchRecordings = async () => {
+        try {
+            // Only fetch if not using local storage
+            if (storagePreference !== 'local') {
+                const recordings = await sendApiRequest('/recordings');
+                console.log('Fetched recordings from API:', recordings);
+                return recordings;
+            } else {
+                console.log('Using local storage, skipping API fetch');
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching recordings:', error);
+            return null;
+        }
+    };
+    
+    // Save a new recording to the API
+    const saveRecording = async (recordingData) => {
+        try {
+            console.log("In saveRecording function, current storagePreference:", storagePreference);
+            console.log("localStorage preference:", localStorage.getItem(STORAGE_PREFERENCE_KEY));
+            
+            // Only save to API if not using local storage
+            if (storagePreference !== 'local' && isAuthenticated) {
+                console.log("Saving to API because storagePreference is not 'local':", storagePreference);
+                const result = await sendApiRequest('/recordings', 'POST', recordingData);
+                console.log('Saved recording to API:', result);
+                return result;
+            } else if (storagePreference === 'local') {
+                console.log('Using local storage only, skipping API save');
+                // Double-check the localStorage state
+                const storedRecordings = storageUtils.loadRecordings();
+                console.log('Current stored recordings count:', storedRecordings.length);
+            } else if (!isAuthenticated) {
+                console.log('User not authenticated, skipping API save');
+            }
+            return null;
+        } catch (error) {
+            console.error('Error saving recording:', error);
+            return null;
+        }
+    };
+
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -1858,6 +2050,7 @@ export default function TryIt(props) {
                             
                             <Button
                                 variant={activeTab === "recordings" ? "solid" : "ghost"}
+
                                 colorScheme={activeTab === "recordings" ? "blue" : "gray"}
                                 justifyContent="flex-start"
                                 leftIcon={<Icon as={FaHistory} color={activeTab === "recordings" ? undefined : "white"} />}
@@ -2864,47 +3057,3 @@ export default function TryIt(props) {
         </Flex>
     );
 }
-
-// Function to send JWT in Authorization header
-const sendApiRequest = async (endpoint, method = 'GET', data = null) => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-        console.error('JWT token not found in localStorage');
-        return;
-    }
-
-    try {
-        const response = await axios({
-            url: `http://localhost:5000/api${endpoint}`,
-            method,
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-            data,
-        });
-        return response.data;
-    } catch (error) {
-        console.error('API request failed:', error);
-        throw error;
-    }
-};
-
-// Example usage: Fetch recordings
-const fetchRecordings = async () => {
-    try {
-        const recordings = await sendApiRequest('/recordings');
-        console.log('Fetched recordings:', recordings);
-    } catch (error) {
-        console.error('Error fetching recordings:', error);
-    }
-};
-
-// Example usage: Save a new recording
-const saveRecording = async (recordingData) => {
-    try {
-        const result = await sendApiRequest('/recordings', 'POST', recordingData);
-        console.log('Saved recording:', result);
-    } catch (error) {
-        console.error('Error saving recording:', error);
-    }
-};

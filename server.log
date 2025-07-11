@@ -62176,3 +62176,16 @@ label 74:
 2025-07-10 17:32:36,155 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
 2025-07-10 17:32:36,200 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
 2025-07-10 17:32:37,332 - INFO - Serving on http://0.0.0.0:5000
+2025-07-11 23:11:03,248 - __main__ - INFO - Starting server with waitress on 0.0.0.0:5000
+2025-07-11 23:11:03,248 - waitress - INFO - Serving on http://0.0.0.0:5000
+2025-07-11 23:13:22,588 - __main__ - ERROR - Error in /transcribe endpoint: module 'pymongo' has no attribute 'datetime'
+Traceback (most recent call last):
+  File "server.py", line 451, in transcribe
+    title = json_data.get('title') or request.form.get('title') or f"Recording {pymongo.datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}"
+AttributeError: module 'pymongo' has no attribute 'datetime'
+2025-07-11 23:16:04,935 - __main__ - INFO - Starting server with waitress on 0.0.0.0:5000
+2025-07-11 23:16:04,938 - waitress - INFO - Serving on http://0.0.0.0:5000
+2025-07-12 00:38:28,419 - __main__ - INFO - Starting server with waitress on 0.0.0.0:5000
+2025-07-12 00:38:28,421 - waitress - INFO - Serving on http://0.0.0.0:5000
+2025-07-12 00:39:04,729 - __main__ - INFO - Storage preference received: session
+2025-07-12 00:39:04,730 - __main__ - INFO - Saving recording because storage preference is session
