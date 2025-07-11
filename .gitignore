@@ -12,5 +12,9 @@ build
 venv38
 
 
+
 # Config files (removing the config file approach)
 src/config.js
+
+#logs
+server.log

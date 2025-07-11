@@ -11,6 +11,7 @@ from scipy.io import wavfile
 from transformers import pipeline
 import whisper # type: ignore
 import logging
+from src.api.recordings_api import recordings_api
 
 # Disable all logging by setting level to CRITICAL and removing handlers
 logging.basicConfig(level=logging.CRITICAL)
@@ -18,6 +19,9 @@ for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
 
 app = Flask(__name__, static_folder='static')
+
+# Register the recordings_api blueprint
+app.register_blueprint(recordings_api, url_prefix='/api')
 
 # Initialize CORS to allow requests from localhost for development
 allowed_origins = ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"]

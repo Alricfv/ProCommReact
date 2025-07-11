@@ -13,6 +13,7 @@ import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
 import { useAuth0 } from "@auth0/auth0-react";
 import { useHistory } from 'react-router-dom';
+import axios from 'axios';
 
 // Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
@@ -2863,3 +2864,47 @@ export default function TryIt(props) {
         </Flex>
     );
 }
+
+// Function to send JWT in Authorization header
+const sendApiRequest = async (endpoint, method = 'GET', data = null) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        console.error('JWT token not found in localStorage');
+        return;
+    }
+
+    try {
+        const response = await axios({
+            url: `http://localhost:5000/api${endpoint}`,
+            method,
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            data,
+        });
+        return response.data;
+    } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+    }
+};
+
+// Example usage: Fetch recordings
+const fetchRecordings = async () => {
+    try {
+        const recordings = await sendApiRequest('/recordings');
+        console.log('Fetched recordings:', recordings);
+    } catch (error) {
+        console.error('Error fetching recordings:', error);
+    }
+};
+
+// Example usage: Save a new recording
+const saveRecording = async (recordingData) => {
+    try {
+        const result = await sendApiRequest('/recordings', 'POST', recordingData);
+        console.log('Saved recording:', result);
+    } catch (error) {
+        console.error('Error saving recording:', error);
+    }
+};

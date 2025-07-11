@@ -20,3 +20,4 @@ pydantic==2.4.2
 
 # Additional dependencies
 python-multipart==0.0.6
+"pymongo[srv]==3.12"  # MongoDB driver with SRV support
