@@ -2,32 +2,37 @@ import ffmpeg
 import io
 import os
 import numpy as np
+import logging
 import sys
 import tempfile
 import time
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
 from scipy.io import wavfile
 from transformers import pipeline
 import whisper # type: ignore
-import logging
 
-# Disable all logging by setting level to CRITICAL and removing handlers
-logging.basicConfig(level=logging.CRITICAL)
-for handler in logging.root.handlers[:]:
-    logging.root.removeHandler(handler)
+# Configure logging to also output to the terminal
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Output logs to the terminal
+        logging.FileHandler("server.log")  # Optionally log to a file
+    ]
+)
+# Ensure terminal output is enabled by default
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = Flask(__name__, static_folder='static')
 
-# Initialize CORS to allow requests from localhost for development
-allowed_origins = ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"]
-CORS(app, resources={r"/*": {"origins": allowed_origins}})
-
 # Load Whisper model
 whisper_model_size = os.environ.get("WHISPER_MODEL_SIZE", "small")
+logging.info(f"Loading Whisper model: {whisper_model_size}")
 try:
     whisper_model = whisper.load_model(whisper_model_size)
+    logging.info(f"Whisper model loaded successfully")
 except Exception as e:
+    logging.error(f"Error loading Whisper model: {e}")
     raise RuntimeError(f"Failed to load Whisper model: {e}")
 
 # Load emotion detection pipeline
@@ -60,6 +65,8 @@ def detect_filler_words(text):
         'sort of': 'hedging',
     }
     
+    logging.info(f"Looking for filler words in text of length: {len(text)}")
+    
     results = {"total_count": 0, "categories": {}, "instances": []}
     
     # Normalize text for better matching (lowercase)
@@ -67,10 +74,12 @@ def detect_filler_words(text):
     words = normalized_text.split()
       # Process for single-word fillers
     for i, word in enumerate(words):
+        logging.debug(f"Checking word '{word}' for filler")
         # Check exact matches
         if word in filler_words:
             category = filler_words[word]
             results["total_count"] += 1
+            logging.info(f"Detected filler word: '{word}' as {category}")
             
             # Track categories
             if category not in results["categories"]:
@@ -94,6 +103,7 @@ def detect_filler_words(text):
                 if filler in word or word.startswith(filler) or word.endswith(filler):
                     category = filler_words.get(filler, 'hesitation')
                     results["total_count"] += 1
+                    logging.info(f"Detected partial filler match: '{word}' containing '{filler}' as {category}")
                     
                     # Track categories
                     if category not in results["categories"]:
@@ -272,6 +282,7 @@ def detect_speech_pauses(audio_data):
             "pause_percentage": (silence_duration / total_duration) * 100 if total_duration > 0 else 0
         }
     except Exception as e:
+        logging.error(f"Error detecting speech pauses: {str(e)}")
         return {
             "total_pauses": 0,
             "pause_segments": [],
@@ -290,6 +301,8 @@ def transcribe_with_whisper(audio_data):
             temp_path = temp_wav.name
             temp_wav.write(audio_data)
         
+        logging.info(f"Transcribing with Whisper using temporary file: {temp_path}")
+        
         start_time = time.time()        # Use Whisper to transcribe
         # Note: Whisper sometimes cleans up filler words by default
         result = whisper_model.transcribe(
@@ -303,27 +316,32 @@ def transcribe_with_whisper(audio_data):
             suppress_blank=False  # Don't suppress blank outputs which might contain fillers
         )
         transcription_time = time.time() - start_time
+        logging.info(f"Whisper transcription completed in {transcription_time:.2f} seconds")
         
         # Clean up temporary file
         try:
             os.unlink(temp_path)
         except Exception as e:
-            pass
+            logging.warning(f"Failed to delete temporary file {temp_path}: {e}")
         
         return result
     except Exception as e:
+        logging.error(f"Error in Whisper transcription: {e}")
         raise
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     try:
+        logging.info("Received a transcription request.")
         if 'audio' not in request.files:
+            logging.warning("No audio file provided in the request.")
             return jsonify({"error": "No audio file provided"}), 400
 
         audio_file = request.files['audio']
         webm_data = audio_file.read()
 
         # Convert WebM to WAV in memory
+        logging.info("Converting WebM to WAV in memory...")
         process = (
             ffmpeg
             .input('pipe:0', format='webm')
@@ -337,16 +355,20 @@ def transcribe():
 
         # Detect speech pauses
         pause_analysis = detect_speech_pauses(wav_data)
+        logging.info(f"Pause analysis: {pause_analysis['total_pauses']} total pauses")
 
         # Transcribe with Whisper
         whisper_result = transcribe_with_whisper(wav_data)
         transcription = whisper_result['text']
+        logging.info(f"Whisper transcription: {transcription}")
 
         # Perform emotion detection
         emotion_analysis = perform_emotion_detection(transcription)
 
         # Perform filler word detection
         filler_word_analysis = detect_filler_words(transcription)
+
+        logging.info("Transcription and analysis completed successfully.")
 
         # Prepare response
         response_data = {
@@ -369,6 +391,7 @@ def transcribe():
         return jsonify(response_data)
 
     except Exception as e:
+        logging.error(f"Error during transcription: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @app.route('/')
@@ -382,5 +405,6 @@ def not_found(e):
 from waitress import serve
 
 if __name__ == '__main__':
+    print("Starting server with Waitress...")
     # Set timeout to 5 minutes (300 seconds)
     serve(app, host='0.0.0.0', port=5000, threads=4)

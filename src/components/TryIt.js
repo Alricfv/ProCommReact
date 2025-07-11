@@ -1425,7 +1425,7 @@ export default function TryIt(props) {
                     try {
                         // Create a timeout for the VM request
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                        const timeoutId = setTimeout(() => controller.abort(), 100000); // 5 second timeout
                         
                         response = await fetch(`${PRIMARY_API_URL}/transcribe`, {
                             method: 'POST',
