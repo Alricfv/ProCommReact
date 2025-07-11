@@ -19,6 +19,7 @@ from functools import wraps
 import json
 import urllib.request
 from jose import jwt, JWTError
+from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, static_folder='static')
 
 # MongoDB setup - moved to top of file
+load_dotenv()  # Load environment variables from .env file
 MONGODB_URI = os.getenv('MONGODB_URI')
 if not MONGODB_URI:
     raise RuntimeError("MONGODB_URI environment variable is not set")
