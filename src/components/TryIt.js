@@ -12,6 +12,7 @@ import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
 import { useAuth0 } from "@auth0/auth0-react";
+import { useHistory } from 'react-router-dom';
 
 // Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
@@ -1666,6 +1667,11 @@ export default function TryIt(props) {
     // Active tab state for the permanent side menu
     const [activeTab, setActiveTab] = useState("main");
     
+    // Add handler for sidebar Home button
+    const handleSidebarHomeClick = () => {
+        history.push('/'); // Assumes '/' is the route for LandingPage
+    };
+    
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -1808,6 +1814,7 @@ export default function TryIt(props) {
                         _hover={{
                             bg: 'rgba(255, 255, 255, 0.1)'
                         }}
+                        onClick={handleSidebarHomeClick}
                     >
                         Back to Home
                     </Button>
