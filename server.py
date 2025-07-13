@@ -567,25 +567,28 @@ def requires_auth(f):
         if parts[0].lower() != 'bearer' or len(parts) != 2:
             return jsonify({'error': 'Invalid Authorization header'}), 401
         token = parts[1]
+        logger.info(f"Received Authorization token: {token}")
+        # Log the token value for debugging header decoding errors
+        logger.info(f"Token received for decoding: '{token}'")
         
         try:
             # Get public key from Auth0
             AUTH0_DOMAIN = os.getenv('REACT_APP_AUTH0_DOMAIN')
             API_IDENTIFIER = os.getenv('REACT_APP_AUTH0_API_AUDIENCE')
-            
+            logger.info(f"AUTH0_DOMAIN: {AUTH0_DOMAIN}, API_IDENTIFIER: {API_IDENTIFIER}")
             if not AUTH0_DOMAIN:
+                logger.error("AUTH0_DOMAIN environment variable not set")
                 return jsonify({'error': 'AUTH0_DOMAIN environment variable not set'}), 500
             if not API_IDENTIFIER:
+                logger.error("AUTH0_API_AUDIENCE environment variable not set")
                 return jsonify({'error': 'AUTH0_API_AUDIENCE environment variable not set'}), 500
-                
             ALGORITHMS = ['RS256']
-            
             jwks_url = f'https://{AUTH0_DOMAIN}/.well-known/jwks.json'
             try:
                 jwks = json.loads(urllib.request.urlopen(jwks_url).read())
             except Exception as e:
+                logger.error(f"Failed to fetch Auth0 JWKS: {str(e)}")
                 return jsonify({'error': f'Failed to fetch Auth0 JWKS: {str(e)}'}), 500
-            
             unverified_header = jwt.get_unverified_header(token)
             rsa_key = {}
             for key in jwks['keys']:
@@ -597,10 +600,9 @@ def requires_auth(f):
                         'n': key['n'],
                         'e': key['e']
                     }
-            
             if not rsa_key:
+                logger.error("Appropriate key not found in JWKS")
                 return jsonify({'error': 'Appropriate key not found'}), 401
-                
             payload = jwt.decode(
                 token,
                 rsa_key,
@@ -608,7 +610,6 @@ def requires_auth(f):
                 audience=API_IDENTIFIER,
                 issuer=f'https://{AUTH0_DOMAIN}/'
             )
-            
             request.user = payload
             return f(*args, **kwargs)
             

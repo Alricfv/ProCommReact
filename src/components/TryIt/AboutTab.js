@@ -77,7 +77,7 @@ const AboutTab = ({ accentColor, tertiaryAccent, cardBg, textColor, highlightCol
             </Box>
             <Text fontWeight="bold" color={textColor}>Start Recording</Text>
           </HStack>
-          <Text color={textColor}>Click "Start Recording" and speak naturally into your microphone.</Text>
+          <Text color={textColor}>Click "Start Recording" and speak into your microphone.</Text>
         </Box>
         
         <Box 

@@ -192,7 +192,7 @@ const storageUtils = {
 };
 
 export default function TryIt(props) {
-  const { isAuthenticated, loginWithRedirect, isLoading, getAccessTokenSilently } = useAuth0();
+    const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
     const [pauseAnalysis, setPauseAnalysis] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -263,6 +263,19 @@ export default function TryIt(props) {
             URL.revokeObjectURL(currentAudioUrl);
         }
         return blob ? URL.createObjectURL(blob) : '';
+    };
+
+    const getApiAccessToken = async () => {
+      try {
+        const token = await getAccessTokenSilently({
+          audience: process.env.REACT_APP_AUTH0_API_AUDIENCE,
+          scope: 'openid profile email',
+       });
+       return token;
+     } catch (err) {
+       console.error('Error getting access token:', err);
+       return null;
+     }
     };
     
     // Function to download audio as MP3
@@ -1481,7 +1494,7 @@ export default function TryIt(props) {
                         // Only add Authorization header and storage flag if user is authenticated
                         if (isAuthenticated) {
                             try {
-                                const token = await getAccessTokenSilently();
+                                const token = await getAccessTokenSilently({audience: process.env.REACT_APP_AUTH0_API_AUDIENCE});
                                 headers['Authorization'] = `Bearer ${token}`;
                             } catch (err) {
                                 console.error('Failed to get access token:', err);
@@ -1530,7 +1543,7 @@ export default function TryIt(props) {
                         // Only add Authorization header and storage flag if user is authenticated
                         if (isAuthenticated) {
                             try {
-                                const token = await getAccessTokenSilently();
+                                const token = await getAccessTokenSilently({audience: process.env.REACT_APP_AUTH0_API_AUDIENCE});
                                 headers['Authorization'] = `Bearer ${token}`;
                             } catch (err) {
                                 console.error('Failed to get access token:', err);
@@ -1798,12 +1811,14 @@ export default function TryIt(props) {
     // Function to send JWT in Authorization header
     const sendApiRequest = async (endpoint, method = 'GET', data = null) => {
         try {
-            // Get fresh token directly from Auth0
-            const token = await getAccessTokenSilently();
-            
+            // Get fresh token for custom API using env variable
+            const token = await getAccessTokenSilently({
+                audience: process.env.REACT_APP_AUTH0_API_AUDIENCE
+            });
+
             // Use API URL from environment if available, otherwise fallback to localhost
             const apiBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-            
+
             const response = await axios({
                 url: `${apiBaseUrl}/api${endpoint}`,
                 method,
@@ -1820,20 +1835,30 @@ export default function TryIt(props) {
         }
     };
     
-    // Fetch recordings from the API
-    const fetchRecordings = async () => {
+    // Fetch recordings from the backend API using access token
+    const fetchBackendRecordings = async () => {
         try {
-            // Only fetch if not using local storage
             if (storagePreference !== 'local') {
-                const recordings = await sendApiRequest('/recordings');
-                console.log('Fetched recordings from API:', recordings);
-                return recordings;
+                const token = await getApiAccessToken();
+                if (!token) {
+                    console.error('No access token available for backend recordings fetch');
+                    return null;
+                }
+                const res = await fetch('/api/recordings', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                if (!res.ok) throw new Error('Failed to fetch recordings');
+                const data = await res.json();
+                console.log('Fetched recordings from API:', data);
+                return data.recordings || [];
             } else {
                 console.log('Using local storage, skipping API fetch');
                 return null;
             }
         } catch (error) {
-            console.error('Error fetching recordings:', error);
+            console.error('Error fetching backend recordings:', error);
             return null;
         }
     };
@@ -1865,13 +1890,27 @@ export default function TryIt(props) {
         }
     };
 
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
-    if (!isAuthenticated) {
-        loginWithRedirect();
-        return <div>Redirecting to login...</div>;
-    }
+    // Use fetchBackendRecordings for backend recording fetches
+    useEffect(() => {
+        const loadBackendRecordings = async () => {
+            if (isAuthenticated && storagePreference !== 'local') {
+                const backendRecordings = await fetchBackendRecordings();
+                if (backendRecordings) {
+                    // Convert timestamp strings to Date objects for UI compatibility
+                    const processed = backendRecordings.map(r => ({
+                        ...r,
+                        timestamp: r.timestamp ? new Date(r.timestamp) : new Date(),
+                        audioUrl: r.audio_url || '',
+                        audioBlob: null // Optionally fetch audio if needed
+                    }));
+                    setRecordingHistory(processed);
+                }
+            }
+        };
+        loadBackendRecordings();
+    }, [isAuthenticated, storagePreference, getAccessTokenSilently]);
+
+    // ...existing code...
     
     return (
         <Flex 
@@ -2003,7 +2042,7 @@ export default function TryIt(props) {
                         size="sm"
                         leftIcon={<Icon as={FaHome} color="white" />}
                         borderColor="rgba(255, 255, 255, 0.2)"
-                        color="white"
+                        color ="white"
                         _hover={{
                             bg: 'rgba(255, 255, 255, 0.1)'
                         }}
@@ -2050,7 +2089,6 @@ export default function TryIt(props) {
                             
                             <Button
                                 variant={activeTab === "recordings" ? "solid" : "ghost"}
-
                                 colorScheme={activeTab === "recordings" ? "blue" : "gray"}
                                 justifyContent="flex-start"
                                 leftIcon={<Icon as={FaHistory} color={activeTab === "recordings" ? undefined : "white"} />}
@@ -2154,7 +2192,7 @@ export default function TryIt(props) {
                             Speech Analyzer
                         </Heading>
                         <Text fontSize={{ base: "lg", md: "xl" }} color={textColor} maxW="800px">
-                            Enhance your speaking skills with real-time analysis. Simply record your voice
+                            Enhance your speaking skills with real-time analysis, simply record your voice
                             and get instant feedback on your speech patterns.
                         </Text>
                         <Text fontSize="md" color={`${textColor}80`} mt={2} maxW="800px" mx="1">
@@ -2720,7 +2758,7 @@ export default function TryIt(props) {
                                               {/* Tips for improvement */}
                                             <Box mt={4} p={4} bg={`rgba(56, 189, 248, 0.1)`} borderRadius="md" borderLeft={`3px solid ${accentColor}`}>
                                                 <Text color={textColor} fontSize="sm" fontWeight="bold">
-                                                    Tips to reduce filler words:
+                                                    Tips to reduce fillers:
                                                 </Text>
                                                 <Text color={textColor} fontSize="sm" mt={2}>
                                                     • Practice pausing instead of using fillers

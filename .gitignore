@@ -18,3 +18,5 @@ src/config.js
 
 #logs
 server.log
+procommconfig.conf
+copilot-instructions.md

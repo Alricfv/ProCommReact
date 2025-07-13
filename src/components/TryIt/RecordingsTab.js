@@ -253,8 +253,8 @@ const RecordingsTab = ({
                               </HStack>
                           </Flex>
                           
-                          {/* Audio player and download button */}
-                          {record.audioUrl && record.audioBlob && (
+                          {/* Audio player and download button for both local and backend recordings */}
+                          {record.audioUrl && (
                               <Box mt={2}>
                                   <Flex justifyContent="space-between" alignItems="center">
                                       <audio 
@@ -266,16 +266,31 @@ const RecordingsTab = ({
                                               backgroundColor: 'rgba(0,0,0,0.2)' 
                                           }}
                                       />
-                                      <Button
-                                          size="sm"
-                                          leftIcon={<Icon as={FaDownload} />}
-                                          colorScheme="blue"
-                                          variant="outline"
-                                          onClick={() => downloadAudioAsMp3(record.audioBlob, `recording-${record.timestamp.toISOString().slice(0,10)}.mp3`)}
-                                          ml={2}
-                                      >
-                                          MP3
-                                      </Button>
+                                      {record.audioBlob ? (
+                                          <Button
+                                              size="sm"
+                                              leftIcon={<Icon as={FaDownload} />}
+                                              colorScheme="blue"
+                                              variant="outline"
+                                              onClick={() => downloadAudioAsMp3(record.audioBlob, `recording-${record.timestamp.toISOString().slice(0,10)}.mp3`)}
+                                              ml={2}
+                                          >
+                                              MP3
+                                          </Button>
+                                      ) : (
+                                          <Button
+                                              size="sm"
+                                              leftIcon={<Icon as={FaDownload} />}
+                                              colorScheme="blue"
+                                              variant="outline"
+                                              as="a"
+                                              href={record.audioUrl}
+                                              download={`recording-${record.timestamp.toISOString().slice(0,10)}.webm`}
+                                              ml={2}
+                                          >
+                                              Download
+                                          </Button>
+                                      )}
                                   </Flex>
                               </Box>
                           )}
