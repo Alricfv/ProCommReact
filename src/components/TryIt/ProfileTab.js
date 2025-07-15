@@ -1,7 +1,6 @@
 import React from "react";
 import { Box, VStack, Heading, SimpleGrid, Stat, StatLabel, StatNumber, StatHelpText, Divider, Badge, Button, Icon, Text, Flex, HStack } from "@chakra-ui/react";
 import { FaUser } from "react-icons/fa";
-import { useAuth0 } from "@auth0/auth0-react";
 
 const ProfileTab = ({
   recordingHistory,
@@ -13,7 +12,7 @@ const ProfileTab = ({
   highlightColor,
   setActiveTab
 }) => {
-  const { user, isAuthenticated, logout } = useAuth0();
+  // Auth0 removed: user, isAuthenticated, logout
   return (
     <Box 
       bg={cardBg}
@@ -43,39 +42,11 @@ const ProfileTab = ({
             <VStack spacing={5} align="center">
               <Icon as={FaUser} boxSize={20} color={accentColor} />
               <Heading size="lg" color={textColor}>
-                {isAuthenticated && user ? (user.name || user.nickname || user.email) : 'Guest User'}
+                {'Guest User'}
               </Heading>
               <Badge colorScheme="purple" fontSize="md" py={1} px={3}>Free Plan</Badge>
               
-              {isAuthenticated && (
-                <Button colorScheme="red" width="100%" mt={2} onClick={() => logout({ returnTo: window.location.origin + '/ProCommReact' })}>
-                  Sign Out
-                </Button>
-              )}
-              
-              {!isAuthenticated && (
-                <VStack spacing={3} width="100%" mt={3}>
-                  <Button 
-                    colorScheme="blue" 
-                    size="md"
-                    width="100%"
-                    leftIcon={<Icon as={FaUser} />}
-                  >
-                    Create Account
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    size="md"
-                    width="100%"
-                    borderColor="rgba(255, 255, 255, 0.2)"
-                    _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
-                    color="white"
-                  >
-                    Login
-                  </Button>
-                </VStack>
-              )}
+              {/* Auth0 buttons removed. You can add custom login/signup UI here if needed. */}
             </VStack>
           </Box>
         

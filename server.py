@@ -2,70 +2,43 @@ import ffmpeg
 import io
 import os
 import numpy as np
+import logging
 import sys
 import tempfile
 import time
-import datetime
-from flask import Flask, request, jsonify, send_from_directory, send_file, Response
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from scipy.io import wavfile
 from transformers import pipeline
 import whisper # type: ignore
-import logging
-import pymongo
-from gridfs import GridFS
-from bson.objectid import ObjectId
-from functools import wraps
-import json
-import urllib.request
-from dotenv import load_dotenv
 
-# Configure logging
+# Configure logging to also output to the terminal
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("server.log")
+        logging.StreamHandler(sys.stdout),  # Output logs to the terminal
+        logging.FileHandler("server.log")  # Optionally log to a file
     ]
 )
-logger = logging.getLogger(__name__)
+# Ensure terminal output is enabled by default
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = Flask(__name__, static_folder='static')
 
-# MongoDB setup - moved to top of file
-load_dotenv()  # Load environment variables from .env file
-MONGODB_URI = os.getenv('MONGODB_URI')
-if not MONGODB_URI:
-    raise RuntimeError("MONGODB_URI environment variable is not set")
-    
-DB_NAME = os.getenv('DB_NAME')
-if not DB_NAME:
-    raise RuntimeError("DB_NAME environment variable is not set")
-
-mongo_client = pymongo.MongoClient(MONGODB_URI)
-db = mongo_client[DB_NAME]
-collection = db['recordings']
-
-# Initialize GridFS for storing audio files
-fs = GridFS(db, collection='audio_files')
-
-# Initialize CORS to allow requests from localhost for development and production domain
-allowed_origins = [
-    "http://localhost:3000", 
-    "http://localhost:5000", 
-    "http://127.0.0.1:3000", 
-    "http://127.0.0.1:5000",
-    # Add your Azure VM domain/IP here
-    os.getenv("FRONTEND_URL", "http://localhost:3000")  # Get from environment variable or default to localhost
-]
-CORS(app, resources={r"/*": {"origins": allowed_origins, "supports_credentials": True}})
+# Initialize CORS to allow requests from localhost for development
+allowed_origins = ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"]
+CORS(app, resources={r"/*": {"origins": allowed_origins}})
+logging.info(f"CORS has been configured to accept requests from: {allowed_origins}")
 
 # Load Whisper model
 whisper_model_size = os.environ.get("WHISPER_MODEL_SIZE", "small")
+logging.info(f"Loading Whisper model: {whisper_model_size}")
 try:
     whisper_model = whisper.load_model(whisper_model_size)
+    logging.info(f"Whisper model loaded successfully")
 except Exception as e:
+    logging.error(f"Error loading Whisper model: {e}")
     raise RuntimeError(f"Failed to load Whisper model: {e}")
 
 # Load emotion detection pipeline
@@ -98,6 +71,8 @@ def detect_filler_words(text):
         'sort of': 'hedging',
     }
     
+    logging.info(f"Looking for filler words in text of length: {len(text)}")
+    
     results = {"total_count": 0, "categories": {}, "instances": []}
     
     # Normalize text for better matching (lowercase)
@@ -105,10 +80,12 @@ def detect_filler_words(text):
     words = normalized_text.split()
       # Process for single-word fillers
     for i, word in enumerate(words):
+        logging.debug(f"Checking word '{word}' for filler")
         # Check exact matches
         if word in filler_words:
             category = filler_words[word]
             results["total_count"] += 1
+            logging.info(f"Detected filler word: '{word}' as {category}")
             
             # Track categories
             if category not in results["categories"]:
@@ -117,8 +94,88 @@ def detect_filler_words(text):
                 results["categories"][category] += 1
                 
             # Track instances with context
-            results["instances"].append({"word": word, "index": i})
-    # TODO: Add multi-word filler detection
+            start_idx = max(0, i - 3)  # up to 3 words before
+            end_idx = min(len(words), i + 4)  # up to 3 words after
+            context = ' '.join(words[start_idx:end_idx])
+            
+            results["instances"].append({
+                "word": word,
+                "category": category,
+                "context": context
+            })
+        # Additional check for words containing fillers (like 'umm' or 'uhh')
+        else:
+            for filler in ['um', 'uh', 'er', 'ah']:
+                if filler in word or word.startswith(filler) or word.endswith(filler):
+                    category = filler_words.get(filler, 'hesitation')
+                    results["total_count"] += 1
+                    logging.info(f"Detected partial filler match: '{word}' containing '{filler}' as {category}")
+                    
+                    # Track categories
+                    if category not in results["categories"]:
+                        results["categories"][category] = 1
+                    else:
+                        results["categories"][category] += 1
+                    
+                    # Track instances with context
+                    start_idx = max(0, i - 3)
+                    end_idx = min(len(words), i + 4)
+                    context = ' '.join(words[start_idx:end_idx])
+                    
+                    results["instances"].append({
+                        "word": word,
+                        "category": category,
+                        "context": context
+                    })
+                    break
+    
+    # Process for multi-word fillers
+    for phrase in [fw for fw in filler_words.keys() if ' ' in fw]:
+        if phrase in normalized_text:
+            category = filler_words[phrase]
+            count = normalized_text.count(phrase)
+            results["total_count"] += count
+            
+            # Track categories
+            if category not in results["categories"]:
+                results["categories"][category] = count
+            else:
+                results["categories"][category] += count
+                
+            # Find all occurrences
+            start_pos = 0
+            while True:
+                start_pos = normalized_text.find(phrase, start_pos)
+                if start_pos == -1:
+                    break
+                    
+                # Get context
+                context_start = normalized_text.rfind(' ', 0, max(0, start_pos - 15))
+                if context_start == -1:
+                    context_start = 0
+                context_end = normalized_text.find(' ', min(len(normalized_text), start_pos + len(phrase) + 15))
+                if context_end == -1:
+                    context_end = len(normalized_text)
+                
+                context = normalized_text[context_start:context_end].strip()
+                
+                results["instances"].append({
+                    "word": phrase,
+                    "category": category,
+                    "context": context
+                })
+                
+                start_pos += len(phrase)
+    
+    # Calculate frequency per minute (assuming average speaking rate of 150 words per minute)
+    word_count = len(words)
+    estimated_duration_minutes = word_count / 150
+    
+    if estimated_duration_minutes > 0:
+        results["frequency_per_minute"] = results["total_count"] / estimated_duration_minutes
+    else:
+        results["frequency_per_minute"] = 0
+        
     return results
 
 def perform_emotion_detection(text):
@@ -231,6 +288,7 @@ def detect_speech_pauses(audio_data):
             "pause_percentage": (silence_duration / total_duration) * 100 if total_duration > 0 else 0
         }
     except Exception as e:
+        logging.error(f"Error detecting speech pauses: {str(e)}")
         return {
             "total_pauses": 0,
             "pause_segments": [],
@@ -249,6 +307,8 @@ def transcribe_with_whisper(audio_data):
             temp_path = temp_wav.name
             temp_wav.write(audio_data)
         
+        logging.info(f"Transcribing with Whisper using temporary file: {temp_path}")
+        
         start_time = time.time()        # Use Whisper to transcribe
         # Note: Whisper sometimes cleans up filler words by default
         result = whisper_model.transcribe(
@@ -262,27 +322,32 @@ def transcribe_with_whisper(audio_data):
             suppress_blank=False  # Don't suppress blank outputs which might contain fillers
         )
         transcription_time = time.time() - start_time
+        logging.info(f"Whisper transcription completed in {transcription_time:.2f} seconds")
         
         # Clean up temporary file
         try:
             os.unlink(temp_path)
         except Exception as e:
-            pass
+            logging.warning(f"Failed to delete temporary file {temp_path}: {e}")
         
         return result
     except Exception as e:
+        logging.error(f"Error in Whisper transcription: {e}")
         raise
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe():
     try:
+        logging.info("Received a transcription request.")
         if 'audio' not in request.files:
+            logging.warning("No audio file provided in the request.")
             return jsonify({"error": "No audio file provided"}), 400
 
         audio_file = request.files['audio']
         webm_data = audio_file.read()
 
         # Convert WebM to WAV in memory
+        logging.info("Converting WebM to WAV in memory...")
         process = (
             ffmpeg
             .input('pipe:0', format='webm')
@@ -296,16 +361,20 @@ def transcribe():
 
         # Detect speech pauses
         pause_analysis = detect_speech_pauses(wav_data)
+        logging.info(f"Pause analysis: {pause_analysis['total_pauses']} total pauses")
 
         # Transcribe with Whisper
         whisper_result = transcribe_with_whisper(wav_data)
         transcription = whisper_result['text']
+        logging.info(f"Whisper transcription: {transcription}")
 
         # Perform emotion detection
         emotion_analysis = perform_emotion_detection(transcription)
 
         # Perform filler word detection
         filler_word_analysis = detect_filler_words(transcription)
+
+        logging.info("Transcription and analysis completed successfully.")
 
         # Prepare response
         response_data = {
@@ -325,100 +394,10 @@ def transcribe():
             }
         }
 
-        # Get storage preference from query parameters
-        storage_preference = request.args.get('storage')
-        logger.info(f"Storage preference received: {storage_preference}")
-        
-        # Make sure we explicitly handle all cases
-        if storage_preference is None:
-            # Default if not specified
-            storage_preference = 'local'
-            logger.info("No storage preference specified, using default: local")
-        
-        # Save recording only if:
-        # 1. Storage preference is 'session' or 'none' (not 'local') OR
-        # 2. Save is explicitly requested via 'save=true' parameter
-        # AND user is authenticated
-        save_recording = False
-        
-        if storage_preference != 'local':
-            save_recording = True
-            logger.info(f"Saving recording because storage preference is {storage_preference}")
-        elif request.args.get('save') == 'true':
-            save_recording = True
-            logger.info("Saving recording because save=true parameter is present")
-        else:
-            logger.info(f"Not saving recording. Storage preference: {storage_preference}, Save param: {request.args.get('save')}")
-        
-        if save_recording:
-            user_id = 'anonymous'  # Use anonymous user ID
-            
-            # Create a record to save
-            # Get title and notes from either JSON or form data
-            # First try to get from JSON data (if it exists)
-            json_data = request.get_json(silent=True) or {}
-            # Then try form data as fallback
-            title = json_data.get('title') or request.form.get('title') or f"Recording {datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}"
-            notes = json_data.get('notes') or request.form.get('notes') or ''
-            
-            recording_data = {
-                "transcription": transcription,
-                "confidence_score": confidence_score,
-                "emotion": emotion_analysis["emotion"],
-                "emotion_score": emotion_analysis["emotion_score"],
-                "filler_words": filler_word_analysis,
-                "pauses": pause_analysis["total_pauses"],
-                "speaking_time": round(pause_analysis["speaking_time"], 2),
-                "silence_time": round(pause_analysis["silence_time"], 2),
-                "pause_percentage": round(pause_analysis["pause_percentage"], 1),
-                "title": title,
-                "notes": notes
-            }
-            
-            # Check if user has reached 10 recordings limit
-            user_recordings_count = collection.count_documents({'userId': user_id})
-            if user_recordings_count >= 10:
-                # Find and delete the oldest recording for this user
-                oldest_recording = collection.find_one(
-                    {'userId': user_id},
-                    sort=[('timestamp', pymongo.ASCENDING)]
-                )
-                if oldest_recording:
-                    # Delete associated audio file if it exists
-                    if 'audio_id' in oldest_recording:
-                        try:
-                            fs.delete(ObjectId(oldest_recording['audio_id']))
-                        except Exception as e:
-                            logger.warning(f"Could not delete old audio file: {str(e)}")
-                    
-                    # Delete the recording document
-                    collection.delete_one({'_id': oldest_recording['_id']})
-                    response_data["oldest_recording_deleted"] = str(oldest_recording['_id'])
-            
-            # Store the audio in GridFS
-            audio_id = fs.put(
-                wav_data, 
-                filename=f"recording_{datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')}.wav",
-                content_type="audio/wav",
-                userId=user_id
-            )
-            
-            # Save new recording to MongoDB with audio file reference
-            doc = {
-                **recording_data, 
-                'userId': user_id, 
-                'timestamp': datetime.datetime.utcnow(),
-                'audio_id': str(audio_id)  # Store reference to the audio file
-            }
-            result = collection.insert_one(doc)
-            response_data["saved"] = True
-            response_data["recording_id"] = str(result.inserted_id)
-            response_data["audio_id"] = str(audio_id)
-
         return jsonify(response_data)
 
     except Exception as e:
-        logger.error(f"Error in /transcribe endpoint: {str(e)}", exc_info=True)
+        logging.error(f"Error during transcription: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
 @app.route('/')
@@ -429,101 +408,9 @@ def serve_index():
 def not_found(e):
     return send_from_directory(app.static_folder, 'index.html')
 
-# MongoDB setup already defined at the top of the file
-
-# Implement logic for fetching recordings
-@app.route('/api/recordings', methods=['GET'])
-def get_recordings():
-    user_id = request.user['sub']  # Get user ID from the validated token
-    recordings = list(collection.find({'userId': user_id}).sort('timestamp', -1))
-    
-    # Process each recording to add audio URL and convert ObjectIDs to strings
-    base_url = request.url_root.rstrip('/')
-    for r in recordings:
-        r['_id'] = str(r['_id'])
-        
-        # Add audio URL if audio_id exists
-        if 'audio_id' in r:
-            audio_id = r['audio_id']
-            r['audio_url'] = f"{base_url}/api/audio/{audio_id}"
-    
-    return jsonify(recordings)
-
-# Implement logic for creating a new recording
-@app.route('/api/recordings', methods=['POST'])
-def create_recording():
-    user_id = request.user['sub']  # Get user ID from the validated token
-    recording = request.json
-    doc = {**recording, 'userId': user_id, 'timestamp': datetime.datetime.utcnow()}
-    result = collection.insert_one(doc)
-    return jsonify({'_id': str(result.inserted_id)})
-
-# Implement logic for updating a recording
-@app.route('/api/recordings/<recording_id>', methods=['PUT'])
-def update_recording(recording_id):
-    user_id = request.user['sub']  # Get user ID from the validated token
-    updates = request.json
-    result = collection.update_one({'_id': pymongo.ObjectId(recording_id), 'userId': user_id}, {'$set': updates})
-    return jsonify({'modified_count': result.modified_count})
-
-# Implement logic for deleting a recording
-@app.route('/api/recordings/<recording_id>', methods=['DELETE'])
-def delete_recording(recording_id):
-    user_id = request.user['sub']  # Get user ID from the validated token
-    
-    # First get the recording to find the associated audio file
-    recording = collection.find_one({'_id': ObjectId(recording_id), 'userId': user_id})
-    
-    if recording and 'audio_id' in recording:
-        try:
-            # Delete the audio file from GridFS
-            fs.delete(ObjectId(recording['audio_id']))
-        except Exception as e:
-            logger.error(f"Error deleting audio file: {str(e)}", exc_info=True)
-    
-    # Delete the recording document
-    result = collection.delete_one({'_id': ObjectId(recording_id), 'userId': user_id})
-    return jsonify({'deleted_count': result.deleted_count})
-
-# Endpoint to retrieve audio files from GridFS
-@app.route('/api/audio/<audio_id>', methods=['GET'])
-def get_audio(audio_id):
-    try:
-        # Retrieve the file from GridFS
-        audio_file = fs.get(ObjectId(audio_id))
-        
-        # Create a response with the audio data
-        response = Response(audio_file.read(), mimetype='audio/wav')
-        
-        # Set headers to help browsers handle the file correctly
-        response.headers['Content-Disposition'] = f'inline; filename={audio_file.filename}'
-        response.headers['Accept-Ranges'] = 'bytes'
-        
-        return response
-    except Exception as e:
-        logger.error(f"Error retrieving audio file: {str(e)}", exc_info=True)
-        return jsonify({"error": "Audio file not found", "details": str(e)}), 404
-
 from waitress import serve
 
-def validate_environment_variables():
-    """Validate all required environment variables are set"""
-    required_vars = [
-        'MONGODB_URI', 
-        'DB_NAME'
-    ]
-    missing = [var for var in required_vars if not os.getenv(var)]
-    if missing:
-        logger.error(f"Missing required environment variables: {', '.join(missing)}")
-        return False
-    return True
-
 if __name__ == '__main__':
-    # Validate environment variables
-    if not validate_environment_variables():
-        logger.error("Cannot start server due to missing environment variables")
-        sys.exit(1)
-        
-    logger.info("Starting server with waitress on 0.0.0.0:5000")
+    print("Starting server with Waitress...")
     # Set timeout to 5 minutes (300 seconds)
     serve(app, host='0.0.0.0', port=5000, threads=4)
