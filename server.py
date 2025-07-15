@@ -18,7 +18,6 @@ from bson.objectid import ObjectId
 from functools import wraps
 import json
 import urllib.request
-from jose import jwt, JWTError
 from dotenv import load_dotenv
 
 # Configure logging
@@ -118,87 +117,8 @@ def detect_filler_words(text):
                 results["categories"][category] += 1
                 
             # Track instances with context
-            start_idx = max(0, i - 3)  # up to 3 words before
-            end_idx = min(len(words), i + 4)  # up to 3 words after
-            context = ' '.join(words[start_idx:end_idx])
-            
-            results["instances"].append({
-                "word": word,
-                "category": category,
-                "context": context
-            })
-        # Additional check for words containing fillers (like 'umm' or 'uhh')
-        else:
-            for filler in ['um', 'uh', 'er', 'ah']:
-                if filler in word or word.startswith(filler) or word.endswith(filler):
-                    category = filler_words.get(filler, 'hesitation')
-                    results["total_count"] += 1
-                    
-                    # Track categories
-                    if category not in results["categories"]:
-                        results["categories"][category] = 1
-                    else:
-                        results["categories"][category] += 1
-                    
-                    # Track instances with context
-                    start_idx = max(0, i - 3)
-                    end_idx = min(len(words), i + 4)
-                    context = ' '.join(words[start_idx:end_idx])
-                    
-                    results["instances"].append({
-                        "word": word,
-                        "category": category,
-                        "context": context
-                    })
-                    break
-    
-    # Process for multi-word fillers
-    for phrase in [fw for fw in filler_words.keys() if ' ' in fw]:
-        if phrase in normalized_text:
-            category = filler_words[phrase]
-            count = normalized_text.count(phrase)
-            results["total_count"] += count
-            
-            # Track categories
-            if category not in results["categories"]:
-                results["categories"][category] = count
-            else:
-                results["categories"][category] += count
-                
-            # Find all occurrences
-            start_pos = 0
-            while True:
-                start_pos = normalized_text.find(phrase, start_pos)
-                if start_pos == -1:
-                    break
-                    
-                # Get context
-                context_start = normalized_text.rfind(' ', 0, max(0, start_pos - 15))
-                if context_start == -1:
-                    context_start = 0
-                context_end = normalized_text.find(' ', min(len(normalized_text), start_pos + len(phrase) + 15))
-                if context_end == -1:
-                    context_end = len(normalized_text)
-                
-                context = normalized_text[context_start:context_end].strip()
-                
-                results["instances"].append({
-                    "word": phrase,
-                    "category": category,
-                    "context": context
-                })
-                
-                start_pos += len(phrase)
-    
-    # Calculate frequency per minute (assuming average speaking rate of 150 words per minute)
-    word_count = len(words)
-    estimated_duration_minutes = word_count / 150
-    
-    if estimated_duration_minutes > 0:
-        results["frequency_per_minute"] = results["total_count"] / estimated_duration_minutes
-    else:
-        results["frequency_per_minute"] = 0
-        
+            results["instances"].append({"word": word, "index": i})
+    # TODO: Add multi-word filler detection
     return results
 
 def perform_emotion_detection(text):
@@ -421,62 +341,17 @@ def transcribe():
         # AND user is authenticated
         save_recording = False
         
-        if request.headers.get('Authorization'):
-            if storage_preference != 'local':
-                save_recording = True
-                logger.info(f"Saving recording because storage preference is {storage_preference}")
-            elif request.args.get('save') == 'true':
-                save_recording = True
-                logger.info("Saving recording because save=true parameter is present")
-            else:
-                logger.info(f"Not saving recording. Storage preference: {storage_preference}, Save param: {request.args.get('save')}")
+        if storage_preference != 'local':
+            save_recording = True
+            logger.info(f"Saving recording because storage preference is {storage_preference}")
+        elif request.args.get('save') == 'true':
+            save_recording = True
+            logger.info("Saving recording because save=true parameter is present")
         else:
-            logger.info("Not saving recording because user is not authenticated")
+            logger.info(f"Not saving recording. Storage preference: {storage_preference}, Save param: {request.args.get('save')}")
         
         if save_recording:
-            try:
-                # Validate token from Auth0
-                auth_header = request.headers.get('Authorization')
-                token = auth_header.split()[1]
-                
-                # Get public key from Auth0
-                from urllib.request import urlopen
-                import json
-                AUTH0_DOMAIN = os.getenv('REACT_APP_AUTH0_DOMAIN')
-                API_IDENTIFIER = os.getenv('REACT_APP_AUTH0_API_AUDIENCE')
-                ALGORITHMS = ['RS256']
-                
-                jwks_url = f'https://{AUTH0_DOMAIN}/.well-known/jwks.json'
-                jwks = json.loads(urlopen(jwks_url).read())
-                
-                unverified_header = jwt.get_unverified_header(token)
-                rsa_key = {}
-                for key in jwks['keys']:
-                    if key['kid'] == unverified_header['kid']:
-                        rsa_key = {
-                            'kty': key['kty'],
-                            'kid': key['kid'],
-                            'use': key['use'],
-                            'n': key['n'],
-                            'e': key['e']
-                        }
-                
-                if rsa_key:
-                    # Decode token
-                    payload = jwt.decode(
-                        token,
-                        rsa_key,
-                        algorithms=ALGORITHMS,
-                        audience=API_IDENTIFIER,
-                        issuer=f'https://{AUTH0_DOMAIN}/'
-                    )
-                    user_id = payload['sub']
-                else:
-                    # If no valid key found, use token as user ID (not secure but fallback)
-                    user_id = token
-            except Exception:
-                # Fallback to using token as user ID
-                user_id = request.headers.get('Authorization').split(' ')[1] if request.headers.get('Authorization') else 'anonymous'
+            user_id = 'anonymous'  # Use anonymous user ID
             
             # Create a record to save
             # Get title and notes from either JSON or form data
@@ -556,74 +431,8 @@ def not_found(e):
 
 # MongoDB setup already defined at the top of the file
 
-# Auth0 JWT validation
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', None)
-        if not auth_header:
-            return jsonify({'error': 'Authorization header missing'}), 401
-        parts = auth_header.split()
-        if parts[0].lower() != 'bearer' or len(parts) != 2:
-            return jsonify({'error': 'Invalid Authorization header'}), 401
-        token = parts[1]
-        logger.info(f"Received Authorization token: {token}")
-        # Log the token value for debugging header decoding errors
-        logger.info(f"Token received for decoding: '{token}'")
-        
-        try:
-            # Get public key from Auth0
-            AUTH0_DOMAIN = os.getenv('REACT_APP_AUTH0_DOMAIN')
-            API_IDENTIFIER = os.getenv('REACT_APP_AUTH0_API_AUDIENCE')
-            logger.info(f"AUTH0_DOMAIN: {AUTH0_DOMAIN}, API_IDENTIFIER: {API_IDENTIFIER}")
-            if not AUTH0_DOMAIN:
-                logger.error("AUTH0_DOMAIN environment variable not set")
-                return jsonify({'error': 'AUTH0_DOMAIN environment variable not set'}), 500
-            if not API_IDENTIFIER:
-                logger.error("AUTH0_API_AUDIENCE environment variable not set")
-                return jsonify({'error': 'AUTH0_API_AUDIENCE environment variable not set'}), 500
-            ALGORITHMS = ['RS256']
-            jwks_url = f'https://{AUTH0_DOMAIN}/.well-known/jwks.json'
-            try:
-                jwks = json.loads(urllib.request.urlopen(jwks_url).read())
-            except Exception as e:
-                logger.error(f"Failed to fetch Auth0 JWKS: {str(e)}")
-                return jsonify({'error': f'Failed to fetch Auth0 JWKS: {str(e)}'}), 500
-            unverified_header = jwt.get_unverified_header(token)
-            rsa_key = {}
-            for key in jwks['keys']:
-                if key['kid'] == unverified_header['kid']:
-                    rsa_key = {
-                        'kty': key['kty'],
-                        'kid': key['kid'],
-                        'use': key['use'],
-                        'n': key['n'],
-                        'e': key['e']
-                    }
-            if not rsa_key:
-                logger.error("Appropriate key not found in JWKS")
-                return jsonify({'error': 'Appropriate key not found'}), 401
-            payload = jwt.decode(
-                token,
-                rsa_key,
-                algorithms=ALGORITHMS,
-                audience=API_IDENTIFIER,
-                issuer=f'https://{AUTH0_DOMAIN}/'
-            )
-            request.user = payload
-            return f(*args, **kwargs)
-            
-        except JWTError as e:
-            logger.warning(f"JWT validation error: {str(e)}")
-            return jsonify({'error': 'Invalid token', 'details': str(e)}), 401
-        except Exception as e:
-            logger.error(f"Authentication error: {str(e)}", exc_info=True)
-            return jsonify({'error': 'Token validation error', 'details': str(e)}), 401
-    return decorated
-
 # Implement logic for fetching recordings
 @app.route('/api/recordings', methods=['GET'])
-@requires_auth
 def get_recordings():
     user_id = request.user['sub']  # Get user ID from the validated token
     recordings = list(collection.find({'userId': user_id}).sort('timestamp', -1))
@@ -642,7 +451,6 @@ def get_recordings():
 
 # Implement logic for creating a new recording
 @app.route('/api/recordings', methods=['POST'])
-@requires_auth
 def create_recording():
     user_id = request.user['sub']  # Get user ID from the validated token
     recording = request.json
@@ -652,7 +460,6 @@ def create_recording():
 
 # Implement logic for updating a recording
 @app.route('/api/recordings/<recording_id>', methods=['PUT'])
-@requires_auth
 def update_recording(recording_id):
     user_id = request.user['sub']  # Get user ID from the validated token
     updates = request.json
@@ -661,7 +468,6 @@ def update_recording(recording_id):
 
 # Implement logic for deleting a recording
 @app.route('/api/recordings/<recording_id>', methods=['DELETE'])
-@requires_auth
 def delete_recording(recording_id):
     user_id = request.user['sub']  # Get user ID from the validated token
     
@@ -704,9 +510,7 @@ def validate_environment_variables():
     """Validate all required environment variables are set"""
     required_vars = [
         'MONGODB_URI', 
-        'DB_NAME', 
-        'REACT_APP_AUTH0_DOMAIN', 
-        'REACT_APP_AUTH0_API_AUDIENCE'
+        'DB_NAME'
     ]
     missing = [var for var in required_vars if not os.getenv(var)]
     if missing:

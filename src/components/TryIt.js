@@ -11,9 +11,7 @@ import AboutTab from './TryIt/AboutTab';
 import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
-import { useAuth0 } from "@auth0/auth0-react";
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 /**
  * STORAGE BEHAVIOR IMPLEMENTATION:
@@ -49,6 +47,7 @@ const storageUtils = {
             return false;
         }
     },
+
     
     // Get approximate storage usage in KB
     getStorageUsage: () => {
@@ -192,7 +191,6 @@ const storageUtils = {
 };
 
 export default function TryIt(props) {
-    const { isAuthenticated, getAccessTokenSilently, user } = useAuth0();
     const [pauseAnalysis, setPauseAnalysis] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -228,6 +226,7 @@ export default function TryIt(props) {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const btnRef = useRef();
     const fileInputRef = useRef();
+    const navigate = useNavigate();
 
     const mediaRecorderRef = useRef(null);
     const chunksRef = useRef([]);
@@ -265,19 +264,6 @@ export default function TryIt(props) {
         return blob ? URL.createObjectURL(blob) : '';
     };
 
-    const getApiAccessToken = async () => {
-      try {
-        const token = await getAccessTokenSilently({
-          audience: process.env.REACT_APP_AUTH0_API_AUDIENCE,
-          scope: 'openid profile email',
-       });
-       return token;
-     } catch (err) {
-       console.error('Error getting access token:', err);
-       return null;
-     }
-    };
-    
     // Function to download audio as MP3
     const downloadAudioAsMp3 = (blob, filename = 'recording.mp3') => {
         // If the blob is already MP3, download directly
@@ -1474,7 +1460,7 @@ export default function TryIt(props) {
                     formData.append('duration', recordingDuration.toString());
 
                     // Get API URLs from environment variables with fallback values
-                    const PRIMARY_API_URL = process.env.REACT_APP_PRIMARY_API_URL || "https://40.76.138.219.nip.io";
+                    const PRIMARY_API_URL = process.env.REACT_APP_PRIMARY_API_URL ;
                     const FALLBACK_API_URL = process.env.REACT_APP_FALLBACK_API_URL || "http://localhost:5000";
                     
                     console.log('Attempting transcription with primary API (VM):', PRIMARY_API_URL);
@@ -1486,21 +1472,7 @@ export default function TryIt(props) {
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), 100000); // 5 second timeout
                         
-                        // Get Auth0 token if user is authenticated
-                        let headers = {
-                            'Accept': 'application/json',
-                        };
-                        
-                        // Only add Authorization header and storage flag if user is authenticated
-                        if (isAuthenticated) {
-                            try {
-                                const token = await getAccessTokenSilently({audience: process.env.REACT_APP_AUTH0_API_AUDIENCE});
-                                headers['Authorization'] = `Bearer ${token}`;
-                            } catch (err) {
-                                console.error('Failed to get access token:', err);
-                            }
-                        }
-                        
+
                         // Add storage preference as query parameter
                         const queryParams = new URLSearchParams();
                         
@@ -1519,7 +1491,6 @@ export default function TryIt(props) {
                         response = await fetch(apiUrl, {
                             method: 'POST',
                             body: formData,
-                            headers: headers,
                             signal: controller.signal
                         });
                         
@@ -1540,15 +1511,7 @@ export default function TryIt(props) {
                             'Accept': 'application/json',
                         };
                         
-                        // Only add Authorization header and storage flag if user is authenticated
-                        if (isAuthenticated) {
-                            try {
-                                const token = await getAccessTokenSilently({audience: process.env.REACT_APP_AUTH0_API_AUDIENCE});
-                                headers['Authorization'] = `Bearer ${token}`;
-                            } catch (err) {
-                                console.error('Failed to get access token:', err);
-                            }
-                        }
+                       
                         
                         // Add storage preference as query parameter
                         const queryParams = new URLSearchParams();
@@ -1753,7 +1716,7 @@ export default function TryIt(props) {
                 console.log("Saving to localStorage since storagePreference is 'local'");
             } else if (storagePreference === 'none') {
                 console.log("WARNING: Storage preference is set to 'none', recordings won't persist between sessions");
-            } else if (isAuthenticated) {
+            } else if (storagePreference === 'Session') {
                 // Save to MongoDB if not using local storage and user is authenticated
                 console.log("Saving to MongoDB via API");
                 try {
@@ -1803,50 +1766,17 @@ export default function TryIt(props) {
     const [activeTab, setActiveTab] = useState("main");
     
     // Add handler for sidebar Home button
-    const navigate = useNavigate();
     const handleSidebarHomeClick = () => {
         navigate('/'); // Assumes '/' is the route for LandingPage
-    };
-    
-    // Function to send JWT in Authorization header
-    const sendApiRequest = async (endpoint, method = 'GET', data = null) => {
-        try {
-            // Get fresh token for custom API using env variable
-            const token = await getAccessTokenSilently({
-                audience: process.env.REACT_APP_AUTH0_API_AUDIENCE
-            });
-
-            // Use API URL from environment if available, otherwise fallback to localhost
-            const apiBaseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-            const response = await axios({
-                url: `${apiBaseUrl}/api${endpoint}`,
-                method,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                data,
-            });
-            return response.data;
-        } catch (error) {
-            console.error('API request failed:', error);
-            throw error;
-        }
     };
     
     // Fetch recordings from the backend API using access token
     const fetchBackendRecordings = async () => {
         try {
             if (storagePreference !== 'local') {
-                const token = await getApiAccessToken();
-                if (!token) {
-                    console.error('No access token available for backend recordings fetch');
-                    return null;
-                }
                 const res = await fetch('/api/recordings', {
                     headers: {
-                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
                     },
                 });
                 if (!res.ok) throw new Error('Failed to fetch recordings');
@@ -1863,16 +1793,26 @@ export default function TryIt(props) {
         }
     };
     
-    // Save a new recording to the API
     const saveRecording = async (recordingData) => {
         try {
             console.log("In saveRecording function, current storagePreference:", storagePreference);
             console.log("localStorage preference:", localStorage.getItem(STORAGE_PREFERENCE_KEY));
-            
+    
             // Only save to API if not using local storage
-            if (storagePreference !== 'local' && isAuthenticated) {
+            if (storagePreference !== 'local') {
                 console.log("Saving to API because storagePreference is not 'local':", storagePreference);
-                const result = await sendApiRequest('/recordings', 'POST', recordingData);
+    
+                const res = await fetch('/api/recordings', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(recordingData),
+                });
+    
+                if (!res.ok) throw new Error('Failed to save recording');
+                const result = await res.json();
                 console.log('Saved recording to API:', result);
                 return result;
             } else if (storagePreference === 'local') {
@@ -1880,8 +1820,6 @@ export default function TryIt(props) {
                 // Double-check the localStorage state
                 const storedRecordings = storageUtils.loadRecordings();
                 console.log('Current stored recordings count:', storedRecordings.length);
-            } else if (!isAuthenticated) {
-                console.log('User not authenticated, skipping API save');
             }
             return null;
         } catch (error) {
@@ -1893,24 +1831,23 @@ export default function TryIt(props) {
     // Use fetchBackendRecordings for backend recording fetches
     useEffect(() => {
         const loadBackendRecordings = async () => {
-            if (isAuthenticated && storagePreference !== 'local') {
+            if (storagePreference !== 'local') {
                 const backendRecordings = await fetchBackendRecordings();
                 if (backendRecordings) {
-                    // Convert timestamp strings to Date objects for UI compatibility
                     const processed = backendRecordings.map(r => ({
                         ...r,
                         timestamp: r.timestamp ? new Date(r.timestamp) : new Date(),
                         audioUrl: r.audio_url || '',
-                        audioBlob: null // Optionally fetch audio if needed
+                        audioBlob: null,
                     }));
                     setRecordingHistory(processed);
                 }
             }
         };
         loadBackendRecordings();
-    }, [isAuthenticated, storagePreference, getAccessTokenSilently]);
+    }, [storagePreference]);
 
-    // ...existing code...
+    // Removed references to isAuthenticated, getAccessTokenSilently, and useNavigate.
     
     return (
         <Flex 

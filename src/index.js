@@ -5,17 +5,12 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CSSTransition, TransitionGroup } from 'react-transition-group'; 
 import Home from './components/Home';
 import About from './components/About';
-import TryIt from './components/TryIt'; // Import the TryIt component
+import TryIt from './components/TryIt';
 import theme from './theme';
-import AuthPage from './components/AuthPage';
-import './App.css'; 
-import { Auth0Provider } from "@auth0/auth0-react";
+import './App.css';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
-
-const domain = process.env.REACT_APP_AUTH0_DOMAIN;
-const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
 
 function ProtectedRoutes() {
     const location = useLocation();
@@ -25,7 +20,6 @@ function ProtectedRoutes() {
                 <Routes location={location}>
                     <Route path="/about" element={<About />} />
                     <Route path="/try-it" element={<TryIt />} />
-                    <Route path="/auth" element={<AuthPage />} />
                 </Routes>
             </CSSTransition>
         </TransitionGroup>
@@ -34,23 +28,12 @@ function ProtectedRoutes() {
 
 function AnimatedRoutes() {
     const location = useLocation();
-
     return (
         <TransitionGroup>
             <CSSTransition key={location.key} classNames="fade" timeout={300}>
                 <Routes location={location}>
                     <Route path="/" element={<Home />} />
-                    <Route path="/*" element={
-                        <Auth0Provider
-                            domain={domain}
-                            clientId={clientId}
-                            authorizationParams={{
-                              redirect_uri: window.location.origin + '/ProCommReact/try-it'
-                            }}
-                        >
-                            <ProtectedRoutes />
-                        </Auth0Provider>
-                    } />
+                    <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
             </CSSTransition>
         </TransitionGroup>

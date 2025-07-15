@@ -56,7 +56,7 @@ export default function Home() {
                             About
                         </Button>
                     </Link>
-                    <Link to="/auth">
+                    <Link to="/try-it">
                         <Button 
                             bg={accentColor}
                             _hover={{ bg: '#0ea5e9' }}
