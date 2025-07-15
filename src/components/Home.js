@@ -66,6 +66,17 @@ export default function Home() {
                             Try it Out!
                         </Button>
                     </Link>
+                    <Link to="/login-page">
+                        <Button
+                            variant="outline"
+                            color={accentColor}
+                            borderColor={accentColor}
+                            _hover={{ bg: accentColor, color: "#fff" }}
+                            ml={2}
+                        >
+                            Login / Register
+                        </Button>
+                    </Link>
                 </HStack>
             </Flex>
 

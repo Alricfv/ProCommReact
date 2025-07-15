@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, VStack, Heading, SimpleGrid, Stat, StatLabel, StatNumber, StatHelpText, Divider, Badge, Button, Icon, Text, Flex, HStack } from "@chakra-ui/react";
 import { FaUser } from "react-icons/fa";
+import { useUser } from '../../context/UserContext';
 
 const ProfileTab = ({
   recordingHistory,
@@ -13,6 +14,7 @@ const ProfileTab = ({
   setActiveTab
 }) => {
   // Auth0 removed: user, isAuthenticated, logout
+  const { username } = useUser();
   return (
     <Box 
       bg={cardBg}
@@ -42,10 +44,9 @@ const ProfileTab = ({
             <VStack spacing={5} align="center">
               <Icon as={FaUser} boxSize={20} color={accentColor} />
               <Heading size="lg" color={textColor}>
-                {'Guest User'}
+                {username ? username : 'Guest User'}
               </Heading>
               <Badge colorScheme="purple" fontSize="md" py={1} px={3}>Free Plan</Badge>
-              
               {/* Auth0 buttons removed. You can add custom login/signup UI here if needed. */}
             </VStack>
           </Box>

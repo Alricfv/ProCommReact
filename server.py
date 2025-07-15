@@ -6,11 +6,12 @@ import logging
 import sys
 import tempfile
 import time
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template, redirect, url_for
 from flask_cors import CORS
 from scipy.io import wavfile
 from transformers import pipeline
 import whisper # type: ignore
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 # Configure logging to also output to the terminal
 logging.basicConfig(
@@ -25,6 +26,45 @@ logging.basicConfig(
 logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 app = Flask(__name__, static_folder='static')
+app.secret_key = 'your_secret_key'
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirects to this view if not logged in
+
+
+# MongoDB setup
+from pymongo import MongoClient
+from dotenv import load_dotenv
+load_dotenv()
+import os
+
+# Get MongoDB URI and DB name from environment variables
+mongo_uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
+db_name = os.getenv('DB_NAME')
+mongo_client = MongoClient(mongo_uri)
+db = mongo_client[db_name]
+users_collection = db['users']
+
+# User class for Flask-Login
+from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(UserMixin):
+    def __init__(self, id, password_hash=None):
+        self.id = id
+        self.password_hash = password_hash
+    def check_password(self, password):
+        if self.password_hash:
+            return check_password_hash(self.password_hash, password)
+        return False
+
+# User loader callback
+@login_manager.user_loader
+def load_user(user_id):
+    user_data = users_collection.find_one({'_id': user_id})
+    if user_data:
+        return User(user_data['_id'], user_data.get('password_hash'))
+    return None
 
 # Initialize CORS to allow requests from localhost for development
 allowed_origins = ["http://localhost:3000", "http://localhost:5000", "http://127.0.0.1:3000", "http://127.0.0.1:5000"]
@@ -400,6 +440,65 @@ def transcribe():
         logging.error(f"Error during transcription: {e}")
         return jsonify({"error": "Internal server error", "details": str(e)}), 500
 
+
+
+# Login route: only authenticates existing users
+@app.route('/login', methods=['POST'])
+@app.route('/ProCommReact/login', methods=['POST'])
+def login():
+    if request.is_json:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+    else:
+        username = request.form.get('username')
+        password = request.form.get('password')
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Missing username or password'}), 400
+    user_data = users_collection.find_one({'_id': username})
+    if user_data:
+        user = User(user_data['_id'], user_data.get('password_hash'))
+        if user.check_password(password):
+            login_user(user)
+            return jsonify({'success': True, 'message': 'Login successful'})
+        else:
+            return jsonify({'success': False, 'error': 'Incorrect username or password'}), 401
+    else:
+        return jsonify({'success': False, 'error': 'Incorrect username or password'}), 401
+
+# Signup route: only registers new users if username does not exist
+@app.route('/signup', methods=['POST'])
+@app.route('/ProCommReact/signup', methods=['POST'])
+def signup():
+    if request.is_json:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+    else:
+        username = request.form.get('username')
+        password = request.form.get('password')
+    if not username or not password:
+        return jsonify({'success': False, 'error': 'Missing username or password'}), 400
+    user_data = users_collection.find_one({'_id': username})
+    if user_data:
+        return jsonify({'success': False, 'error': 'Username already exists'}), 409
+    password_hash = generate_password_hash(password)
+    users_collection.insert_one({'_id': username, 'password_hash': password_hash})
+    user = User(username, password_hash)
+    login_user(user)
+    return jsonify({'success': True, 'message': 'Registration successful'})
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/protected')
+@login_required
+def protected():
+    return f'Hello, {current_user.id}! This is a protected page.'
+
 @app.route('/')
 def serve_index():
     return send_from_directory(app.static_folder, 'index.html')
@@ -411,6 +510,7 @@ def not_found(e):
 from waitress import serve
 
 if __name__ == '__main__':
-    print("Starting server with Waitress...")
+    app.run(host='0.0.0.0', port=5000, debug=True)
+    #print("Starting server with Waitress...")
     # Set timeout to 5 minutes (300 seconds)
-    serve(app, host='0.0.0.0', port=5000, threads=4)
+    #serve(app, host='0.0.0.0', port=5000, threads=4, debug=True)

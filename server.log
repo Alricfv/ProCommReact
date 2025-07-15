@@ -67076,3 +67076,217 @@ label 74:
 2025-07-15 20:40:01,694 - DEBUG - Checking word 'not' for filler
 2025-07-15 20:40:01,694 - DEBUG - Checking word 'alone.' for filler
 2025-07-15 20:40:01,694 - INFO - Transcription and analysis completed successfully.
+2025-07-15 23:33:16,032 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:33:16,032 - INFO - Loading Whisper model: small
+2025-07-15 23:33:17,846 - INFO - Whisper model loaded successfully
+2025-07-15 23:33:17,846 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:33:18,361 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:33:18,544 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:33:19,177 - INFO - Serving on http://0.0.0.0:5000
+2025-07-15 23:37:13,705 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:37:13,705 - INFO - Loading Whisper model: small
+2025-07-15 23:37:15,146 - INFO - Whisper model loaded successfully
+2025-07-15 23:37:15,146 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:37:15,542 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:37:15,574 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:37:16,055 - INFO - Serving on http://0.0.0.0:5000
+2025-07-15 23:38:28,604 - ERROR - Exception on /.well-known/appspecific/com.chrome.devtools.json [GET]
+Traceback (most recent call last):
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1458, in dispatch_request
+    self.raise_routing_exception(req)
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1440, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\ctx.py", line 353, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1341, in handle_user_exception
+    return self.handle_http_exception(e)
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1281, in handle_http_exception
+    return self.ensure_sync(handler)(e)
+  File "server.py", line 478, in not_found
+    return send_from_directory(app.static_folder, 'index.html')
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\helpers.py", line 557, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2025-07-15 23:38:28,628 - ERROR - Exception on /favicon.ico [GET]
+Traceback (most recent call last):
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1484, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1458, in dispatch_request
+    self.raise_routing_exception(req)
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1440, in raise_routing_exception
+    raise request.routing_exception  # type: ignore
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\ctx.py", line 353, in match_request
+    result = self.url_adapter.match(return_rule=True)  # type: ignore
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\werkzeug\routing\map.py", line 629, in match
+    raise NotFound() from None
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 2190, in wsgi_app
+    response = self.full_dispatch_request()
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1486, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask_cors\extension.py", line 176, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1341, in handle_user_exception
+    return self.handle_http_exception(e)
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\app.py", line 1281, in handle_http_exception
+    return self.ensure_sync(handler)(e)
+  File "server.py", line 478, in not_found
+    return send_from_directory(app.static_folder, 'index.html')
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\flask\helpers.py", line 557, in send_from_directory
+    return werkzeug.utils.send_from_directory(  # type: ignore[return-value]
+  File "C:\Users\alric\Documents\GitHub\ProCommReactSon1\venv38\lib\site-packages\werkzeug\utils.py", line 575, in send_from_directory
+    raise NotFound()
+werkzeug.exceptions.NotFound: 404 Not Found: The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.
+2025-07-15 23:48:24,216 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:48:24,217 - INFO - Loading Whisper model: small
+2025-07-15 23:48:25,715 - INFO - Whisper model loaded successfully
+2025-07-15 23:48:25,720 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:48:26,604 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:48:26,633 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:48:27,164 - INFO - Serving on http://0.0.0.0:5000
+2025-07-15 23:49:56,110 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:49:56,110 - INFO - Loading Whisper model: small
+2025-07-15 23:49:57,583 - INFO - Whisper model loaded successfully
+2025-07-15 23:49:57,583 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:49:57,959 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:49:57,995 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:52:32,855 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:52:32,855 - INFO - Loading Whisper model: small
+2025-07-15 23:52:34,235 - INFO - Whisper model loaded successfully
+2025-07-15 23:52:34,235 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:52:34,639 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:52:34,675 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:52:35,087 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-15 23:52:35,087 - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 23:54:35,136 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:54:35,136 - INFO - Loading Whisper model: small
+2025-07-15 23:54:36,520 - INFO - Whisper model loaded successfully
+2025-07-15 23:54:36,520 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:54:37,380 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:54:37,410 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:55:52,485 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:55:52,485 - INFO - Loading Whisper model: small
+2025-07-15 23:55:53,865 - INFO - Whisper model loaded successfully
+2025-07-15 23:55:53,865 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:55:54,749 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:55:54,783 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:55:55,247 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.29.208:5000
+2025-07-15 23:55:55,247 - INFO - [33mPress CTRL+C to quit[0m
+2025-07-15 23:55:55,249 - INFO -  * Restarting with stat
+2025-07-15 23:55:56,615 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:55:56,615 - INFO - Loading Whisper model: small
+2025-07-15 23:55:58,053 - INFO - Whisper model loaded successfully
+2025-07-15 23:55:58,053 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:55:58,926 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:55:58,972 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:55:59,517 - WARNING -  * Debugger is active!
+2025-07-15 23:55:59,519 - INFO -  * Debugger PIN: 229-058-810
+2025-07-15 23:58:09,616 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-15 23:58:10,219 - INFO -  * Restarting with stat
+2025-07-15 23:58:12,170 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:58:12,170 - INFO - Loading Whisper model: small
+2025-07-15 23:58:13,879 - INFO - Whisper model loaded successfully
+2025-07-15 23:58:13,882 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:58:14,252 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:58:14,281 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:58:14,884 - WARNING -  * Debugger is active!
+2025-07-15 23:58:14,884 - INFO -  * Debugger PIN: 229-058-810
+2025-07-15 23:58:16,190 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-15 23:58:16,568 - INFO -  * Restarting with stat
+2025-07-15 23:58:18,429 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-15 23:58:18,429 - INFO - Loading Whisper model: small
+2025-07-15 23:58:19,983 - INFO - Whisper model loaded successfully
+2025-07-15 23:58:19,983 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-15 23:58:20,857 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-15 23:58:20,887 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-15 23:58:21,476 - WARNING -  * Debugger is active!
+2025-07-15 23:58:21,478 - INFO -  * Debugger PIN: 229-058-810
+2025-07-16 00:01:01,416 - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:01] "[35m[1mPOST /ProCommReact/login HTTP/1.1[0m" 500 -
+2025-07-16 00:01:19,670 - INFO - 127.0.0.1 - - [16/Jul/2025 00:01:19] "[35m[1mPOST /ProCommReact/login HTTP/1.1[0m" 500 -
+2025-07-16 00:02:01,845 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-16 00:02:02,652 - INFO -  * Restarting with stat
+2025-07-16 00:02:16,695 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-16 00:02:16,695 - INFO - Loading Whisper model: small
+2025-07-16 00:02:18,492 - INFO - Whisper model loaded successfully
+2025-07-16 00:02:18,492 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-16 00:02:18,883 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-16 00:02:18,914 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-16 00:02:19,388 - WARNING -  * Debugger is active!
+2025-07-16 00:02:19,388 - INFO -  * Debugger PIN: 229-058-810
+2025-07-16 00:02:25,047 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-16 00:02:25,855 - INFO -  * Restarting with stat
+2025-07-16 00:02:39,646 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-16 00:02:39,646 - INFO - Loading Whisper model: small
+2025-07-16 00:02:41,172 - INFO - Whisper model loaded successfully
+2025-07-16 00:02:41,175 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-16 00:02:42,048 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-16 00:02:42,089 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-16 00:02:42,568 - WARNING -  * Debugger is active!
+2025-07-16 00:02:42,574 - INFO -  * Debugger PIN: 229-058-810
+2025-07-16 00:02:52,567 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-16 00:02:53,193 - INFO -  * Restarting with stat
+2025-07-16 00:03:06,918 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-16 00:03:06,918 - INFO - Loading Whisper model: small
+2025-07-16 00:03:08,426 - INFO - Whisper model loaded successfully
+2025-07-16 00:03:08,428 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-16 00:03:08,875 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-16 00:03:08,908 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-16 00:03:09,365 - WARNING -  * Debugger is active!
+2025-07-16 00:03:09,368 - INFO -  * Debugger PIN: 229-058-810
+2025-07-16 00:03:15,927 - INFO - 127.0.0.1 - - [16/Jul/2025 00:03:15] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 00:07:40,701 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-16 00:07:41,723 - INFO -  * Restarting with stat
+2025-07-16 00:07:55,844 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-16 00:07:55,844 - INFO - Loading Whisper model: small
+2025-07-16 00:07:58,051 - INFO - Whisper model loaded successfully
+2025-07-16 00:07:58,051 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-16 00:07:58,926 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-16 00:07:58,958 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-16 00:07:59,687 - WARNING -  * Debugger is active!
+2025-07-16 00:07:59,687 - INFO -  * Debugger PIN: 229-058-810
+2025-07-16 00:08:37,285 - INFO -  * Detected change in 'C:\\Users\\alric\\Documents\\GitHub\\ProCommReactSon1\\server.py', reloading
+2025-07-16 00:08:38,089 - INFO -  * Restarting with stat
+2025-07-16 00:08:51,879 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-07-16 00:08:51,879 - INFO - Loading Whisper model: small
+2025-07-16 00:08:53,780 - INFO - Whisper model loaded successfully
+2025-07-16 00:08:53,782 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-07-16 00:08:54,191 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-07-16 00:08:54,235 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-07-16 00:08:54,854 - WARNING -  * Debugger is active!
+2025-07-16 00:08:54,857 - INFO -  * Debugger PIN: 229-058-810
+2025-07-16 00:40:37,591 - INFO - 127.0.0.1 - - [16/Jul/2025 00:40:37] "[31m[1mPOST /ProCommReact/login HTTP/1.1[0m" 401 -
+2025-07-16 00:40:54,931 - INFO - 127.0.0.1 - - [16/Jul/2025 00:40:54] "POST /ProCommReact/signup HTTP/1.1" 200 -
+2025-07-16 00:43:18,970 - INFO - 127.0.0.1 - - [16/Jul/2025 00:43:18] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 00:43:33,817 - INFO - 127.0.0.1 - - [16/Jul/2025 00:43:33] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 00:51:03,586 - INFO - 127.0.0.1 - - [16/Jul/2025 00:51:03] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 00:54:37,221 - INFO - 127.0.0.1 - - [16/Jul/2025 00:54:37] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 00:55:23,408 - INFO - 127.0.0.1 - - [16/Jul/2025 00:55:23] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 00:57:29,155 - INFO - 127.0.0.1 - - [16/Jul/2025 00:57:29] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 01:09:37,257 - INFO - 127.0.0.1 - - [16/Jul/2025 01:09:37] "POST /ProCommReact/login HTTP/1.1" 200 -
+2025-07-16 01:10:13,289 - INFO - 127.0.0.1 - - [16/Jul/2025 01:10:13] "[31m[1mPOST /ProCommReact/signup HTTP/1.1[0m" 409 -
+2025-07-16 01:10:19,812 - INFO - 127.0.0.1 - - [16/Jul/2025 01:10:19] "POST /ProCommReact/signup HTTP/1.1" 200 -
