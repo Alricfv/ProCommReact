@@ -6,7 +6,7 @@ import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import Home from './components/Home';
 import About from './components/About';
 import TryIt from './components/TryIt';
-import LoginPage from './components/LoginPage';
+import LoginPage from './authentication/LoginPage';
 import theme from './theme';
 import './App.css';
 import { UserProvider } from './context/UserContext';
