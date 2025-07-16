@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { Box, Button, Input, Heading, Text, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
+import api from '../utils/api';
 
 export default function LoginPage() {
 
@@ -18,15 +19,15 @@ export default function LoginPage() {
     setSuccess('');
     setLoading(true);
     try {
-      const url = isLogin
-        ? 'http://localhost:5000/ProCommReact/login'
-        : 'http://localhost:5000/ProCommReact/signup';
-      const response = await fetch(url, {
+      const endpoint = isLogin ? '/login' : '/signup';
+      // Use x-www-form-urlencoded for compatibility with backend
+      const formBody = new URLSearchParams({ username, password });
+      const response = await api.fetchWithFallback(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+        body: formBody.toString(),
       });
       const data = await response.json();
       if (data.success) {

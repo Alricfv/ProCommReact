@@ -79,11 +79,11 @@ const storageUtils = {
         try {
             // Ensure we don't exceed the maximum number of items
             const limitedRecordings = recordings.slice(-MAX_STORAGE_ITEMS);
-            
+
             // Process recordings for storage - we can't store Blob objects in localStorage
             const processedRecordings = limitedRecordings.map(recording => {
                 const { audioBlob, audioUrl, ...rest } = recording;
-                
+
                 // We'll only save metadata without the actual audio blob
                 // as localStorage has limited space
                 return {
@@ -91,97 +91,31 @@ const storageUtils = {
                     hasAudio: !!audioBlob,  // Flag to indicate this recording had audio
                 };
             });
-            
-            // Convert Date objects to strings for storage
-            const serializedRecordings = JSON.stringify(processedRecordings, (key, value) => {
-                if (key === 'timestamp' && value instanceof Date) {
-                    return { __type: 'Date', value: value.toISOString() };
-                }
-                return value;
-            });
-            
-            localStorage.setItem(RECORDING_HISTORY_KEY, serializedRecordings);
+
+            localStorage.setItem(RECORDING_HISTORY_KEY, JSON.stringify(processedRecordings));
             return true;
         } catch (e) {
-            console.error('Failed to save recordings to localStorage:', e);
+            console.error('Failed to save recordings:', e);
             return false;
         }
     },
-    
-    // Load recordings from localStorage
-    loadRecordings: () => {
-        try {
-            const serializedRecordings = localStorage.getItem(RECORDING_HISTORY_KEY);
-            if (!serializedRecordings) return [];
-            
-            // Parse and convert timestamp strings back to Date objects
-            return JSON.parse(serializedRecordings, (key, value) => {
-                if (typeof value === 'object' && value !== null && value.__type === 'Date') {
-                    return new Date(value.value);
-                }
-                return value;
-            });
-        } catch (e) {
-            console.error('Failed to load recordings from localStorage:', e);
-            return [];
-        }
-    },
-    
-    // Clear all recordings
-    clearRecordings: () => {
-        try {
-            localStorage.removeItem(RECORDING_HISTORY_KEY);
-            return true;
-        } catch (e) {
-            console.error('Failed to clear recordings from localStorage:', e);
-            return false;
-        }
-    },
-    
-    // Export recordings as a downloadable JSON file
-    exportRecordings: (recordings) => {
-        try {
-            const serializedData = JSON.stringify(recordings, (key, value) => {
-                if (key === 'timestamp' && value instanceof Date) {
-                    return value.toISOString();
-                }
-                return value;
-            }, 2);
-            
-            const blob = new Blob([serializedData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `procomm-recordings-${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            return true;
-        } catch (e) {
-            console.error('Failed to export recordings:', e);
-            return false;
-        }
-    },
-    
-    // Import recordings from a JSON file
+
+    // Import recordings from JSON data
     importRecordings: (jsonData) => {
         try {
             // Parse and validate the imported data
             const importedData = JSON.parse(jsonData);
-            
+
             if (!Array.isArray(importedData)) {
                 throw new Error('Invalid format: Expected an array of recordings');
             }
-            
+
             // Convert ISO date strings back to Date objects
             const processedData = importedData.map(record => ({
                 ...record,
                 timestamp: new Date(record.timestamp)
             }));
-            
+
             return processedData;
         } catch (e) {
             console.error('Failed to import recordings:', e);
@@ -2133,7 +2067,7 @@ export default function TryIt(props) {
                             and get instant feedback on your speech patterns.
                         </Text>
                         <Text fontSize="md" color={`${textColor}80`} mt={2} maxW="800px" mx="1">
-                            Speech rate is calculated using actual recording time for accuracy.
+                            Speech rate is calculated using true recording time for accuracy.
                         </Text>
                         {!isRecording && (
                             <HStack justifyContent="center" mt={8} >
