@@ -9,7 +9,7 @@ import {
     FaRocket, FaUserFriends, FaHeadset, FaMicrophone, FaChartLine, 
     FaLightbulb, FaCheck, FaCode, FaGlobe, FaTools, FaWaveSquare
 } from 'react-icons/fa';
-import aboutImage from './about.jpg';
+import aboutImage from './/../images/about.jpg';
 
 function About() {
     // Modern color scheme with gradients

@@ -46,8 +46,18 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-  return (
-    <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bgGradient="linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)">
+return (
+    <Box
+      minH="100vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      style={{
+        backgroundImage: "url('/images/login-bg.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <Box bg="rgba(0,0,0,0.7)" p={8} borderRadius={12} boxShadow="xl" maxW="350px" w="100%">
         <Heading mb={6} color="white" textAlign="center">{isLogin ? 'Login' : 'Sign Up'}</Heading>
         {error && (

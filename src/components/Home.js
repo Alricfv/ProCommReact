@@ -127,7 +127,7 @@ export default function Home() {
                         </Badge>
                         
                         <Image
-                            src={require('./procommimg.png')}
+                            src={require('.//../images/procommimg.png')}
                             alt="ProComm Logo"
                             marginY="40px"
                             width={{base: "100%", md: "800px"}}
