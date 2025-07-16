@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Stat, StatLabel, StatNumber, StatHelpText, 
     NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, FormControl, FormLabel, Select,
     Tooltip, useBreakpointValue, Flex, Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton,
@@ -6,12 +7,31 @@ import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Pr
     SliderFilledTrack, SliderThumb } from '@chakra-ui/react';
 import { FaMicrophone, FaInfoCircle, FaChartLine, FaClock, FaQuestionCircle, FaBars, FaCog, FaUser, FaHome, FaSave, FaHistory, 
     FaTrash, FaDownload, FaUpload, FaDatabase } from 'react-icons/fa';
-// Import tab components individually to avoid any bundling issues
 import AboutTab from './TryIt/AboutTab';
 import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
 import { useNavigate } from 'react-router-dom';
+
+// Utility: Create a URL for an audio blob
+function createAudioUrl(audioBlob) {
+    if (!audioBlob) return '';
+    return URL.createObjectURL(audioBlob);
+}
+
+// Utility: Download an audio blob as an MP3 file
+function downloadAudioAsMp3(blob, filename = 'recording.mp3') {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
 /**
  * STORAGE BEHAVIOR IMPLEMENTATION:
@@ -186,80 +206,9 @@ export default function TryIt(props) {
                     mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
                 }
             }
+            cleanupVAD();
         };
     }, []);
-
-    // Utility function to create an object URL from a blob
-    const createAudioUrl = (blob) => {
-        // Revoke previous URL to prevent memory leaks
-        if (currentAudioUrl) {
-            URL.revokeObjectURL(currentAudioUrl);
-        }
-        return blob ? URL.createObjectURL(blob) : '';
-    };
-
-    // Function to download audio as MP3
-    const downloadAudioAsMp3 = (blob, filename = 'recording.mp3') => {
-        // If the blob is already MP3, download directly
-        if (blob.type === 'audio/mp3') {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            return;
-        }
-        
-        // If it's webm or other format, create an audio element to convert
-        const audioElement = new Audio();
-        const audioUrl = URL.createObjectURL(blob);
-        audioElement.src = audioUrl;
-        
-        // Create an audio context and connect nodes for conversion
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioContext = new AudioContext();
-        const destination = audioContext.createMediaStreamDestination();
-        const source = audioContext.createMediaElementSource(audioElement);
-        source.connect(destination);
-        
-        // Also connect to audio output for monitoring
-        source.connect(audioContext.destination);
-        
-        // Record the output stream
-        const recorder = new MediaRecorder(destination.stream, { mimeType: 'audio/webm' });
-        const chunks = [];
-        
-        recorder.ondataavailable = (e) => {
-            if (e.data.size > 0) {
-                chunks.push(e.data);
-            }
-        };
-        
-        recorder.onstop = () => {
-            const mpBlob = new Blob(chunks, { type: 'audio/mp3' });
-            const url = URL.createObjectURL(mpBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            URL.revokeObjectURL(audioUrl);
-        };
-        
-        // Start recording and playback
-        recorder.start();
-        audioElement.play();
-        
-        audioElement.onended = () => {
-            recorder.stop();
-            audioContext.close();
-        };
-    };
     
     // Voice Activity Detection functions
     
@@ -1705,7 +1654,7 @@ export default function TryIt(props) {
     };
     
     // Fetch recordings from the backend API using access token
-    const fetchBackendRecordings = async () => {
+    const fetchBackendRecordings = useCallback(async () => {
         try {
             if (storagePreference !== 'local') {
                 const res = await fetch('/api/recordings', {
@@ -1725,7 +1674,7 @@ export default function TryIt(props) {
             console.error('Error fetching backend recordings:', error);
             return null;
         }
-    };
+    }, [storagePreference]);
     
     const saveRecording = async (recordingData) => {
         try {
@@ -1779,7 +1728,7 @@ export default function TryIt(props) {
             }
         };
         loadBackendRecordings();
-    }, [storagePreference]);
+    }, [storagePreference, fetchBackendRecordings]);
 
     // Removed references to isAuthenticated, getAccessTokenSilently, and useNavigate.
     
