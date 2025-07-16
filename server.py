@@ -444,47 +444,50 @@ def transcribe():
 
 # Login route: only authenticates existing users
 @app.route('/login', methods=['POST'])
-@app.route('/ProCommReact/login', methods=['POST'])
 def login():
     if request.is_json:
         data = request.get_json()
-        username = data.get('username')
+        email = data.get('email')
         password = data.get('password')
     else:
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Missing username or password'}), 400
-    user_data = users_collection.find_one({'_id': username})
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Missing email or password'}), 400
+    user_data = users_collection.find_one({'_id': email})
     if user_data:
         user = User(user_data['_id'], user_data.get('password_hash'))
         if user.check_password(password):
             login_user(user)
             return jsonify({'success': True, 'message': 'Login successful'})
         else:
-            return jsonify({'success': False, 'error': 'Incorrect username or password'}), 401
+            return jsonify({'success': False, 'error': 'Incorrect email or password'}), 401
     else:
-        return jsonify({'success': False, 'error': 'Incorrect username or password'}), 401
+        return jsonify({'success': False, 'error': 'Incorrect email or password'}), 401
 
-# Signup route: only registers new users if username does not exist
+# Signup route: registers new users with email as _id, and optional username
 @app.route('/signup', methods=['POST'])
-@app.route('/ProCommReact/signup', methods=['POST'])
 def signup():
     if request.is_json:
         data = request.get_json()
-        username = data.get('username')
+        email = data.get('email')
         password = data.get('password')
+        username = data.get('username')
     else:
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Missing username or password'}), 400
-    user_data = users_collection.find_one({'_id': username})
+        username = request.form.get('username')
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Missing email or password'}), 400
+    user_data = users_collection.find_one({'_id': email})
     if user_data:
-        return jsonify({'success': False, 'error': 'Username already exists'}), 409
+        return jsonify({'success': False, 'error': 'Email already exists'}), 409
     password_hash = generate_password_hash(password)
-    users_collection.insert_one({'_id': username, 'password_hash': password_hash})
-    user = User(username, password_hash)
+    user_doc = {'_id': email, 'password_hash': password_hash}
+    if username:
+        user_doc['username'] = username
+    users_collection.insert_one(user_doc)
+    user = User(email, password_hash)
     login_user(user)
     return jsonify({'success': True, 'message': 'Registration successful'})
 

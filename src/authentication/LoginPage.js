@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import edinburghImg from '../images/edinburgh.jpg';
 import { useUser } from '../context/UserContext';
 import { Box, Button, Input, Heading, Text, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
 import api from '../utils/api';
@@ -6,6 +7,7 @@ import api from '../utils/api';
 export default function LoginPage() {
 
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,9 @@ export default function LoginPage() {
     try {
       const endpoint = isLogin ? '/login' : '/signup';
       // Use x-www-form-urlencoded for compatibility with backend
-      const formBody = new URLSearchParams({ username, password });
+  const formBody = isLogin
+    ? new URLSearchParams({ email, password })
+    : new URLSearchParams({ email, password, username });
       const response = await api.fetchWithFallback(endpoint, {
         method: 'POST',
         headers: {
@@ -32,13 +36,16 @@ export default function LoginPage() {
       const data = await response.json();
       if (data.success) {
         setSuccess(isLogin ? 'Login successful! Redirecting...' : 'Registration successful! Redirecting...');
-        setUserContext(username); // Store username in context
-        localStorage.setItem('username', username); // Persist username
+        setUserContext(email); // Always use email for context
+        localStorage.setItem('user_email', email); // Always persist email
+        if (!isLogin) {
+          localStorage.setItem('username', username); // Only persist username on signup
+        }
         setTimeout(() => {
           window.location.href = '/ProCommReact/try-it';
         }, 1000);
       } else {
-        setError(data.error || (isLogin ? 'Incorrect username or password.' : 'Could not register.'));
+        setError(data.error || (isLogin ? 'Incorrect email or password.' : 'Could not register.'));
       }
     } catch (err) {
       setError('Server error. Please try again.');
@@ -46,83 +53,98 @@ export default function LoginPage() {
     setLoading(false);
   };
 
-return (
+  return (
     <Box
       minH="100vh"
       display="flex"
-      alignItems="center"
-      justifyContent="center"
+      alignItems="flex-start"
+      justifyContent="flex-start"
       style={{
-        backgroundImage: "url('/images/login-bg.jpg')",
+        backgroundImage: `url(${edinburghImg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
-      <Box bg="rgba(0,0,0,0.7)" p={8} borderRadius={12} boxShadow="xl" maxW="350px" w="100%">
-        <Heading mb={6} color="white" textAlign="center">{isLogin ? 'Login' : 'Sign Up'}</Heading>
-        {error && (
-          <Alert status="error" mb={4} borderRadius={6}>
-            <AlertIcon />
-            {error}
-          </Alert>
-        )}
-        {success && (
-          <Alert status="success" mb={4} borderRadius={6}>
-            <AlertIcon />
-            {success}
-          </Alert>
-        )}
+      <Box
+        width={{ base: '90vw', sm: '350px', md: '400px' }}
+        ml={{ base: 2, sm: 8, md: 16 }}
+        mt={{ base: 8, sm: 16, md: 24 }}
+        p={8}
+        borderWidth={1}
+        borderRadius={8}
+        boxShadow="lg"
+        bg="rgba(255,255,255,0.97)"
+      >
+        <Heading mb={6} color="gray.800">{isLogin ? 'Login' : 'Sign Up'}</Heading>
         <form onSubmit={handleSubmit}>
           <VStack spacing={4} align="stretch">
-            <FormControl isRequired>
-              <FormLabel color="white">Username</FormLabel>
+            {error && (
+              <Alert status="error">
+                <AlertIcon />
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert status="success">
+                <AlertIcon />
+                {success}
+              </Alert>
+            )}
+            <FormControl id="email" isRequired>
+              <FormLabel color="gray.700">Email</FormLabel>
               <Input
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                autoFocus
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                autoComplete="email"
+                width="100%"
+                size="lg"
                 bg="white"
-                color="black"
-                borderRadius={6}
+                color="gray.800"
+                borderColor="gray.300"
+                _placeholder={{ color: 'gray.400' }}
               />
             </FormControl>
-            <FormControl isRequired>
-              <FormLabel color="white">Password</FormLabel>
+            {!isLogin && (
+              <FormControl id="username" isRequired>
+                <FormLabel color="gray.700">Username</FormLabel>
+                <Input
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  autoComplete="username"
+                  width="100%"
+                  size="lg"
+                  bg="white"
+                  color="gray.800"
+                  borderColor="gray.300"
+                  _placeholder={{ color: 'gray.400' }}
+                />
+              </FormControl>
+            )}
+            <FormControl id="password" isRequired>
+              <FormLabel color="gray.700">Password</FormLabel>
               <Input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
+                width="100%"
+                size="lg"
                 bg="white"
-                color="black"
-                borderRadius={6}
+                color="gray.800"
+                borderColor="gray.300"
+                _placeholder={{ color: 'gray.400' }}
               />
             </FormControl>
-            <Button
-              type="submit"
-              colorScheme={isLogin ? 'blue' : 'green'}
-              isLoading={loading}
-              w="100%"
-              borderRadius={6}
-              fontWeight="bold"
-              mb={2}
-            >
+            <Button type="submit" colorScheme="blue" isLoading={loading} width="full">
               {isLogin ? 'Login' : 'Sign Up'}
             </Button>
-            <Button
-              variant="outline"
-              colorScheme={isLogin ? 'green' : 'blue'}
-              w="100%"
-              borderRadius={6}
-              fontWeight="bold"
-              onClick={() => { setIsLogin(!isLogin); setError(''); setSuccess(''); }}
-            >
-              {isLogin ? 'Switch to Sign Up' : 'Switch to Login'}
+            <Button variant="link" onClick={() => setIsLogin(!isLogin)}>
+              {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Login'}
             </Button>
           </VStack>
         </form>
-        <Text mt={6} color="gray.200" fontSize="sm" textAlign="center">
-          Your credentials are securely sent to the server for authentication or registration.
-        </Text>
       </Box>
     </Box>
   );
