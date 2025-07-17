@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/ProCommReact/static/css/main.bc1612c7.css",
-    "main.js": "/ProCommReact/static/js/main.ccd7b47b.js",
+    "main.js": "/ProCommReact/static/js/main.a9af4328.js",
     "static/media/edinburgh.jpg": "/ProCommReact/static/media/edinburgh.325d68ed3fc1e0883071.jpg",
     "static/media/procommimg.png": "/ProCommReact/static/media/procommimg.4600a360a30cac90fd31.png",
     "index.html": "/ProCommReact/index.html",
     "main.bc1612c7.css.map": "/ProCommReact/static/css/main.bc1612c7.css.map",
-    "main.ccd7b47b.js.map": "/ProCommReact/static/js/main.ccd7b47b.js.map"
+    "main.a9af4328.js.map": "/ProCommReact/static/js/main.a9af4328.js.map"
   },
   "entrypoints": [
     "static/css/main.bc1612c7.css",
-    "static/js/main.ccd7b47b.js"
+    "static/js/main.a9af4328.js"
   ]
 }
