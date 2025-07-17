@@ -455,13 +455,12 @@ def login():
     if not email or not password:
         return jsonify({'success': False, 'error': 'Missing email or password'}), 400
     user_data = users_collection.find_one({'_id': email})
-    if user_data:
-        user = User(user_data['_id'], user_data.get('password_hash'))
-        if user.check_password(password):
-            login_user(user)
-            return jsonify({'success': True, 'message': 'Login successful'})
-        else:
-            return jsonify({'success': False, 'error': 'Incorrect email or password'}), 401
+    if not user_data:
+        return jsonify({'success': False, 'error': "Email isn't registered"}), 404
+    user = User(user_data['_id'], user_data.get('password_hash'))
+    if user.check_password(password):
+        login_user(user)
+        return jsonify({'success': True, 'message': 'Login successful'})
     else:
         return jsonify({'success': False, 'error': 'Incorrect email or password'}), 401
 
@@ -509,6 +508,16 @@ def serve_index():
 @app.errorhandler(404)
 def not_found(e):
     return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/user-info')
+def user_info():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({'error': 'Missing email'}), 400
+    user_data = users_collection.find_one({'_id': email})
+    if not user_data:
+        return jsonify({'error': 'User not found'}), 404
+    return jsonify({'username': user_data.get('username', '')})
 
 from waitress import serve
 

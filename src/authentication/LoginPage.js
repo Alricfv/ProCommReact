@@ -36,14 +36,31 @@ export default function LoginPage() {
       const data = await response.json();
       if (data.success) {
         setSuccess(isLogin ? 'Login successful! Redirecting...' : 'Registration successful! Redirecting...');
-        setUserContext(email); // Always use email for context
         localStorage.setItem('user_email', email); // Always persist email
         if (!isLogin) {
           localStorage.setItem('username', username); // Only persist username on signup
+          setUserContext(username); // Set context to username on signup
+        } 
+        
+        else {
+          // Fetch username after login
+          try {
+            const userInfoRes = await api.fetchWithFallback(`/user-info?email=${encodeURIComponent(email)}`);
+            if (userInfoRes.ok) {
+              const userInfo = await userInfoRes.json();
+              if (userInfo.username) {
+                localStorage.setItem('username', userInfo.username);
+                setUserContext(userInfo.username); // Set context to username on login
+              }
+            }
+          } catch (e) {
+            // Ignore error, fallback to email
+          }
         }
         setTimeout(() => {
           window.location.href = '/ProCommReact/try-it';
         }, 1000);
+        
       } else {
         setError(data.error || (isLogin ? 'Incorrect email or password.' : 'Could not register.'));
       }
