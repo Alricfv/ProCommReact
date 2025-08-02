@@ -72186,3 +72186,49 @@ label 74:
 2025-07-17 21:07:20,931 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
 2025-07-17 21:07:22,041 - WARNING -  * Debugger is active!
 2025-07-17 21:07:22,047 - INFO -  * Debugger PIN: 229-058-810
+2025-08-02 21:56:43,092 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-08-02 21:56:43,092 - INFO - Loading Whisper model: small
+2025-08-02 21:56:44,709 - INFO - Whisper model loaded successfully
+2025-08-02 21:56:44,709 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-08-02 21:56:45,127 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-08-02 21:56:45,156 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-08-02 21:56:45,779 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.29.208:5000
+2025-08-02 21:56:45,779 - INFO - [33mPress CTRL+C to quit[0m
+2025-08-02 21:56:45,780 - INFO -  * Restarting with stat
+2025-08-02 21:57:07,284 - INFO - CORS has been configured to accept requests from: ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000']
+2025-08-02 21:57:07,293 - INFO - Loading Whisper model: small
+2025-08-02 21:57:09,051 - INFO - Whisper model loaded successfully
+2025-08-02 21:57:09,053 - DEBUG - Starting new HTTPS connection (1): huggingface.co:443
+2025-08-02 21:57:09,517 - DEBUG - https://huggingface.co:443 "HEAD /j-hartmann/emotion-english-distilroberta-base/resolve/main/config.json HTTP/11" 307 0
+2025-08-02 21:57:09,553 - DEBUG - https://huggingface.co:443 "HEAD /api/resolve-cache/models/j-hartmann/emotion-english-distilroberta-base/0e1cd914e3d46199ed785853e12b57304e04178b/config.json HTTP/11" 200 0
+2025-08-02 21:57:10,340 - WARNING -  * Debugger is active!
+2025-08-02 21:57:10,344 - INFO -  * Debugger PIN: 229-058-810
+2025-08-02 21:57:36,861 - INFO - 127.0.0.1 - - [02/Aug/2025 21:57:36] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 21:57:49,484 - INFO - 127.0.0.1 - - [02/Aug/2025 21:57:49] "[31m[1mPOST /signup HTTP/1.1[0m" 409 -
+2025-08-02 21:57:57,081 - INFO - 127.0.0.1 - - [02/Aug/2025 21:57:57] "POST /login HTTP/1.1" 200 -
+2025-08-02 21:57:57,591 - INFO - 127.0.0.1 - - [02/Aug/2025 21:57:57] "GET /user-info?email=admwexler@gmail.com HTTP/1.1" 200 -
+2025-08-02 21:58:52,775 - INFO - 127.0.0.1 - - [02/Aug/2025 21:58:52] "[31m[1mPOST /login HTTP/1.1[0m" 401 -
+2025-08-02 21:58:57,806 - INFO - 127.0.0.1 - - [02/Aug/2025 21:58:57] "POST /login HTTP/1.1" 200 -
+2025-08-02 21:58:58,613 - INFO - 127.0.0.1 - - [02/Aug/2025 21:58:58] "GET /user-info?email=admwexler@gmail.com HTTP/1.1" 200 -
+2025-08-02 21:59:28,985 - INFO - 127.0.0.1 - - [02/Aug/2025 21:59:28] "POST /login HTTP/1.1" 200 -
+2025-08-02 21:59:29,779 - INFO - 127.0.0.1 - - [02/Aug/2025 21:59:29] "GET /user-info?email=admwexler@gmail.com HTTP/1.1" 200 -
+2025-08-02 21:59:51,837 - INFO - 127.0.0.1 - - [02/Aug/2025 21:59:51] "POST /login HTTP/1.1" 200 -
+2025-08-02 21:59:52,643 - INFO - 127.0.0.1 - - [02/Aug/2025 21:59:52] "GET /user-info?email=admwexler@gmail.com HTTP/1.1" 200 -
+2025-08-02 22:01:14,705 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:14] "[31m[1mPOST /login HTTP/1.1[0m" 401 -
+2025-08-02 22:01:24,693 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:24] "[31m[1mPOST /signup HTTP/1.1[0m" 409 -
+2025-08-02 22:01:32,153 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:32] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:01:34,846 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:34] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:01:36,500 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:36] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:01:39,730 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:39] "[31m[1mPOST /signup HTTP/1.1[0m" 409 -
+2025-08-02 22:01:43,115 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:43] "POST /login HTTP/1.1" 200 -
+2025-08-02 22:01:43,601 - INFO - 127.0.0.1 - - [02/Aug/2025 22:01:43] "GET /user-info?email=marvelalric1@gmail.com HTTP/1.1" 200 -
+2025-08-02 22:04:09,282 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:09] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:04:11,576 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:11] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:04:15,875 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:15] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:04:18,728 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:18] "[33mPOST /login HTTP/1.1[0m" 404 -
+2025-08-02 22:04:29,035 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:29] "[31m[1mPOST /signup HTTP/1.1[0m" 409 -
+2025-08-02 22:04:35,281 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:35] "POST /login HTTP/1.1" 200 -
+2025-08-02 22:04:36,078 - INFO - 127.0.0.1 - - [02/Aug/2025 22:04:36] "GET /user-info?email=gbh520@york.ac.uk HTTP/1.1" 200 -

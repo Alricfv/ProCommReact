@@ -1,6 +1,6 @@
 import { 
     Box, Flex, Heading, Text, Image, Button, VStack, HStack, Container, 
-    Badge, Icon, useColorModeValue, Divider, SimpleGrid, Circle, Wrap, WrapItem, useBreakpointValue
+    Icon,  Divider, SimpleGrid, Circle, Wrap, WrapItem, useBreakpointValue
 } from '@chakra-ui/react';
 
 import { Link } from 'react-router-dom';
@@ -12,13 +12,40 @@ import {
 
 import aboutImage from './/../images/about.jpg'; //bug 1 fix later
 
+//Made styles for UI components
+const cardBoxStyles= {
+    bg: "rgba(30, 41, 59, 0.8)",
+    borderRadius: "20px",
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(16px)",
+    transition: "all 0.3s ease-in-out"
+}
 
+const featureBoxStyles = {
+    textAlign: "center",
+    borderRadius: "16px",
+    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(16px)",
+    transition: "all 0.3s ease"
+}
+
+const teamCardStyles = {
+    spacing: 4,
+    p: 6,
+    borderRadius: "lg",
+    bg: "rgba(30, 41, 59, 0.6)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(16px)",
+    minW: "250px",
+    transition: "all 0.3s ease"
+}
 
 function About() {
     const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
-    const cardBg = useColorModeValue("rgba(30, 41, 59, 0.8)", "rgba(30, 41, 59, 0.8)");
     const accentColor = "#38bdf8"; // Updated to a vibrant blue
-    const textColor = "#f8fafc";
+    const textColor = "#e7e9ebff";
     const highlightColor = "#7dd3fc";
     const secondaryAccent = "#4ade80"; // Green accent color
     const tertiaryAccent = "#c084fc"; // Purple accent color
@@ -95,52 +122,37 @@ function About() {
                     position="absolute" 
                     bottom="0" 
                     right="0" 
-                    width="80%" 
-                    height="80%" 
+                    width="100%" 
+                    height="100%" 
                     opacity="0.2" 
                     bgGradient="radial-gradient(circle at 75% 75%, #c084fc 0%, transparent 60%)"
                     zIndex="1"
                 />
                 
-                <Container maxW="1200px" position="relative" zIndex="2">
-                    {/* Our Story badge */}
-                    <Flex justifyContent="center" mb={6}>
-                        <Badge 
-                            fontSize="sm" 
-                            colorScheme="blue" 
-                            p="2" 
-                            borderRadius="full"
-                            textTransform="uppercase"
-                            fontWeight="bold"
-                            letterSpacing="1px"
-                            bg={`rgba(56, 189, 248, 0.2)`}
-                            color={accentColor}
-                        >
-                            Our Story
-                        </Badge>
-                    </Flex>
-
+                <Container maxW="1200px" position="relative" zIndex="2" >
                     {/* Main heading */}
                     <Heading 
                         size={headingSize}
                         textAlign="center" 
-                        marginBottom="40px" 
+                        marginBottom="30px" 
                         bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
                         bgClip="text"
                         fontWeight="extrabold"
                         letterSpacing="tight"
+                        lineHeight="1.4"
                     >
                         Revolutionizing Communication with ProComm
                     </Heading>
                     
                     <Text 
-                        fontSize={{ base: "lg", md: "xl" }} 
+                        fontSize={{ base: "50px", md: "xl" }} 
                         color={textColor} 
                         textAlign="center" 
-                        maxWidth="800px" 
+                        maxWidth="900px" 
                         margin="0 auto" 
                         marginBottom="60px" 
                         lineHeight="1.8"
+                        fontWeight="bold"
                     >
                         ProComm is a cutting-edge platform designed to transform the way you communicate through 
                         state-of-the-art speech analysis technology. Our mission is to provide seamless, 
@@ -156,17 +168,15 @@ function About() {
                         marginBottom="70px"
                     >
                         <Box 
-                            textAlign={{base: "center", md: "left"}} 
-                            maxWidth="500px" 
-                            bg={cardBg}
-                            padding="40px" 
-                            borderRadius="20px" 
-                            boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
-                            border="1px solid rgba(255, 255, 255, 0.1)"
-                            backdropFilter="blur(16px)"
-                            transform={{md: "rotate(-2deg)"}}
-                            transition="all 0.3s ease-in-out"
-                            _hover={{transform: "rotate(0deg) scale(1.02)", boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"}}
+                          {...cardBoxStyles}
+                          textAlign={{base: "center", md: "left"}} 
+                          maxWidth="500px" 
+                          padding="40px" 
+                          transform={{md: "rotate(-2deg)"}}
+                          _hover={{
+                            transform: "rotate(0deg) scale(1.02)", 
+                            boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"
+                           }}
                         >
                             <Circle size="50px" bg={`rgba(56, 189, 248, 0.2)`} display="flex" alignItems="center" justifyContent="center" mb={5} mx="auto">
                                 <Icon as={FaLightbulb} color={highlightColor} w={6} h={6} />
@@ -174,7 +184,7 @@ function About() {
                             <Heading size="xl" bgGradient={`linear-gradient(90deg, ${highlightColor}, ${accentColor})`} bgClip="text" marginBottom="20px">
                                 Our Vision
                             </Heading>
-                            <Text fontSize="md" color={textColor} lineHeight="1.8">
+                            <Text fontSize="18px" color={textColor} lineHeight="1.8">
                                 At ProComm, we envision a world where anyone can communicate with clarity and confidence. 
                                 We're developing AI-powered tools that analyze speech patterns, detect filler words, 
                                 and provide real-time feedback to help you become a more polished communicator.
@@ -210,14 +220,9 @@ function About() {
 
                         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8}>
                             <Box 
+                                {...featureBoxStyles}
                                 textAlign="center" 
                                 padding={{base: "30px 20px", md: "40px 30px"}} 
-                                bg={cardBg}
-                                borderRadius="16px" 
-                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
-                                border="1px solid rgba(255, 255, 255, 0.1)"
-                                backdropFilter="blur(16px)"
-                                transition="all 0.3s ease"
                                 _hover={{
                                     transform: "translateY(-10px)",
                                     boxShadow: "0 20px 35px -5px rgba(56, 189, 248, 0.3)"
@@ -229,21 +234,15 @@ function About() {
                                 <Heading size="lg" color={accentColor} marginBottom="16px">
                                     Advanced Speech Analysis
                                 </Heading>
-                                <Text fontSize="md" color={textColor} lineHeight="1.8">
-                                    Our platform features state-of-the-art speech recognition technology,
-                                    providing accurate transcription and meaningful insights into your speaking patterns.
+                                <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold">
+                                    Provides accurate transcription and meaningful insights into your speaking patterns.
                                 </Text>
                             </Box>
 
                             <Box 
+                                {...featureBoxStyles}
                                 textAlign="center" 
                                 padding={{base: "30px 20px", md: "40px 30px"}} 
-                                bg={cardBg}
-                                borderRadius="16px" 
-                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
-                                border="1px solid rgba(255, 255, 255, 0.1)"
-                                backdropFilter="blur(16px)"
-                                transition="all 0.3s ease"
                                 _hover={{
                                     transform: "translateY(-10px)",
                                     boxShadow: "0 20px 35px -5px rgba(192, 132, 252, 0.3)"
@@ -255,21 +254,15 @@ function About() {
                                 <Heading size="lg" color={tertiaryAccent} marginBottom="16px">
                                     Filler Word Detection
                                 </Heading>
-                                <Text fontSize="md" color={textColor} lineHeight="1.8">
-                                    Our enhanced filler word detection identifies and tracks your use of words like 
-                                    "um," "uh," and "like," helping you develop more polished and professional speaking habits.
+                                <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold">
+                                    Identifies and tracks your use of filler words, helping you develop more polished and professional speaking habits.
                                 </Text>
                             </Box>
 
                             <Box 
+                                {...featureBoxStyles}
                                 textAlign="center" 
                                 padding={{base: "30px 20px", md: "40px 30px"}} 
-                                bg={cardBg}
-                                borderRadius="16px" 
-                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
-                                border="1px solid rgba(255, 255, 255, 0.1)"
-                                backdropFilter="blur(16px)"
-                                transition="all 0.3s ease"
                                 _hover={{
                                     transform: "translateY(-10px)",
                                     boxShadow: "0 20px 35px -5px rgba(74, 222, 128, 0.3)"
@@ -281,9 +274,8 @@ function About() {
                                 <Heading size="lg" color={secondaryAccent} marginBottom="16px">
                                     Real-Time Feedback
                                 </Heading>
-                                <Text fontSize="md" color={textColor} lineHeight="1.8">
-                                    Get instant feedback on your speaking patterns, allowing you to make 
-                                    improvements on the spot and track your progress over time.
+                                <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold" align="center">
+                                    Get instant feedback on your speaking patterns, track your progress over time.
                                 </Text>
                             </Box>
                         </SimpleGrid>
@@ -291,15 +283,14 @@ function About() {
 
                     {/* Technology Info Section */}
                     <Box 
+                        {...cardBoxStyles}
                         padding="50px 30px" 
                         marginY="70px"
-                        bg={cardBg}
-                        borderRadius="20px"
-                        boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2)"
-                        border="1px solid rgba(255, 255, 255, 0.1)"
-                        backdropFilter="blur(16px)"
+
                     >
-                        <VStack spacing={8}>
+                        <VStack 
+                        spacing={8}
+                        >
                             <Heading 
                                 textAlign="center"
                                 size="xl"
@@ -388,14 +379,14 @@ function About() {
                         
                         <VStack spacing={6} position="relative" zIndex="1">
                             <Heading 
-                                size="xl" 
+                                size="2xl" 
                                 bgGradient={`linear-gradient(90deg, ${highlightColor}, #f0abfc)`}
                                 bgClip="text"
+                                fontWeight="bold"
                             >
-                                Ready to Transform Your Communication Skills?
+                                Let's Transform Your Communication Skills!
                             </Heading>
-                            <Text fontSize={{base: "md", md: "lg"}} maxW="700px" mx="auto">
-                                Join thousands of users who trust ProComm to improve their speaking confidence and effectiveness.
+                            <Text fontSize={{base: "20px", md: "30px"}} maxW="1000px" mx="auto" fontWeight="bold">
                                 Start your journey to better communication today!
                             </Text>
                             <Link to="/try-it">
@@ -418,7 +409,13 @@ function About() {
                     </Box>
 
                     {/* Our Team Section */}
-                    <Box padding={{base: "40px 20px", md: "70px 20px"}} textAlign="center">
+                    <Box 
+                        {...teamCardStyles}
+                        padding={{base: "40px 20px", md: "70px 20px"}} 
+                        textAlign="center"
+                        marginY="70px"
+                        width="100%"
+                    >
                         <Heading 
                             size={headingSize}
                             bgGradient={`linear-gradient(90deg, ${tertiaryAccent}, ${accentColor})`}

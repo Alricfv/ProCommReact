@@ -56,7 +56,7 @@ export default function LoginPage() {
         setUserContext(finalUsername);
 
         setTimeout(() => {
-          window.location.href = 'ProCommReact/try-it';
+          window.location.href = '/ProCommReact/try-it';
         }, 1000);
       } else {
         setError(data.error);
@@ -94,10 +94,16 @@ export default function LoginPage() {
         </Heading>
         <form onSubmit={handleSubmit}>
           <VStack spacing={4} align="stretch">
-            {(error || success) && (
-              <Alert status={error ? "error" : "success"}>
+            {error  && (
+              <Alert status={"error"}>
                 <AlertIcon />
-                {error || success}
+                {error}
+              </Alert>
+            )}
+            {success && (
+              <Alert status="success">
+                <AlertIcon />
+                {success}
               </Alert>
             )}
             <FormControl id="email" isRequired>
