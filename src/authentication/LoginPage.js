@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import edinburghImg from '../images/edinburgh.jpg';
 import { useUser } from '../context/UserContext';
-import { Box, Button, Input, Heading, Text, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
+import { Box, Button, Input, Heading, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
 import api from '../utils/api';
 
 export default function LoginPage() {
@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
-  const [isLogin, setIsLogin] = useState(true); // true = login, false = signup
+  const [isLogin, setIsLogin] = useState(true); 
   const { setUsername: setUserContext } = useUser();
 
   const handleSubmit = async (e) => {
@@ -22,50 +22,47 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const endpoint = isLogin ? '/login' : '/signup';
-      // Use x-www-form-urlencoded for compatibility with backend
-  const formBody = isLogin
-    ? new URLSearchParams({ email, password })
-    : new URLSearchParams({ email, password, username });
+      const formBody = new URLSearchParams(
+        isLogin ? { email, password } : { email, password, username }
+      );
+
       const response = await api.fetchWithFallback(endpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: formBody.toString(),
       });
+
       const data = await response.json();
+
       if (data.success) {
         setSuccess(isLogin ? 'Login successful! Redirecting...' : 'Registration successful! Redirecting...');
-        localStorage.setItem('user_email', email); // Always persist email
-        if (!isLogin) {
-          localStorage.setItem('username', username); // Only persist username on signup
-          setUserContext(username); // Set context to username on signup
-        } 
-        
-        else {
-          // Fetch username after login
+        localStorage.setItem('user_email', email);
+
+        let finalUsername = username;
+
+        if (isLogin) {
           try {
             const userInfoRes = await api.fetchWithFallback(`/user-info?email=${encodeURIComponent(email)}`);
-            if (userInfoRes.ok) {
+            if (userInfoRes.ok){
               const userInfo = await userInfoRes.json();
-              if (userInfo.username) {
-                localStorage.setItem('username', userInfo.username);
-                setUserContext(userInfo.username); // Set context to username on login
-              }
+              if (userInfo.username) 
+                finalUsername = userInfo.username;
             }
-          } catch (e) {
-            // Ignore error, fallback to email
+          } catch(e) {
+            console.error('Failed to fetch user information:', e);
           }
         }
+        localStorage.setItem('username', finalUsername);
+        setUserContext(finalUsername);
+
         setTimeout(() => {
-          window.location.href = '/ProCommReact/try-it';
+          window.location.href = 'ProCommReact/try-it';
         }, 1000);
-        
       } else {
-        setError(data.error || (isLogin ? 'Incorrect email or password.' : 'Could not register.'));
+        setError(data.error);
       }
-    } catch (err) {
-      setError('Server error. Please try again.');
+    } catch (err){
+      setError('Server error, Please try again.');
     }
     setLoading(false);
   };
@@ -92,19 +89,15 @@ export default function LoginPage() {
         boxShadow="lg"
         bg="rgba(255,255,255,0.97)"
       >
-        <Heading mb={6} color="gray.800">{isLogin ? 'Login' : 'Sign Up'}</Heading>
+        <Heading mb={6} color="gray.800">
+          {isLogin ? 'Login' : 'Sign Up'}
+        </Heading>
         <form onSubmit={handleSubmit}>
           <VStack spacing={4} align="stretch">
-            {error && (
-              <Alert status="error">
+            {(error || success) && (
+              <Alert status={error ? "error" : "success"}>
                 <AlertIcon />
-                {error}
-              </Alert>
-            )}
-            {success && (
-              <Alert status="success">
-                <AlertIcon />
-                {success}
+                {error || success}
               </Alert>
             )}
             <FormControl id="email" isRequired>
@@ -124,7 +117,9 @@ export default function LoginPage() {
             </FormControl>
             {!isLogin && (
               <FormControl id="username" isRequired>
-                <FormLabel color="gray.700">Username</FormLabel>
+                <FormLabel color="gray.700">
+                  Username
+                </FormLabel>
                 <Input
                   type="text"
                   value={username}
@@ -140,7 +135,9 @@ export default function LoginPage() {
               </FormControl>
             )}
             <FormControl id="password" isRequired>
-              <FormLabel color="gray.700">Password</FormLabel>
+              <FormLabel color="gray.700">
+                Password
+              </FormLabel>
               <Input
                 type="password"
                 value={password}

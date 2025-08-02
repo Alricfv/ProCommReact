@@ -1,18 +1,20 @@
-import React from 'react';
 import { 
     Box, Flex, Heading, Text, Image, Button, VStack, HStack, Container, 
-    Badge, Icon, useColorModeValue, Divider, SimpleGrid, List, ListItem, 
-    ListIcon, Circle, Wrap, WrapItem, useBreakpointValue
+    Badge, Icon, useColorModeValue, Divider, SimpleGrid, Circle, Wrap, WrapItem, useBreakpointValue
 } from '@chakra-ui/react';
+
 import { Link } from 'react-router-dom';
+
 import { 
     FaRocket, FaUserFriends, FaHeadset, FaMicrophone, FaChartLine, 
-    FaLightbulb, FaCheck, FaCode, FaGlobe, FaTools, FaWaveSquare
+    FaLightbulb, FaCode, FaGlobe, FaTools, FaWaveSquare
 } from 'react-icons/fa';
-import aboutImage from './/../images/about.jpg';
+
+import aboutImage from './/../images/about.jpg'; //bug 1 fix later
+
+
 
 function About() {
-    // Modern color scheme with gradients
     const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
     const cardBg = useColorModeValue("rgba(30, 41, 59, 0.8)", "rgba(30, 41, 59, 0.8)");
     const accentColor = "#38bdf8"; // Updated to a vibrant blue
