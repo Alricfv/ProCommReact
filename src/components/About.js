@@ -10,9 +10,17 @@ import {
     FaLightbulb, FaCode, FaGlobe, FaTools, FaWaveSquare
 } from 'react-icons/fa';
 
-import aboutImage from './/../images/about.jpg'; //bug 1 fix later
+import aboutImage from '../images/about.jpg'; //bug 1 fix later
 
-//Made styles for UI components
+//Styles for aesthetics
+const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
+const accentColor = "#38bdf8"; 
+const textColor = "#e7e9ebff";
+const highlightColor = "#7dd3fc";
+const secondaryAccent = "#4ade80";
+const tertiaryAccent = "#c084fc"; 
+
+//Styles for UI components
 const cardBoxStyles= {
     bg: "rgba(30, 41, 59, 0.8)",
     borderRadius: "20px",
@@ -42,16 +50,35 @@ const teamCardStyles = {
     transition: "all 0.3s ease"
 }
 
+const teamMembers =[
+    {
+        role: 'Development',
+        icon: FaCode,
+        color: accentColor,
+        bg: 'rgba(56, 189, 248, 0.2)',
+        description: 'Developers & Engineers building our speech technology platform',
+        email: 'placeholder1@gmail.com'
+    },
+    {
+        role: 'Design',
+        icon: FaUserFriends,
+        color: tertiaryAccent,
+        bg: 'rgba(192, 132, 252, 0.2)',
+        description: 'Designers & Creators of our intuitive user experience',
+        email: 'placeholder2@gmail.com'
+    },
+    {
+        role: 'Support',
+        icon: FaHeadset,
+        color: secondaryAccent,
+        bg: 'rgba(74, 222, 128, 0.2)',
+        description: 'Support Experts ready to help with any questions',
+        email: 'placeholder3@gmail.com'
+    }
+]
+
 function About() {
-    const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
-    const accentColor = "#38bdf8"; // Updated to a vibrant blue
-    const textColor = "#e7e9ebff";
-    const highlightColor = "#7dd3fc";
-    const secondaryAccent = "#4ade80"; // Green accent color
-    const tertiaryAccent = "#c084fc"; // Purple accent color
-    
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
-    
     return (
         <Box bgGradient={bgGradient} color={textColor} fontFamily="'Inter', sans-serif" minHeight="100vh">
             {/* Navigation Bar */}
@@ -431,40 +458,35 @@ function About() {
                         </Text>
                         
                         <Wrap spacing="30px" justify="center">
-                            {[1, 2, 3].map((i) => (
+                            {teamMembers.map((member, i) => (
                                 <WrapItem key={i}>
-                                    <VStack 
-                                        spacing={4} 
-                                        p={6} 
-                                        borderRadius="lg" 
-                                        bg="rgba(30, 41, 59, 0.6)"
-                                        border="1px solid rgba(255, 255, 255, 0.1)"
-                                        backdropFilter="blur(16px)"
-                                        minW="250px"
-                                        transition="all 0.3s ease"
-                                        _hover={{
-                                            transform: "translateY(-5px)",
-                                            boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.3)"
-                                        }}
+                                    <VStack
+                                    {...teamCardStyles}
+                                    _hover={{
+                                        transform: "translateY(-5px)",
+                                        boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.3)"
+                                    }}
                                     >
-                                        <Circle size="80px" bg={`rgba(${i === 1 ? '56, 189, 248' : i === 2 ? '192, 132, 252' : '74, 222, 128'}, 0.2)`}>
-                                            <Icon 
-                                                as={i === 1 ? FaCode : i === 2 ? FaUserFriends : FaHeadset} 
-                                                color={i === 1 ? accentColor : i === 2 ? tertiaryAccent : secondaryAccent} 
-                                                w={8} 
-                                                h={8} 
+                                        <Circle 
+                                            size="80px"
+                                            bg={member.bg}
+                                        >
+                                            <Icon
+                                                as={member.icon}
+                                                color={member.color}
+                                                w={8}
+                                                h={8}
+                                            
                                             />
                                         </Circle>
-                                        <Heading size="md" color={i === 1 ? accentColor : i === 2 ? tertiaryAccent : secondaryAccent}>
-                                            {i === 1 ? 'Development' : i === 2 ? 'Design' : 'Support'}
+                                        <Heading
+                                            size="md"
+                                            color={member.color}
+                                        >
+                                            {member.role}
                                         </Heading>
                                         <Text color={textColor}>
-                                            {i === 1 
-                                                ? 'Engineers building our speech technology platform' 
-                                                : i === 2 
-                                                    ? 'Creators of our intuitive user experience' 
-                                                    : 'Experts ready to help with any questions'
-                                            }
+                                            {member.description}
                                         </Text>
                                     </VStack>
                                 </WrapItem>
