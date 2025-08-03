@@ -10,7 +10,7 @@ import {
     FaLightbulb, FaCode, FaGlobe, FaTools, FaWaveSquare
 } from 'react-icons/fa';
 
-import aboutImage from '../images/about.jpg'; //bug 1 fix later
+import aboutImage from '../images/about.jpg';
 
 //Styles for aesthetics
 const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
@@ -50,6 +50,7 @@ const teamCardStyles = {
     transition: "all 0.3s ease"
 }
 
+//data for talking about the roles of each group in our team
 const teamMembers =[
     {
         role: 'Development',
@@ -81,7 +82,7 @@ function About() {
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
     return (
         <Box bgGradient={bgGradient} color={textColor} fontFamily="'Inter', sans-serif" minHeight="100vh">
-            {/* Navigation Bar */}
+            {/* Nav Bar */}
             <Flex
                 as="nav"
                 justifyContent="space-between"
@@ -96,10 +97,20 @@ function About() {
                 zIndex="1000"
             >
                 <HStack spacing={3}>
-                    <Circle size="40px" bg={`rgba(56, 189, 248, 0.2)`} display="flex" alignItems="center" justifyContent="center">
+                    <Circle 
+                        size="40px" 
+                        bg={`rgba(56, 189, 248, 0.2)`} 
+                        display="flex" 
+                        alignItems="center" 
+                        justifyContent="center"
+                    >
                         <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
                     </Circle>
-                    <Heading size="lg" bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} bgClip="text">
+                    <Heading 
+                        size="lg" 
+                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} 
+                        bgClip="text"
+                    >
                         ProComm
                     </Heading>
                 </HStack>
@@ -205,13 +216,30 @@ function About() {
                             boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"
                            }}
                         >
-                            <Circle size="50px" bg={`rgba(56, 189, 248, 0.2)`} display="flex" alignItems="center" justifyContent="center" mb={5} mx="auto">
+                            <Circle 
+                                size="50px" 
+                                bg={`rgba(56, 189, 248, 0.2)`} 
+                                display="flex" 
+                                alignItems="center" 
+                                justifyContent="center" 
+                                mb={5} 
+                                mx="auto"
+                            >
                                 <Icon as={FaLightbulb} color={highlightColor} w={6} h={6} />
                             </Circle>
-                            <Heading size="xl" bgGradient={`linear-gradient(90deg, ${highlightColor}, ${accentColor})`} bgClip="text" marginBottom="20px">
+                            <Heading 
+                                size="xl" 
+                                bgGradient={`linear-gradient(90deg, ${highlightColor}, ${accentColor})`} 
+                                bgClip="text" 
+                                marginBottom="20px"
+                            >
                                 Our Vision
                             </Heading>
-                            <Text fontSize="18px" color={textColor} lineHeight="1.8">
+                            <Text 
+                                fontSize="18px" 
+                                color={textColor} 
+                                lineHeight="1.8"
+                            >
                                 At ProComm, we envision a world where anyone can communicate with clarity and confidence. 
                                 We're developing AI-powered tools that analyze speech patterns, detect filler words, 
                                 and provide real-time feedback to help you become a more polished communicator.
@@ -255,17 +283,32 @@ function About() {
                                     boxShadow: "0 20px 35px -5px rgba(56, 189, 248, 0.3)"
                                 }}
                             >
-                                <Circle size="60px" bg="rgba(56, 189, 248, 0.2)" mb={5} mx="auto" display="flex" alignItems="center" justifyContent="center">
+                                <Circle 
+                                    size="60px" 
+                                    bg="rgba(56, 189, 248, 0.2)" 
+                                    mb={5} mx="auto" 
+                                    display="flex" 
+                                    alignItems="center" 
+                                    justifyContent="center"
+                                >
                                     <Icon as={FaWaveSquare} color={accentColor} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={accentColor} marginBottom="16px">
+                                <Heading 
+                                    size="lg" 
+                                    color={accentColor} 
+                                    marginBottom="16px"
+                                >
                                     Advanced Speech Analysis
                                 </Heading>
-                                <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold">
+                                <Text 
+                                    fontSize="18px" 
+                                    color={textColor} 
+                                    lineHeight="1.8" 
+                                    fontWeight="bold"
+                                >
                                     Provides accurate transcription and meaningful insights into your speaking patterns.
                                 </Text>
                             </Box>
-
                             <Box 
                                 {...featureBoxStyles}
                                 textAlign="center" 
@@ -275,17 +318,33 @@ function About() {
                                     boxShadow: "0 20px 35px -5px rgba(192, 132, 252, 0.3)"
                                 }}
                             >
-                                <Circle size="60px" bg="rgba(192, 132, 252, 0.2)" mb={5} mx="auto" display="flex" alignItems="center" justifyContent="center">
+                                <Circle 
+                                    size="60px" 
+                                    bg="rgba(192, 132, 252, 0.2)" 
+                                    mb={5} 
+                                    mx="auto" 
+                                    display="flex" 
+                                    alignItems="center" 
+                                    justifyContent="center"
+                                >
                                     <Icon as={FaHeadset} color={tertiaryAccent} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={tertiaryAccent} marginBottom="16px">
+                                <Heading 
+                                    size="lg" 
+                                    color={tertiaryAccent} 
+                                    marginBottom="16px"
+                                >
                                     Filler Word Detection
                                 </Heading>
-                                <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold">
+                                <Text 
+                                    fontSize="18px" 
+                                    color={textColor} 
+                                    lineHeight="1.8" 
+                                    fontWeight="bold"
+                                >
                                     Identifies and tracks your use of filler words, helping you develop more polished and professional speaking habits.
                                 </Text>
                             </Box>
-
                             <Box 
                                 {...featureBoxStyles}
                                 textAlign="center" 
@@ -295,10 +354,22 @@ function About() {
                                     boxShadow: "0 20px 35px -5px rgba(74, 222, 128, 0.3)"
                                 }}
                             >
-                                <Circle size="60px" bg="rgba(74, 222, 128, 0.2)" mb={5} mx="auto" display="flex" alignItems="center" justifyContent="center">
+                                <Circle 
+                                    size="60px" 
+                                    bg="rgba(74, 222, 128, 0.2)" 
+                                    mb={5} 
+                                    mx="auto" 
+                                    display="flex" 
+                                    alignItems="center" 
+                                    justifyContent="center"
+                                >
                                     <Icon as={FaChartLine} color={secondaryAccent} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={secondaryAccent} marginBottom="16px">
+                                <Heading 
+                                    size="lg" 
+                                    color={secondaryAccent} 
+                                    marginBottom="16px"
+                                >
                                     Real-Time Feedback
                                 </Heading>
                                 <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold" align="center">
@@ -345,33 +416,57 @@ function About() {
                                 <VStack align="flex-start" spacing={4}>
                                     <HStack>
                                         <Icon as={FaGlobe} color={tertiaryAccent} w={5} h={5} />
-                                        <Heading size="md" color={highlightColor}>Secure Processing</Heading>
+                                        <Heading 
+                                            size="md" 
+                                            color={highlightColor}
+                                        >
+                                            Secure Processing
+                                        </Heading>
                                     </HStack>
-                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                    <Text 
+                                        fontSize="md" 
+                                        color={textColor} 
+                                        lineHeight="1.8"
+                                    >
                                         Your voice data never leaves our secure servers. Our implementation
                                         processes all data locally, ensuring your privacy while still delivering 
                                         state-of-the-art speech recognition capabilities.
                                     </Text>
                                 </VStack>
-                                
                                 <VStack align="flex-start" spacing={4}>
                                     <HStack>
                                         <Icon as={FaTools} color={secondaryAccent} w={5} h={5} />
-                                        <Heading size="md" color={highlightColor}>Enhanced Filler Detection</Heading>
+                                        <Heading 
+                                            size="md" 
+                                            color={highlightColor}
+                                        >
+                                            Enhanced Filler Detection
+                                        </Heading>
                                     </HStack>
-                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                    <Text 
+                                        fontSize="md" 
+                                        color={textColor} 
+                                        lineHeight="1.8"
+                                    >
                                         Our sophisticated algorithms detect not only standard filler words but also
                                         variations and partial matches, giving you a comprehensive view of your
                                         speaking habits.
                                     </Text>
                                 </VStack>
-                                
                                 <VStack align="flex-start" spacing={4}>
                                     <HStack>
                                         <Icon as={FaRocket} color={accentColor} w={5} h={5} />
-                                        <Heading size="md" color={highlightColor}>Performance Optimization</Heading>
+                                        <Heading 
+                                            size="md" 
+                                            color={highlightColor}
+                                        >
+                                            Performance Optimization
+                                        </Heading>
                                     </HStack>
-                                    <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                    <Text 
+                                        fontSize="md" 
+                                        color={textColor} 
+                                        lineHeight="1.8">
                                         We've fine-tuned our speech analysis parameters specifically for filler word preservation,
                                         ensuring that our system captures these often subtle speech patterns that other
                                         technologies might miss.
@@ -413,7 +508,12 @@ function About() {
                             >
                                 Let's Transform Your Communication Skills!
                             </Heading>
-                            <Text fontSize={{base: "20px", md: "30px"}} maxW="1000px" mx="auto" fontWeight="bold">
+                            <Text 
+                                fontSize={{base: "20px", md: "30px"}} 
+                                maxW="1000px" 
+                                mx="auto" 
+                                fontWeight="bold"
+                            >
                                 Start your journey to better communication today!
                             </Text>
                             <Link to="/try-it">
@@ -452,7 +552,14 @@ function About() {
                         >
                             Our Team
                         </Heading>
-                        <Text fontSize="lg" color={textColor} maxWidth="800px" margin="0 auto" marginBottom="60px" lineHeight="1.8">
+                        <Text 
+                            fontSize="lg" 
+                            color={textColor} 
+                            maxWidth="800px" 
+                            margin="0 auto" 
+                            marginBottom="60px" 
+                            lineHeight="1.8"
+                        >
                             ProComm is built by a talented team of developers, designers, and speech experts dedicated 
                             to helping you become a better communicator through innovative technology and thoughtful design.
                         </Text>
@@ -505,7 +612,12 @@ function About() {
                         boxShadow="0 -5px 20px -5px rgba(0, 0, 0, 0.1)"
                     >
                         <HStack justifyContent="center" spacing={4} mb={4}>
-                            <Circle size="36px" bg={`rgba(56, 189, 248, 0.1)`} display="flex" alignItems="center" justifyContent="center">
+                            <Circle 
+                                size="36px" 
+                                bg={`rgba(56, 189, 248, 0.1)`} 
+                                display="flex" alignItems="center" 
+                                justifyContent="center"
+                            >
                                 <Icon as={FaMicrophone} color={accentColor} w={4} h={4} />
                             </Circle>
                             <Text fontWeight="bold" color={textColor}>ProComm</Text>

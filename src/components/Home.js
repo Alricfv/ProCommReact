@@ -1,29 +1,31 @@
-import React from 'react';
 import { 
     Box, Flex, Heading, Text, Button, VStack, HStack, Image, 
     Container, SimpleGrid, Icon, Circle, Divider, useBreakpointValue,
     Badge
 } from '@chakra-ui/react';
+
 import { Link } from 'react-router-dom';
-import { 
-    FaMicrophone, FaChartLine, FaComments, FaHeadset, 
-    FaLightbulb, FaCheck, FaRocket
-} from 'react-icons/fa';
+
+import { FaMicrophone, FaChartLine, FaComments, FaCheck, FaRocket} from 'react-icons/fa';
+
+// Color scheme that is the same as the about file
+const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
+const cardBg = "rgba(30, 41, 59, 0.8)";
+const accentColor = "#38bdf8"; 
+const textColor = "#f8fafc";
+const highlightColor = "#7dd3fc";
+const secondaryAccent = "#4ade80"; 
+const tertiaryAccent = "#c084fc"; 
 
 export default function Home() {
-    // Modern color scheme with gradients (matching About.js)
-    const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
-    const cardBg = "rgba(30, 41, 59, 0.8)";
-    const accentColor = "#38bdf8"; // Vibrant blue
-    const textColor = "#f8fafc";
-    const highlightColor = "#7dd3fc";
-    const secondaryAccent = "#4ade80"; // Green accent color
-    const tertiaryAccent = "#c084fc"; // Purple accent color
-
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
 
     return (
-        <Box bgGradient={bgGradient} color={textColor} fontFamily="'Inter', sans-serif" minHeight="100vh">
+        <Box 
+            bgGradient={bgGradient} 
+            color={textColor} 
+            fontFamily="'Inter', sans-serif" 
+            minHeight="100vh">
             {/* Navigation Bar */}
             <Flex
                 as="nav"
@@ -39,10 +41,20 @@ export default function Home() {
                 zIndex="1000"
             >
                 <HStack spacing={3}>
-                    <Circle size="40px" bg={`rgba(56, 189, 248, 0.2)`} display="flex" alignItems="center" justifyContent="center">
+                    <Circle 
+                        size="40px" 
+                        bg={`rgba(56, 189, 248, 0.2)`} 
+                        display="flex" 
+                        alignItems="center" 
+                        justifyContent="center"
+                    >
                         <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
                     </Circle>
-                    <Heading size="lg" bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} bgClip="text">
+                    <Heading 
+                        size="lg" 
+                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} 
+                        bgClip="text"
+                    >
                         ProComm
                     </Heading>
                 </HStack>
@@ -110,7 +122,11 @@ export default function Home() {
                     zIndex="1"
                 />
                 
-                <Container maxW="1200px" position="relative" zIndex="2">
+                <Container 
+                    maxW="1200px" 
+                    position="relative" 
+                    zIndex="2"
+                >
                     <Box textAlign="center" marginBottom="60px">
                         <Badge 
                             mb="4" 
@@ -127,7 +143,7 @@ export default function Home() {
                         </Badge>
                         
                         <Image
-                            src={require('.//../images/procommimg.png')}
+                            src={require('../images/procommimg.png')}
                             alt="ProComm Logo"
                             marginY="40px"
                             width={{base: "100%", md: "800px"}}
@@ -139,7 +155,6 @@ export default function Home() {
                             transition="all 0.3s ease-in-out"
                             _hover={{transform: "scale(1.02)", boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"}}
                         />
-                        
                         <Heading 
                             size={headingSize} 
                             fontWeight="extrabold" 
@@ -150,7 +165,6 @@ export default function Home() {
                         >
                             Unlock Your Speaking Potential
                         </Heading>
-                        
                         <Text 
                             fontSize={{ base: "lg", md: "xl" }} 
                             marginBottom="40px" 
@@ -210,10 +224,18 @@ export default function Home() {
                                     boxShadow: "0 20px 35px -5px rgba(56, 189, 248, 0.3)"
                                 }}
                             >
-                                <Circle size="60px" bg="rgba(56, 189, 248, 0.2)" display="flex" alignItems="center" justifyContent="center">
+                                <Circle 
+                                    size="60px" 
+                                    bg="rgba(56, 189, 248, 0.2)" 
+                                    display="flex" 
+                                    alignItems="center" 
+                                    justifyContent="center"
+                                >
                                     <Icon as={FaMicrophone} color={accentColor} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={accentColor}>Accurate Speech Transcription</Heading>
+                                <Heading size="lg" color={accentColor}>
+                                    Accurate Speech Transcription
+                                </Heading>
                                 <Text textAlign="center" color={textColor} lineHeight="1.8">
                                     Convert your speech into text with precision and ease. 
                                     Our advanced technology ensures every word is captured accurately.
@@ -229,7 +251,6 @@ export default function Home() {
                                     ))}
                                 </HStack>
                             </VStack>
-
                             <VStack 
                                 spacing={5} 
                                 bg={cardBg}
@@ -244,11 +265,26 @@ export default function Home() {
                                     boxShadow: "0 20px 35px -5px rgba(192, 132, 252, 0.3)"
                                 }}
                             >
-                                <Circle size="60px" bg="rgba(192, 132, 252, 0.2)" display="flex" alignItems="center" justifyContent="center">
+                                <Circle 
+                                    size="60px" 
+                                    bg="rgba(192, 132, 252, 0.2)" 
+                                    display="flex" 
+                                    alignItems="center" 
+                                    justifyContent="center"
+                                >
                                     <Icon as={FaChartLine} color={tertiaryAccent} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={tertiaryAccent}>In-Depth Speech Analysis</Heading>
-                                <Text textAlign="center" color={textColor} lineHeight="1.8">
+                                <Heading 
+                                    size="lg" 
+                                    color={tertiaryAccent}
+                                >
+                                    In-Depth Speech Analysis
+                                </Heading>
+                                <Text 
+                                    textAlign="center" 
+                                    color={textColor} 
+                                    lineHeight="1.8"
+                                >
                                     Gain insights into your speaking patterns and areas for improvement with 
                                     detailed feedback on filler words and speaking habits.
                                 </Text>
@@ -263,7 +299,6 @@ export default function Home() {
                                     ))}
                                 </HStack>
                             </VStack>
-
                             <VStack 
                                 spacing={5} 
                                 bg={cardBg}
@@ -278,11 +313,25 @@ export default function Home() {
                                     boxShadow: "0 20px 35px -5px rgba(74, 222, 128, 0.3)"
                                 }}
                             >
-                                <Circle size="60px" bg="rgba(74, 222, 128, 0.2)" display="flex" alignItems="center" justifyContent="center">
+                                <Circle 
+                                    size="60px" 
+                                    bg="rgba(74, 222, 128, 0.2)" 
+                                    display="flex" 
+                                    alignItems="center" 
+                                    justifyContent="center"
+                                >
                                     <Icon as={FaComments} color={secondaryAccent} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={secondaryAccent}>Communication Enhancement</Heading>
-                                <Text textAlign="center" color={textColor} lineHeight="1.8">
+                                <Heading 
+                                    size="lg" 
+                                    color={secondaryAccent}
+                                >
+                                    Communication Enhancement
+                                </Heading>
+                                <Text 
+                                    textAlign="center" 
+                                    color={textColor} 
+                                    lineHeight="1.8">
                                     Use actionable feedback to refine your speaking abilities for public speaking, 
                                     interviews, presentations, or daily conversations.
                                 </Text>
@@ -322,14 +371,31 @@ export default function Home() {
                             
                             <Divider width="100px" borderColor={accentColor} opacity={0.6} />
                             
-                            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={10} width="100%">
+                            <SimpleGrid 
+                                columns={{ base: 1, md: 2 }} 
+                                spacing={10} 
+                                width="100%"
+                            >
                                 <HStack align="flex-start" spacing={4}>
-                                    <Circle size="36px" bg="rgba(56, 189, 248, 0.2)" flexShrink={0} mt={1}>
+                                    <Circle 
+                                        size="36px" 
+                                        bg="rgba(56, 189, 248, 0.2)" 
+                                        flexShrink={0} 
+                                        mt={1}
+                                    >
                                         <Icon as={FaCheck} color={accentColor} w={4} h={4} />
                                     </Circle>
                                     <VStack align="flex-start" spacing={2}>
-                                        <Heading size="md" color={highlightColor}>Filler Word Detection</Heading>
-                                        <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        <Heading 
+                                            size="md" 
+                                            color={highlightColor}>
+                                            Filler Word Detection
+                                        </Heading>
+                                        <Text 
+                                            fontSize="md" 
+                                            color={textColor} 
+                                            lineHeight="1.8"
+                                        >
                                             Identify and track filler words like "um," "uh," and "like" to 
                                             develop more polished and professional speaking habits.
                                         </Text>
@@ -337,12 +403,26 @@ export default function Home() {
                                 </HStack>
                                 
                                 <HStack align="flex-start" spacing={4}>
-                                    <Circle size="36px" bg="rgba(192, 132, 252, 0.2)" flexShrink={0} mt={1}>
+                                    <Circle 
+                                        size="36px" 
+                                        bg="rgba(192, 132, 252, 0.2)" 
+                                        flexShrink={0} 
+                                        mt={1}
+                                    >
                                         <Icon as={FaCheck} color={tertiaryAccent} w={4} h={4} />
                                     </Circle>
                                     <VStack align="flex-start" spacing={2}>
-                                        <Heading size="md" color={highlightColor}>Real-Time Feedback</Heading>
-                                        <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        <Heading 
+                                            size="md" 
+                                            color={highlightColor}
+                                        >
+                                            Real-Time Feedback
+                                        </Heading>
+                                        <Text 
+                                            fontSize="md" 
+                                            color={textColor} 
+                                            lineHeight="1.8"
+                                        >
                                             Get instant analysis of your speaking patterns, allowing you to 
                                             make improvements on the spot and track your progress over time.
                                         </Text>
@@ -350,12 +430,26 @@ export default function Home() {
                                 </HStack>
                                 
                                 <HStack align="flex-start" spacing={4}>
-                                    <Circle size="36px" bg="rgba(74, 222, 128, 0.2)" flexShrink={0} mt={1}>
+                                    <Circle 
+                                        size="36px" 
+                                        bg="rgba(74, 222, 128, 0.2)" 
+                                        flexShrink={0} 
+                                        mt={1}
+                                    >
                                         <Icon as={FaCheck} color={secondaryAccent} w={4} h={4} />
                                     </Circle>
                                     <VStack align="flex-start" spacing={2}>
-                                        <Heading size="md" color={highlightColor}>Privacy Protection</Heading>
-                                        <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        <Heading 
+                                            size="md" 
+                                            color={highlightColor}
+                                        >
+                                            Privacy Protection
+                                        </Heading>
+                                        <Text 
+                                            fontSize="md" 
+                                            color={textColor} 
+                                            lineHeight="1.8"
+                                        >
                                             Your voice data never leaves our secure servers. All processing happens
                                             locally to ensure your privacy and data security.
                                         </Text>
@@ -363,12 +457,26 @@ export default function Home() {
                                 </HStack>
                                 
                                 <HStack align="flex-start" spacing={4}>
-                                    <Circle size="36px" bg="rgba(56, 189, 248, 0.2)" flexShrink={0} mt={1}>
+                                    <Circle 
+                                        size="36px" 
+                                        bg="rgba(56, 189, 248, 0.2)" 
+                                        flexShrink={0} 
+                                        mt={1}
+                                    >
                                         <Icon as={FaCheck} color={accentColor} w={4} h={4} />
                                     </Circle>
                                     <VStack align="flex-start" spacing={2}>
-                                        <Heading size="md" color={highlightColor}>Easy to Use</Heading>
-                                        <Text fontSize="md" color={textColor} lineHeight="1.8">
+                                        <Heading 
+                                        size="md" 
+                                        color={highlightColor}
+                                        >
+                                            Easy to Use
+                                        </Heading>
+                                        <Text 
+                                            fontSize="md" 
+                                            color={textColor} 
+                                            lineHeight="1.8"
+                                        >
                                             Our intuitive interface makes it simple to record, analyze, and improve
                                             your speech without any technical expertise required.
                                         </Text>
@@ -401,7 +509,11 @@ export default function Home() {
                             zIndex="0"
                         />
                         
-                        <VStack spacing={6} position="relative" zIndex="1">
+                        <VStack 
+                            spacing={6} 
+                            position="relative" 
+                            zIndex="1"
+                        >
                             <Icon as={FaRocket} color={highlightColor} w={10} h={10} />
                             <Heading 
                                 size="xl" 
@@ -410,7 +522,11 @@ export default function Home() {
                             >
                                 Ready to Transform Your Speaking Skills?
                             </Heading>
-                            <Text fontSize={{base: "md", md: "lg"}} maxW="700px" mx="auto">
+                            <Text 
+                                fontSize={{base: "md", md: "lg"}} 
+                                maxW="700px" 
+                                mx="auto"
+                            >
                                 Join thousands of users who trust ProComm to improve their speaking confidence and effectiveness.
                                 Start your journey to better communication today!!
                             </Text>
@@ -443,11 +559,26 @@ export default function Home() {
                         borderRadius="10px"
                         boxShadow="0 -5px 20px -5px rgba(0, 0, 0, 0.1)"
                     >
-                        <HStack justifyContent="center" spacing={4} mb={4}>
-                            <Circle size="36px" bg={`rgba(56, 189, 248, 0.1)`} display="flex" alignItems="center" justifyContent="center">
+                        <HStack 
+                            justifyContent="center" 
+                            spacing={4} 
+                            mb={4}
+                        >
+                            <Circle 
+                                size="36px" 
+                                bg={`rgba(56, 189, 248, 0.1)`} 
+                                display="flex" 
+                                alignItems="center" 
+                                justifyContent="center"
+                            >
                                 <Icon as={FaMicrophone} color={accentColor} w={4} h={4} />
                             </Circle>
-                            <Text fontWeight="bold" color={textColor}>ProComm</Text>
+                            <Text 
+                                fontWeight="bold" 
+                                color={textColor}
+                            >
+                                ProComm
+                            </Text>
                         </HStack>
                         <Text fontSize="sm">
                             © 2025 ProComm. All rights reserved.
