@@ -1997,14 +1997,16 @@ export default function TryIt(props) {
                 flex="1" 
                 overflow="auto"
                 position="relative"
-                pb={10}
+                height="100%"
+                
             >
                 {activeTab === "main" ? (
-                <Container maxW="container.xl" pt={{ base: 16, md: 6 }} pb={10}>
+                <Container maxW="container.xl" pt={{ base: 16, md: 6 }} height="100%">
                     <VStack spacing={2} align="center">
                     <Box textAlign="center" mb={4}>                        
                         <Heading 
-                            size={headingSize} 
+                            size={headingSize}
+                            lineHeight="1.3" 
                             bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
                             bgClip="text"
                             fontWeight="extrabold"
@@ -2013,35 +2015,30 @@ export default function TryIt(props) {
                         >
                             Speech Analyzer
                         </Heading>
-                        <Text fontSize={{ base: "lg", md: "xl" }} color={textColor} maxW="800px">
+                        <Text 
+                            fontSize={{ base: "lg", md: "xl" }} 
+                            fontWeight="bold"
+                            color={textColor} 
+                            maxW="800px"
+                        >
                             Enhance your speaking skills with real-time analysis, simply record your voice
                             and get instant feedback on your speech patterns.
                         </Text>
                         <Text fontSize="md" color={`${textColor}80`} mt={2} maxW="800px" mx="1">
                             Speech rate is calculated using true recording time for accuracy.
                         </Text>
-                        {!isRecording && (
-                            <HStack justifyContent="center" mt={8} >
-                                <Badge 
-                                    colorScheme="blue" 
-                                    fontSize="sm" 
-                                    p={2} 
-                                    borderRadius="16"
-                                >
-                                    <Icon as={FaClock} mr={1} />
-                                    Recording Time: {durationValue} {durationUnit} ({durationUnit === 'minutes' ? durationValue * 60 : durationValue} seconds)
-                                </Badge>
-                            </HStack>
-                        )}
+                      
                     </Box>                    
                     <Box 
-                        p={8} 
+                        p={8}
                         borderRadius="20" 
                         // Card gradient background
                         bgGradient="linear-gradient(135deg, #1e293b 60%, #2563eb 100%)"
                         backdropFilter="blur(10px)"
-                        width="full"
-                        maxW="800px"
+                        height="100%"
+                        width="100%"
+                        maxW="1000px"
+                        minH="400px"
                         border="1px solid rgba(56, 189, 248, 0.15)"
                         boxShadow="0px 4px 20px rgba(0, 0, 0, 0.1)"
                         transition="all 0.3s ease"
@@ -2078,7 +2075,8 @@ export default function TryIt(props) {
                                                 <NumberIncrementStepper borderColor="rgba(255,255,255,0.1)" color={textColor} />
                                                 <NumberDecrementStepper borderColor="rgba(255,255,255,0.1)" color={textColor} />
                                             </NumberInputStepper>
-                                        </NumberInput>                                        <Select 
+                                        </NumberInput>                                        
+                                        <Select 
                                             value={durationUnit} 
                                             onChange={handleDurationUnitChange}
                                             w="120px"
@@ -2088,7 +2086,7 @@ export default function TryIt(props) {
                                             textColor={textColor}
                                         >
                                             <option value="seconds">Seconds</option>
-                                                                                       <option value="minutes">Minutes</option>
+                                            <option value="minutes">Minutes</option>
                                         </Select>
                                     </HStack>
                                     <Text fontSize="xs" color="#999" mt={1}>
@@ -2096,14 +2094,14 @@ export default function TryIt(props) {
                                     </Text>
                                 </FormControl>
                                 
-                                <HStack spacing={4}>                                    <Button
+                                <HStack spacing={4}>                                    
+                                    <Button
                                         size="lg"
                                         bg={isRecording ? "red.500" : accentColor}
                                         color="white"
                                         onClick={handleRecord}
-
                                         leftIcon={<FaMicrophone />}
-                                        w="200px"
+                                        minWidth="200px"
                                         h="60px"
                                         fontSize="lg"
                                         boxShadow="0 4px 10px rgba(0, 0, 0, 0.3)"
@@ -2112,36 +2110,14 @@ export default function TryIt(props) {
                                             boxShadow: '0 6px 15px rgba(56, 189, 248, 0.4)',
                                             bg: isRecording ? "red.600" : highlightColor
                                         }}
+                                        isDisabled={isAnalyzing}
                                     >
                                         {isRecording ? `Stop (${formatDuration(timer)})` : "Start Recording"}
                                     </Button>
+                                
                                     
-                                    {isRecording && enableVAD && (
-                                        <HStack 
-                                            mt={2} 
-                                            p={2} 
-                                            borderRadius="md" 
-                                            bg="rgba(0,0,0,0.2)"
-                                            justify="center"
-                                            spacing={2}
-                                            width="100%"
-                                        >
-                                            <Box 
-                                                width="10px" 
-                                                height="10px" 
-                                                borderRadius="full" 
-                                                bg={isVoiceDetected ? "green.400" : "red.400"} 
-                                                boxShadow={isVoiceDetected ? "0 0 8px #4ade80" : "none"}
-                                                transition="all 0.2s"
-                                            />
-                                            <Text fontSize="sm" color={textColor}>
-                                                {isVoiceDetected ? "Voice detected" : "Silence"}
-                                            </Text>
-                                        </HStack>
-                                    )}
                                     
-                                    {/* Hide Analyze Speech button while recording */}
-                                    {!isRecording && (
+                                    {/*  Analyze Speech button  */}
                                         <Button
                                             onClick={handleAnalyze}
                                             isDisabled={!transcription}
@@ -2150,6 +2126,10 @@ export default function TryIt(props) {
                                             color="white"
                                             size="lg"
                                             leftIcon={<FaChartLine />}
+                                            minWidth="200px"
+                                            h="60px"
+                                            fontSize="lg"
+                                            boxShadow="0 4px 10px rgba(0, 0, 0, 0.3)"
                                             _hover={{
                                                 transform: 'translateY(-2px)',
                                                 boxShadow: '0 6px 15px rgba(74, 222, 128, 0.4)',
@@ -2158,7 +2138,6 @@ export default function TryIt(props) {
                                         >
                                             Analyze Speech
                                         </Button>
-                                    )}
                                 </HStack>
                             </HStack>
 
@@ -2181,12 +2160,15 @@ export default function TryIt(props) {
                                         </Text>
                                     </HStack>
                                 </VStack>
-                            )}                            <Box 
+                            )}                            
+                            <Box 
                                 p={6} 
                                 bg="rgba(0,0,0,0.3)" 
+                                display="flex"
+                                flexDirection="column"
                                 borderRadius="lg" 
                                 width="100%"
-                                minHeight="150px"
+                                minHeight="200px"
                                 border="1px solid rgba(255,255,255,0.05)"
                                 position="relative"
                                 overflow="auto"
@@ -2202,9 +2184,11 @@ export default function TryIt(props) {
                                     },
                                 }}
                             >
-                                <Text lineHeight="1.8" color={textColor} mb={4}>
-                                    {transcription || "Your transcription will appear here..."}
-                                </Text>
+                                <Box flex="1">
+                                    <Text lineHeight="1.8" color={textColor} mb={4}>
+                                        {transcription || "Your transcription will appear here..."}
+                                    </Text>
+                                </Box>
                                 
                                 {currentAudioUrl && (
                                     <Box mt={4} pt={4} borderTop="1px solid rgba(255,255,255,0.1)">
@@ -2259,7 +2243,8 @@ export default function TryIt(props) {
                     </Box>
 
                     {analysis && (
-                        <>                            <SimpleGrid 
+                        <>                            
+                            <SimpleGrid 
                                 columns={{ base: 1, md: 2, lg:  3 }} 
                                 spacing={6} 
                                 width="100%"
