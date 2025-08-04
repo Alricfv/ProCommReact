@@ -1,35 +1,16 @@
-/* Global styles */
+/* Global styles and my custom scrollbar */
 html, body {
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
     background-color: #121212;
-    overflow-y: auto; /* Allow vertical scrolling */
+    overflow-y: auto; 
+    scrollbar-width: thin;
+    scrollbar-color: #38bdf8 #1e293b;
 }
 
-/* Transition animations */
-.fade-enter {
-    opacity: 0;
-    transform: scale(0.95);
-}
 
-.fade-enter-active {
-    opacity: 1;
-    transform: scale(1);
-    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
-}
-
-.fade-exit {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.fade-exit-active {
-    opacity: 0;
-    transform: scale(0.95);
-    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
-}
 
 /* Adjust layout for transcription and analysis */
 .transcription-box {

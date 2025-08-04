@@ -27,7 +27,7 @@ export default function Home() {
                 as="nav"
                 justifyContent="space-between"
                 borderRadius="20px"
-                top="20px"
+                top="10px"
                 left="0"
                 right="0"
                 alignItems="center"

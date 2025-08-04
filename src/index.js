@@ -17,14 +17,10 @@ const root = createRoot(container);
 function ProtectedRoutes() {
     const location = useLocation();
     return (
-        <TransitionGroup>
-            <CSSTransition key={location.key} classNames="fade" timeout={300}>
-                <Routes location={location}>
-                    <Route path="/about" element={<About />} />
-                    <Route path="/try-it" element={<TryIt />} />
-                </Routes>
-            </CSSTransition>
-        </TransitionGroup>
+            <Routes location={location}>
+                <Route path="/about" element={<About />} />
+                <Route path="/try-it" element={<TryIt />} />
+            </Routes>
     );
 }
 
@@ -32,18 +28,14 @@ function AnimatedRoutes() {
     const location = useLocation();
     return (
         <TransitionGroup>
-            <CSSTransition key={location.key} classNames="fade" timeout={300}>
                 <Routes location={location}>
                     <Route path="/" element={<Home />} />
                     <Route path="/login-page" element={<LoginPage />} />
                     <Route path="/*" element={<ProtectedRoutes />} />
                 </Routes>
-            </CSSTransition>
         </TransitionGroup>
     );
 }
-
-
 
 root.render(
     <React.StrictMode>
