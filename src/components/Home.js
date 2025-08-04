@@ -11,7 +11,7 @@ import { FaMicrophone, FaChartLine, FaComments, FaCheck, FaRocket} from 'react-i
 import {
     bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
     tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles
-} from './styleconsts.js';
+} from './Consts.js';
 
 export default function Home() {
     const headingSize = useBreakpointValue({ base: "xl", md: "3xl" });

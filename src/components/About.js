@@ -13,7 +13,7 @@ import {
 import {
     bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
     tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles
-} from './styleconsts.js';
+} from './Consts.js';
 
 import aboutImage from '../images/about.jpg';
 
