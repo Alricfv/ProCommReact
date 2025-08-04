@@ -1,12 +1,14 @@
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
 import { Box, Button, VStack, Text, Heading, Container, SimpleGrid, useToast, Progress, Badge, HStack, Icon, Stat, StatLabel, StatNumber, StatHelpText, 
     NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, FormControl, FormLabel, Select,
     Tooltip, useBreakpointValue, Flex, Drawer, DrawerBody, DrawerFooter, DrawerHeader, DrawerOverlay, DrawerContent, DrawerCloseButton,
-    Tabs, TabList, TabPanels, Tab, TabPanel, useDisclosure, IconButton, Divider, Alert, AlertIcon, Switch, Slider, SliderTrack,
-    SliderFilledTrack, SliderThumb } from '@chakra-ui/react';
-import { FaMicrophone, FaInfoCircle, FaChartLine, FaClock, FaQuestionCircle, FaBars, FaCog, FaUser, FaHome, FaSave, FaHistory, 
-    FaTrash, FaDownload, FaUpload, FaDatabase } from 'react-icons/fa';
+    useDisclosure, IconButton} from '@chakra-ui/react';
+
+import { FaMicrophone, FaInfoCircle, FaChartLine, FaClock, FaQuestionCircle, FaBars, FaCog, FaUser, FaHome,  FaHistory, 
+         FaDownload} from 'react-icons/fa';
+         
 import AboutTab from './TryIt/AboutTab';
 import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';

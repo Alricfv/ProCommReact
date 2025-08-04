@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, VStack, Heading, Flex, Text, HStack, Button, Icon, Badge, Progress, SimpleGrid, Stat, StatLabel, StatNumber } from "@chakra-ui/react";
 import { FaHistory, FaTrash, FaDownload, FaUpload, FaClock } from "react-icons/fa";
 

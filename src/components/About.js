@@ -10,45 +10,12 @@ import {
     FaLightbulb, FaCode, FaGlobe, FaTools, FaWaveSquare
 } from 'react-icons/fa';
 
+import {
+    bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
+    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles
+} from './styleconsts.js';
+
 import aboutImage from '../images/about.jpg';
-
-//Styles for aesthetics
-const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
-const accentColor = "#38bdf8"; 
-const textColor = "#e7e9ebff";
-const highlightColor = "#7dd3fc";
-const secondaryAccent = "#4ade80";
-const tertiaryAccent = "#c084fc"; 
-
-//Styles for UI components
-const cardBoxStyles= {
-    bg: "rgba(30, 41, 59, 0.8)",
-    borderRadius: "20px",
-    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(16px)",
-    transition: "all 0.3s ease-in-out"
-}
-
-const featureBoxStyles = {
-    textAlign: "center",
-    borderRadius: "16px",
-    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(16px)",
-    transition: "all 0.3s ease"
-}
-
-const teamCardStyles = {
-    spacing: 4,
-    p: 6,
-    borderRadius: "lg",
-    bg: "rgba(30, 41, 59, 0.6)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(16px)",
-    minW: "250px",
-    transition: "all 0.3s ease"
-}
 
 //data for talking about the roles of each group in our team
 const teamMembers =[

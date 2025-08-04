@@ -1,5 +1,4 @@
-import React from "react";
-import { Box, VStack, Heading, SimpleGrid, Stat, StatLabel, StatNumber, StatHelpText, Divider, Badge, Button, Icon, Text, Flex, HStack } from "@chakra-ui/react";
+import { Box, VStack, Heading, SimpleGrid, Stat, StatLabel, StatNumber, Divider, Badge, Button, Icon, Text } from "@chakra-ui/react";
 import { FaUser } from "react-icons/fa";
 import { useUser } from '../../context/UserContext';
 

@@ -1,5 +1,8 @@
-import React from "react";
-import { Box, VStack, Heading, SimpleGrid, FormControl, FormLabel, HStack, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Select, Switch, Text, Slider, SliderTrack, SliderFilledTrack, SliderThumb, Progress, Alert, AlertIcon, Button, Icon, Tooltip } from "@chakra-ui/react";
+import { Box, VStack, Heading, SimpleGrid, FormControl, FormLabel, HStack, NumberInput, NumberInputField,
+    NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Select, Switch, Text, Slider, 
+    SliderTrack, SliderFilledTrack, SliderThumb, Progress, Alert, AlertIcon, Button, Icon, Tooltip 
+  } from "@chakra-ui/react";
+
 import { FaClock, FaInfoCircle, FaChartLine, FaDatabase, FaTrash, FaDownload, FaUpload } from "react-icons/fa";
 
 const SettingsTab = ({

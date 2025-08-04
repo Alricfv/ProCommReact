@@ -1,4 +1,3 @@
-import React from "react";
 import { Box, VStack, Heading, Text, Divider, SimpleGrid, HStack } from "@chakra-ui/react";
 
 const AboutTab = ({ accentColor, tertiaryAccent, cardBg, textColor, highlightColor }) => (

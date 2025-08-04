@@ -8,21 +8,17 @@ import { Link } from 'react-router-dom';
 
 import { FaMicrophone, FaChartLine, FaComments, FaCheck, FaRocket} from 'react-icons/fa';
 
-// Color scheme that is the same as the about file
-const bgGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)";
-const cardBg = "rgba(30, 41, 59, 0.8)";
-const accentColor = "#38bdf8"; 
-const textColor = "#f8fafc";
-const highlightColor = "#7dd3fc";
-const secondaryAccent = "#4ade80"; 
-const tertiaryAccent = "#c084fc"; 
+import {
+    bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
+    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles
+} from './styleconsts.js';
 
 export default function Home() {
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
 
     return (
         <Box 
-            bgGradient={bgGradient} 
+            bgGradient={bgGradient}
             color={textColor} 
             fontFamily="'Inter', sans-serif" 
             minHeight="100vh">
@@ -30,14 +26,19 @@ export default function Home() {
             <Flex
                 as="nav"
                 justifyContent="space-between"
+                borderRadius="20px"
+                top="20px"
+                left="0"
+                right="0"
                 alignItems="center"
                 padding="20px 40px"
                 bg="rgba(15, 23, 42, 0.9)"
                 backdropFilter="blur(10px)"
                 boxShadow="0 4px 30px rgba(0, 0, 0, 0.2)"
                 position="fixed"
-                top="0"
+                maxWidth="1500px"
                 width="100%"
+                mx="auto"
                 zIndex="1000"
             >
                 <HStack spacing={3}>
@@ -95,7 +96,7 @@ export default function Home() {
             {/* Hero Section */}
             <Box 
                 as="main"
-                marginTop="80px"
+                marginTop="5px"
                 padding={{ base: "60px 20px", md: "80px 40px" }}
                 position="relative"
                 overflow="hidden"
@@ -115,8 +116,8 @@ export default function Home() {
                     position="absolute" 
                     bottom="0" 
                     right="0" 
-                    width="80%" 
-                    height="80%" 
+                    width="100%" 
+                    height="100%" 
                     opacity="0.2" 
                     bgGradient="radial-gradient(circle at 75% 75%, #c084fc 0%, transparent 60%)"
                     zIndex="1"
@@ -126,52 +127,49 @@ export default function Home() {
                     maxW="1200px" 
                     position="relative" 
                     zIndex="2"
+                    px={0}
                 >
-                    <Box textAlign="center" marginBottom="60px">
-                        <Badge 
-                            mb="4" 
-                            fontSize="sm" 
-                            p="2" 
-                            borderRadius="full"
-                            textTransform="uppercase"
-                            fontWeight="bold"
-                            letterSpacing="1px"
-                            bg={`rgba(56, 189, 248, 0.2)`}
-                            color={accentColor}
-                        >
-                            Transform Your Communication
-                        </Badge>
-                        
+                    <Heading 
+                        size={headingSize} 
+                        fontWeight="extrabold" 
+                        marginY="20px" 
+                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                        bgClip="text"
+                        letterSpacing="wide"
+                        textAlign="center"
+                        lineHeight="1.3"
+                    >
+                        Unlock Your Speaking Potential
+                    </Heading>
+                    <Box  marginBottom="60px" minHeight="450px">
                         <Image
                             src={require('../images/procommimg.png')}
                             alt="ProComm Logo"
+                            display="block"
+                            position="absolute"
                             marginY="40px"
-                            width={{base: "100%", md: "800px"}}
+                            marginLeft="50px"
+                            width={{base: "100%", md: "700px"}}
                             height="auto"
-                            style={{ display: 'block', margin: '0 auto' }}
+                            ml={0}
                             borderRadius="20px"
                             boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
                             border="1px solid rgba(255, 255, 255, 0.1)"
                             transition="all 0.3s ease-in-out"
                             _hover={{transform: "scale(1.02)", boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 15px 15px -5px rgba(0, 0, 0, 0.2)"}}
                         />
-                        <Heading 
-                            size={headingSize} 
-                            fontWeight="extrabold" 
-                            marginY="30px" 
-                            bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                            bgClip="text"
-                            letterSpacing="tight"
-                        >
-                            Unlock Your Speaking Potential
-                        </Heading>
+                        
                         <Text 
-                            fontSize={{ base: "lg", md: "xl" }} 
-                            marginBottom="40px" 
+                            fontSize="25px" 
+                            marginTop="100px" 
                             color={textColor}
-                            maxWidth="800px"
-                            margin="0 auto"
+                            position="absolute"
+                            marginLeft="775px"
                             lineHeight="1.8"
+                            fontWeight="bold"
+                            textAlign="center"
+                            maxW="500px"
+                            width="100%"
                         >
                             ProComm helps you transcribe speech, analyze your speaking patterns, 
                             and improve your communication skills with advanced speech analysis technology.
@@ -179,9 +177,11 @@ export default function Home() {
                         
                         <Link to="/try-it">
                             <Button
+                                textAlign="center"
                                 size="lg"
                                 fontWeight="bold"
-                                marginTop={5}
+                                marginTop="300px"
+                                marginLeft="925px"
                                 px={8}
                                 py={6}
                                 bg={secondaryAccent}
@@ -208,16 +208,10 @@ export default function Home() {
                         >
                             Why Use ProComm?
                         </Heading>
-
                         <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
                             <VStack 
                                 spacing={5} 
-                                bg={cardBg}
-                                padding="40px" 
-                                borderRadius="16px" 
-                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
-                                border="1px solid rgba(255, 255, 255, 0.1)"
-                                backdropFilter="blur(16px)"
+                                {...cardBoxStyles}
                                 transition="all 0.3s ease"
                                 _hover={{
                                     transform: "translateY(-10px)",
@@ -225,6 +219,7 @@ export default function Home() {
                                 }}
                             >
                                 <Circle 
+                                    marginTop="10px"
                                     size="60px" 
                                     bg="rgba(56, 189, 248, 0.2)" 
                                     display="flex" 
@@ -233,39 +228,38 @@ export default function Home() {
                                 >
                                     <Icon as={FaMicrophone} color={accentColor} w={7} h={7} />
                                 </Circle>
-                                <Heading size="lg" color={accentColor}>
+                                <Heading 
+                                    size="lg" 
+                                    color={accentColor} 
+                                    textAlign="center"
+                                    marginTop="-3"
+                                >
                                     Accurate Speech Transcription
                                 </Heading>
-                                <Text textAlign="center" color={textColor} lineHeight="1.8">
+                                <Text 
+                                    textAlign="center" 
+                                    color={textColor} 
+                                    lineHeight="1.8" 
+                                    maxW="300px"
+                                    fontWeight="bold" 
+                                    marginTop="-3"
+                                    paddingBottom="10px"
+                                >
                                     Convert your speech into text with precision and ease. 
                                     Our advanced technology ensures every word is captured accurately.
                                 </Text>
-                                <HStack pt={4}>
-                                    {[1, 2, 3].map((i) => (
-                                        <Circle 
-                                            key={i} 
-                                            size="8px" 
-                                            bg={accentColor} 
-                                            opacity={0.2 + (i * 0.2)}
-                                        />
-                                    ))}
-                                </HStack>
+                            
                             </VStack>
                             <VStack 
                                 spacing={5} 
-                                bg={cardBg}
-                                padding="40px" 
-                                borderRadius="16px" 
-                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
-                                border="1px solid rgba(255, 255, 255, 0.1)"
-                                backdropFilter="blur(16px)"
-                                transition="all 0.3s ease"
+                                {...cardBoxStyles}
                                 _hover={{
                                     transform: "translateY(-10px)",
                                     boxShadow: "0 20px 35px -5px rgba(192, 132, 252, 0.3)"
                                 }}
                             >
                                 <Circle 
+                                    marginTop="10px"
                                     size="60px" 
                                     bg="rgba(192, 132, 252, 0.2)" 
                                     display="flex" 
@@ -277,43 +271,33 @@ export default function Home() {
                                 <Heading 
                                     size="lg" 
                                     color={tertiaryAccent}
+                                    marginTop ="-3"
+                                    textAlign="center"
                                 >
-                                    In-Depth Speech Analysis
+                                    In-Depth <br></br> Speech Analysis
                                 </Heading>
                                 <Text 
                                     textAlign="center" 
                                     color={textColor} 
                                     lineHeight="1.8"
+                                    fontWeight="bold"
+                                    maxW="300px"
+                                    marginTop="-3"
                                 >
                                     Gain insights into your speaking patterns and areas for improvement with 
                                     detailed feedback on filler words and speaking habits.
                                 </Text>
-                                <HStack pt={4}>
-                                    {[1, 2, 3].map((i) => (
-                                        <Circle 
-                                            key={i} 
-                                            size="8px" 
-                                            bg={tertiaryAccent} 
-                                            opacity={0.2 + (i * 0.2)}
-                                        />
-                                    ))}
-                                </HStack>
                             </VStack>
                             <VStack 
                                 spacing={5} 
-                                bg={cardBg}
-                                padding="40px" 
-                                borderRadius="16px" 
-                                boxShadow="0 10px 25px -5px rgba(0, 0, 0, 0.2)"
-                                border="1px solid rgba(255, 255, 255, 0.1)"
-                                backdropFilter="blur(16px)"
-                                transition="all 0.3s ease"
+                                {...cardBoxStyles}
                                 _hover={{
                                     transform: "translateY(-10px)",
                                     boxShadow: "0 20px 35px -5px rgba(74, 222, 128, 0.3)"
                                 }}
                             >
                                 <Circle 
+                                    marginTop="10px"
                                     size="60px" 
                                     bg="rgba(74, 222, 128, 0.2)" 
                                     display="flex" 
@@ -325,26 +309,22 @@ export default function Home() {
                                 <Heading 
                                     size="lg" 
                                     color={secondaryAccent}
+                                    marginTop="-3"
+                                    textAlign="center"
                                 >
                                     Communication Enhancement
                                 </Heading>
                                 <Text 
                                     textAlign="center" 
                                     color={textColor} 
-                                    lineHeight="1.8">
+                                    lineHeight="1.8"
+                                    fontWeight="bold"
+                                    maxW="300px"
+                                    marginTop="-3"
+                                >
                                     Use actionable feedback to refine your speaking abilities for public speaking, 
                                     interviews, presentations, or daily conversations.
                                 </Text>
-                                <HStack pt={4}>
-                                    {[1, 2, 3].map((i) => (
-                                        <Circle 
-                                            key={i} 
-                                            size="8px" 
-                                            bg={secondaryAccent} 
-                                            opacity={0.2 + (i * 0.2)}
-                                        />
-                                    ))}
-                                </HStack>
                             </VStack>
                         </SimpleGrid>
                     </Box>
@@ -353,11 +333,7 @@ export default function Home() {
                     <Box 
                         padding="50px 30px" 
                         marginY="70px"
-                        bg={cardBg}
-                        borderRadius="20px"
-                        boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2)"
-                        border="1px solid rgba(255, 255, 255, 0.1)"
-                        backdropFilter="blur(16px)"
+                        {...cardBoxStyles}
                     >
                         <VStack spacing={8}>
                             <Heading 
@@ -368,7 +344,7 @@ export default function Home() {
                             >
                                 Key Benefits
                             </Heading>
-                            
+
                             <Divider width="100px" borderColor={accentColor} opacity={0.6} />
                             
                             <SimpleGrid 
@@ -401,7 +377,6 @@ export default function Home() {
                                         </Text>
                                     </VStack>
                                 </HStack>
-                                
                                 <HStack align="flex-start" spacing={4}>
                                     <Circle 
                                         size="36px" 
@@ -428,7 +403,6 @@ export default function Home() {
                                         </Text>
                                     </VStack>
                                 </HStack>
-                                
                                 <HStack align="flex-start" spacing={4}>
                                     <Circle 
                                         size="36px" 
@@ -454,8 +428,7 @@ export default function Home() {
                                             locally to ensure your privacy and data security.
                                         </Text>
                                     </VStack>
-                                </HStack>
-                                
+                                </HStack> 
                                 <HStack align="flex-start" spacing={4}>
                                     <Circle 
                                         size="36px" 
@@ -508,7 +481,6 @@ export default function Home() {
                             bgGradient="linear-gradient(135deg, #38bdf8 0%, #c084fc 100%)"
                             zIndex="0"
                         />
-                        
                         <VStack 
                             spacing={6} 
                             position="relative" 
@@ -516,19 +488,20 @@ export default function Home() {
                         >
                             <Icon as={FaRocket} color={highlightColor} w={10} h={10} />
                             <Heading 
-                                size="xl" 
+                                size="2xl" 
+                                fontWeight="extrabold"
                                 bgGradient={`linear-gradient(90deg, ${highlightColor}, #f0abfc)`}
                                 bgClip="text"
                             >
-                                Ready to Transform Your Speaking Skills?
+                                Transform Your Speaking Skills!
                             </Heading>
                             <Text 
-                                fontSize={{base: "md", md: "lg"}} 
+                                fontSize={{base: "25px", md: "25px"}} 
                                 maxW="700px" 
                                 mx="auto"
+                                fontWeight="bold"
                             >
-                                Join thousands of users who trust ProComm to improve their speaking confidence and effectiveness.
-                                Start your journey to better communication today!!
+                                Start your journey to better communication today!
                             </Text>
                             <Link to="/try-it">
                                 <Button
