@@ -21,13 +21,18 @@ export default function Home() {
             bgGradient={bgGradient}
             color={textColor} 
             fontFamily="'Inter', sans-serif" 
-            minHeight="100vh">
+            minHeight="100vh"
+            position="relative"
+            width="100%"
+            zIndex={0}
+            
+        >
             {/* Navigation Bar */}
             <Flex
                 as="nav"
                 justifyContent="space-between"
                 borderRadius="20px"
-                top="10px"
+                top="8px"
                 left="0"
                 right="0"
                 alignItems="center"
@@ -175,6 +180,7 @@ export default function Home() {
                             and improve your communication skills with advanced speech analysis technology.
                         </Text>
                         
+                        
                         <Link to="/try-it">
                             <Button
                                 textAlign="center"
@@ -197,7 +203,7 @@ export default function Home() {
                     </Box>
 
                     {/* Features Section */}
-                    <Box marginY="80px">
+                    <Box >
                         <Heading 
                             size={headingSize} 
                             textAlign="center" 
@@ -205,6 +211,7 @@ export default function Home() {
                             bgGradient={`linear-gradient(90deg, ${secondaryAccent}, ${accentColor})`}
                             bgClip="text"
                             fontWeight="extrabold"
+                            lineHeight="1.4"
                         >
                             Why Use ProComm?
                         </Heading>
