@@ -14,13 +14,12 @@ import {
 } from './styleconsts.js';
 
 export default function Home() {
-    const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
+    const headingSize = useBreakpointValue({ base: "xl", md: "3xl" });
 
     return (
         <Box 
             bgGradient={bgGradient}
             color={textColor} 
-            fontFamily="'Inter', sans-serif" 
             minHeight="100vh"
             position="relative"
             width="100%"
@@ -166,7 +165,7 @@ export default function Home() {
                         
                         <Text 
                             fontSize="25px" 
-                            marginTop="100px" 
+                            marginTop="70px" 
                             color={textColor}
                             position="absolute"
                             marginLeft="775px"
@@ -184,12 +183,12 @@ export default function Home() {
                         <Link to="/try-it">
                             <Button
                                 textAlign="center"
-                                size="lg"
+                                fontSize="25px"
                                 fontWeight="bold"
-                                marginTop="300px"
-                                marginLeft="925px"
-                                px={8}
-                                py={6}
+                                marginTop="270px"
+                                marginLeft="900px"
+                                px={10}
+                                py={8}
                                 bg={secondaryAccent}
                                 color="white"
                                 _hover={{ bg: '#22c55e', transform: "translateY(-2px)" }}
@@ -207,6 +206,7 @@ export default function Home() {
                         <Heading 
                             size={headingSize} 
                             textAlign="center" 
+                            marginTop="-20"
                             marginBottom="60px" 
                             bgGradient={`linear-gradient(90deg, ${secondaryAccent}, ${accentColor})`}
                             bgClip="text"
@@ -499,6 +499,7 @@ export default function Home() {
                                 fontWeight="extrabold"
                                 bgGradient={`linear-gradient(90deg, ${highlightColor}, #f0abfc)`}
                                 bgClip="text"
+                                lineHeight="1.4"
                             >
                                 Transform Your Speaking Skills!
                             </Heading>

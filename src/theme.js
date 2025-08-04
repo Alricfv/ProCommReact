@@ -4,8 +4,9 @@ const theme = extendTheme({
   styles: {
     global: {
       body: {
+        fontFamily: "'Geist', sans-serif",
         bg: '#121212',
-        color: '#f5f5f7',
+        color: '#f5f5f7'
       }
     }
   },
@@ -14,7 +15,7 @@ const theme = extendTheme({
       100: '#f5f5f7',
       200: '#333333',
       300: '#1d1d1f',
-      400: '#121212',
+      400: '#121212'
     },
   },
   components: {
