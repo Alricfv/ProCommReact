@@ -3,6 +3,7 @@ import edinburghImg from '../images/edinburgh.jpg';
 import { useUser } from '../context/UserContext';
 import { Box, Button, Input, Heading, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
 import api from '../utils/api';
+import {NavBar} from '../components/Consts.js';
 
 export default function LoginPage() {
 
@@ -79,15 +80,18 @@ export default function LoginPage() {
         backgroundPosition: 'center',
       }}
     >
+      <NavBar />
       <Box
+        
         width={{ base: '90vw', sm: '350px', md: '400px' }}
         ml={{ base: 2, sm: 8, md: 16 }}
-        mt={{ base: 8, sm: 16, md: 24 }}
+        mt={{ base: 24, sm: 32, md: 40 }}
         p={8}
         borderWidth={1}
         borderRadius={8}
         boxShadow="lg"
         bg="rgba(255,255,255,0.97)"
+        
       >
         <Heading mb={6} color="gray.800">
           {isLogin ? 'Login' : 'Sign Up'}
