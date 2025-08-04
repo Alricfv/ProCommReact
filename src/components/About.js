@@ -12,7 +12,7 @@ import {
 
 import {
     bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
-    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles
+    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar
 } from './Consts.js';
 
 import aboutImage from '../images/about.jpg';
@@ -48,61 +48,14 @@ const teamMembers =[
 function About() {
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
     return (
-        <Box bgGradient={bgGradient} color={textColor} fontFamily="'Inter', sans-serif" minHeight="100vh">
+        <Box 
+            bgGradient={bgGradient} 
+            color={textColor} 
+            minHeight="100vh" 
+            zIndex="0"
+        >
             {/* Nav Bar */}
-            <Flex
-                as="nav"
-                justifyContent="space-between"
-                alignItems="center"
-                padding="20px 40px"
-                bg="rgba(15, 23, 42, 0.9)"
-                backdropFilter="blur(10px)"
-                boxShadow="0 4px 30px rgba(0, 0, 0, 0.2)"
-                position="fixed"
-                top="0"
-                width="100%"
-                zIndex="1000"
-            >
-                <HStack spacing={3}>
-                    <Circle 
-                        size="40px" 
-                        bg={`rgba(56, 189, 248, 0.2)`} 
-                        display="flex" 
-                        alignItems="center" 
-                        justifyContent="center"
-                    >
-                        <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
-                    </Circle>
-                    <Heading 
-                        size="lg" 
-                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} 
-                        bgClip="text"
-                    >
-                        ProComm
-                    </Heading>
-                </HStack>
-                <HStack spacing="20px">
-                    <Link to="/">
-                        <Button 
-                            variant="ghost" 
-                            _hover={{ bg: 'rgba(56, 189, 248, 0.2)' }}
-                            color={textColor}
-                        >
-                            Home
-                        </Button>
-                    </Link>
-                    <Link to="/try-it">
-                        <Button 
-                            bg={accentColor}
-                            _hover={{ bg: '#0ea5e9' }}
-                            size="md"
-                            boxShadow="0 4px 12px rgba(56, 189, 248, 0.4)"
-                        >
-                            Try it Out!
-                        </Button>
-                    </Link>
-                </HStack>
-            </Flex>
+            <NavBar />
 
             {/* Hero Section */}
             <Box 

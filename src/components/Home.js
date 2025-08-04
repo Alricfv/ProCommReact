@@ -10,7 +10,7 @@ import { FaMicrophone, FaChartLine, FaComments, FaCheck, FaRocket} from 'react-i
 
 import {
     bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
-    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles
+    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar
 } from './Consts.js';
 
 export default function Home() {
@@ -27,75 +27,7 @@ export default function Home() {
             
         >
             {/* Navigation Bar */}
-            <Flex
-                as="nav"
-                justifyContent="space-between"
-                borderRadius="20px"
-                top="8px"
-                left="0"
-                right="0"
-                alignItems="center"
-                padding="20px 40px"
-                bg="rgba(15, 23, 42, 0.9)"
-                backdropFilter="blur(10px)"
-                boxShadow="0 4px 30px rgba(0, 0, 0, 0.2)"
-                position="fixed"
-                maxWidth="1500px"
-                width="100%"
-                mx="auto"
-                zIndex="1000"
-            >
-                <HStack spacing={3}>
-                    <Circle 
-                        size="40px" 
-                        bg={`rgba(56, 189, 248, 0.2)`} 
-                        display="flex" 
-                        alignItems="center" 
-                        justifyContent="center"
-                    >
-                        <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
-                    </Circle>
-                    <Heading 
-                        size="lg" 
-                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`} 
-                        bgClip="text"
-                    >
-                        ProComm
-                    </Heading>
-                </HStack>
-                <HStack spacing="20px">
-                    <Link to="/about">
-                        <Button 
-                            variant="ghost" 
-                            _hover={{ bg: 'rgba(56, 189, 248, 0.2)' }}
-                            color={textColor}
-                        >
-                            About
-                        </Button>
-                    </Link>
-                    <Link to="/try-it">
-                        <Button 
-                            bg={accentColor}
-                            _hover={{ bg: '#0ea5e9' }}
-                            size="md"
-                            boxShadow="0 4px 12px rgba(56, 189, 248, 0.4)"
-                        >
-                            Try it Out!
-                        </Button>
-                    </Link>
-                    <Link to="/login-page">
-                        <Button
-                            variant="outline"
-                            color={accentColor}
-                            borderColor={accentColor}
-                            _hover={{ bg: accentColor, color: "#fff" }}
-                            ml={2}
-                        >
-                            Login / Register
-                        </Button>
-                    </Link>
-                </HStack>
-            </Flex>
+            <NavBar />
 
             {/* Hero Section */}
             <Box 

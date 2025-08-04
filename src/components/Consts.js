@@ -41,7 +41,7 @@ export const teamCardStyles = {
     transition: "all 0.3s ease"
 }
 
-export default function NavBar(){
+export function NavBar(){
     return(
         <Flex
             as="nav"
@@ -74,11 +74,22 @@ export default function NavBar(){
                 <Heading
                     size="lg"
                     bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                    bgClip="text"
+                    fontWeight="extrabold"
                 >
                     ProComm
                 </Heading>
             </HStack>
             <HStack spacing="20px">
+                <Link to="/">
+                    <Button
+                        variant="ghost"
+                        _hover={{bg: 'rgba(56, 189, 248, 0.2'}}
+                        color={textColor}
+                    >
+                        Home
+                    </Button>
+                </Link>
                 <Link to="/about">
                     <Button
                         variant="ghost"
