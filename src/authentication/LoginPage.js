@@ -108,7 +108,7 @@ export default function LoginPage() {
       {/* Login/Signup Form */}
       <Box
         width={{ base: '90vw', sm: '350px', md: '400px' }}
-        ml={{ base: 2, sm: 8, md: 16 }}
+        ml={{ base: 2, sm: 8, md: 20 }}
         mt={{ base: 24, sm: 32, md: 40 }}
         p={8}
         borderWidth={1}
@@ -199,10 +199,10 @@ export default function LoginPage() {
         display={{base: "none", md: "flex"}}
         alignItems="center"
         justifyContent="center"
-        ml={15}
+        ml={20}
         height="100vh"
         p={8}
-        maxW="1000px"
+        maxW="850px"
         bg="none"
         boxShadow="none"
         flexDirection="column"
@@ -213,7 +213,7 @@ export default function LoginPage() {
           fontWeight="bold"
           textAlign="left"
           width="100%"
-          textShadow="2px 2px 6px rgba (0, 0, 0, 0.7)"
+          textShadow="2px 2px 6px rgba(0, 0, 0, 0.5)"
           marginLeft={20}
         >
           "{quoteText}"

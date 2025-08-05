@@ -8,7 +8,7 @@ html, body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-smooth: always;
+    text-rendering: optimizeLegibility;
 }
 
 html::-webkit-scrollbar, body::-webkit-scrollbar, #root::-webkit-scrollbar{
