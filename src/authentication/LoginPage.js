@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import edinburghImg from '../images/edinburgh.jpg';
 import { useUser } from '../context/UserContext';
-import { Box, Button, Input, Heading, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
+import { Box, Text, Button, Input, Heading, VStack, FormControl, FormLabel, Alert, AlertIcon } from '@chakra-ui/react';
 import api from '../utils/api';
 import {NavBar} from '../components/Consts.js';
+
+const speechQuotes= {
+  "~ Ralph Waldo Emerson": "Speech is power: speech is to persuade, to convert, to compel.",
+  "~ Mark Twain": "The right word may be effective, but no word was ever as effective as a right timed pause.",
+  "~ Oliver Wendell Holmes": "Speak clearly, if you speak at all; carve every word before you let it fall.",
+  "~ Rob Brown": "If you can speak, you can influence. If you can influence, you can change lives.",
+  "~ Even Esar": "Public speaking is the art of diluting a two-minute idea with a two-hour vocabulary.",
+  "~ Dale Carnegie": "Great speakers are not born, they are trained.",
+  "~ Maggie Kuhn": "Speak your mind, even if your voice shakes.",
+  "~ W.B Yeats": "Think like a wise man but communicate in the language of the people.",
+  "~ James Humes": "Every time you speak, you are auditioning for leadership.",
+  "~ Patrick Rothfuss": "Words can light fires in the minds of men. Words can wring tears from the hardest hearts.",
+  "~ Arthur Ashe": "One important key to success is self-confidence. An important key to self-confidence is preparation."
+}
 
 export default function LoginPage() {
 
@@ -18,26 +32,13 @@ export default function LoginPage() {
   const [quoteAuthor, setQuoteAuthor] = useState('');
   const [quoteText, setQuoteText] = useState('');
 
+  //Random quote selection
   useEffect(() => {
     const authors = Object.keys(speechQuotes);
     const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
     setQuoteAuthor(randomAuthor);
     setQuoteText(speechQuotes[randomAuthor]);
   }, []);
-
-  const speechQuotes= {
-    "~ Ralph Waldo Emerson": "Speech is power: speech is to persuade, to convert, to compel.",
-    "~ Mark Twain": "The right word may be effective, but no word was ever as effective as a right timed pause.",
-    "~ Oliver Wendell Holmes": "Speak clearly, if you speak at all; carve every word before you let it fall.",
-    "~ Rob Brown": "If you can speak, you can influence. If you can influence, you can change lives.",
-    "~ Even Esar": "Public speaking is the art of diluting a two-minute idea with a two-hour vocabulary.",
-    "~ Dale Carnegie": "Great speakers are not born, they are trained.",
-    "~ Maggie Kuhn": "Speak your mind, even if your voice shakes.",
-    "~ W.B Yeats": "Think like a wise man but communicate in the language of the people.",
-    "~ James Humes": "Every time you speak, you are auditioning for leadership.",
-    "~ Patrick Rothfuss": "Words can light fires in the minds of men. Words can wring tears from the hardest hearts.",
-    "~ Arthur Ashe": "One important key to success is self-confidence. An important key to self-confidence is preparation."
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -104,8 +105,8 @@ export default function LoginPage() {
       }}
     >
       <NavBar />
+      {/* Login/Signup Form */}
       <Box
-        
         width={{ base: '90vw', sm: '350px', md: '400px' }}
         ml={{ base: 2, sm: 8, md: 16 }}
         mt={{ base: 24, sm: 32, md: 40 }}
@@ -193,16 +194,41 @@ export default function LoginPage() {
           </VStack>
         </form>
       </Box>
+      {/* Randomly selected quotes */}
       <Box
-        display={{base: "none", md: "block"}}
-        ml={{ md : 8 }}
-        mt={{ md : 0 }}
+        display={{base: "none", md: "flex"}}
+        alignItems="center"
+        justifyContent="center"
+        ml={15}
+        height="100vh"
         p={8}
-        maxW="500px"
-        
+        maxW="1000px"
+        bg="none"
+        boxShadow="none"
+        flexDirection="column"
       >
-
-
+        <Text
+          fontSize="40px"
+          color="rgba(255, 255, 255, 1)"
+          fontWeight="bold"
+          textAlign="left"
+          width="100%"
+          textShadow="2px 2px 6px rgba (0, 0, 0, 0.7)"
+          marginLeft={20}
+        >
+          "{quoteText}"
+        </Text>
+        <Text
+          fontSize="30px"
+          color="rgba(255, 255, 255, 1)"
+          fontStyle="italic"
+          mt={2}
+          marginLeft={20}
+          textAlign="left"
+          width="100%"
+        >
+          {quoteAuthor}
+        </Text>
       </Box>
     </Box>
   );
