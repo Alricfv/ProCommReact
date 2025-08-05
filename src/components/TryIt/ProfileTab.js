@@ -12,7 +12,6 @@ const ProfileTab = ({
   highlightColor,
   setActiveTab
 }) => {
-  // Auth0 removed: user, isAuthenticated, logout
   const { username } = useUser();
   return (
     <Box 

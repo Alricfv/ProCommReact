@@ -15,6 +15,29 @@ export default function LoginPage() {
   const [success, setSuccess] = useState('');
   const [isLogin, setIsLogin] = useState(true); 
   const { setUsername: setUserContext } = useUser();
+  const [quoteAuthor, setQuoteAuthor] = useState('');
+  const [quoteText, setQuoteText] = useState('');
+
+  useEffect(() => {
+    const authors = Object.keys(speechQuotes);
+    const randomAuthor = authors[Math.floor(Math.random() * authors.length)];
+    setQuoteAuthor(randomAuthor);
+    setQuoteText(speechQuotes[randomAuthor]);
+  }, []);
+
+  const speechQuotes= {
+    "~ Ralph Waldo Emerson": "Speech is power: speech is to persuade, to convert, to compel.",
+    "~ Mark Twain": "The right word may be effective, but no word was ever as effective as a right timed pause.",
+    "~ Oliver Wendell Holmes": "Speak clearly, if you speak at all; carve every word before you let it fall.",
+    "~ Rob Brown": "If you can speak, you can influence. If you can influence, you can change lives.",
+    "~ Even Esar": "Public speaking is the art of diluting a two-minute idea with a two-hour vocabulary.",
+    "~ Dale Carnegie": "Great speakers are not born, they are trained.",
+    "~ Maggie Kuhn": "Speak your mind, even if your voice shakes.",
+    "~ W.B Yeats": "Think like a wise man but communicate in the language of the people.",
+    "~ James Humes": "Every time you speak, you are auditioning for leadership.",
+    "~ Patrick Rothfuss": "Words can light fires in the minds of men. Words can wring tears from the hardest hearts.",
+    "~ Arthur Ashe": "One important key to success is self-confidence. An important key to self-confidence is preparation."
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -169,6 +192,17 @@ export default function LoginPage() {
             </Button>
           </VStack>
         </form>
+      </Box>
+      <Box
+        display={{base: "none", md: "block"}}
+        ml={{ md : 8 }}
+        mt={{ md : 0 }}
+        p={8}
+        maxW="500px"
+        
+      >
+
+
       </Box>
     </Box>
   );
