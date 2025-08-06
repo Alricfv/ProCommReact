@@ -10,7 +10,7 @@ import { FaMicrophone, FaChartLine, FaComments, FaCheck, FaRocket} from 'react-i
 
 import {
     bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
-    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar
+    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar, MobileHamburgerMenu
 } from './Consts.js';
 
 export default function Home() {
@@ -26,8 +26,47 @@ export default function Home() {
             zIndex={0}
             
         >
-            {/* Navigation Bar */}
-            <NavBar />
+            {/* Navigation (navbar for PC, hamburger for mobile)*/}
+            <Box display ={{ base: "none", md: "block"}}>
+                <NavBar />
+            </Box> 
+            <Flex
+                display = {{ base: "block", md: "none"}}
+                alignItems="center"
+                justifyContent="space-between"
+                px={4}
+                py={3}
+                position="fixed"
+                top={0}
+                left={0}
+                right={0}
+                width="100%"
+                zIndex={1000}
+                bg="transparent"
+                backdropFilter="blur(10px)"
+            >
+                <HStack spacing ={2}>
+                    <Circle
+                        size="36px"
+                        bg={`rgba(56, 189, 248, 0.2)`}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
+                    </Circle>
+                    <Heading
+                        size="xl"
+                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                        bgClip="text"
+                        fontWeight="extrabold"
+                        
+                    >
+                        ProComm
+                    </Heading>
+                </HStack>
+                <MobileHamburgerMenu />
+            </Flex>
 
             {/* Hero Section */}
             <Box 
@@ -83,7 +122,7 @@ export default function Home() {
                             alt="ProComm Logo"
                             display="block"
                             position="absolute"
-                            marginY="40px"
+                            marginTop={{base: "0", md:"40px"}}
                             marginLeft="50px"
                             width={{base: "100%", md: "700px"}}
                             height="auto"
@@ -96,11 +135,11 @@ export default function Home() {
                         />
                         
                         <Text 
-                            fontSize="25px" 
-                            marginTop="70px" 
+                            fontSize={{base:"18px", md: "25px"}}
+                            marginTop={{base: "200px", md: "70px"}}
                             color={textColor}
                             position="absolute"
-                            marginLeft="775px"
+                            marginLeft={{base:"0", md:"775px"}}
                             lineHeight="1.8"
                             fontWeight="bold"
                             textAlign="center"
@@ -110,15 +149,13 @@ export default function Home() {
                             ProComm helps you transcribe speech, analyze your speaking patterns, 
                             and improve your communication skills with advanced speech analysis technology.
                         </Text>
-                        
-                        
                         <Link to="/try-it">
                             <Button
                                 textAlign="center"
                                 fontSize="25px"
                                 fontWeight="bold"
-                                marginTop="270px"
-                                marginLeft="900px"
+                                marginTop={{base: "350px", md: "270px"}}
+                                marginLeft={{base: "55px", md:"900px"}}
                                 px={10}
                                 py={8}
                                 bg={secondaryAccent}
@@ -138,8 +175,8 @@ export default function Home() {
                         <Heading 
                             size={headingSize} 
                             textAlign="center" 
-                            marginTop="-20"
-                            marginBottom="60px" 
+                            marginTop={{base:"-20", md:"-20"}}
+                            marginBottom={{base: "30px", md:"60px"}} 
                             bgGradient={`linear-gradient(90deg, ${secondaryAccent}, ${accentColor})`}
                             bgClip="text"
                             fontWeight="extrabold"

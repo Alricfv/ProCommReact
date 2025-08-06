@@ -6,6 +6,7 @@
     "homepage": "https://alricfv.github.io/ProCommReact",
     "dependencies": {
         "@auth0/auth0-react": "^2.3.0",
+        "@chakra-ui/icons": "^2.2.4",
         "@chakra-ui/react": "^2.0.0",
         "@ffmpeg-installer/ffmpeg": "^1.1.0",
         "@google-cloud/speech": "^7.0.1",

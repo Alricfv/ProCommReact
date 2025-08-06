@@ -12,7 +12,7 @@ import {
 
 import {
     bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
-    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar
+    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar, MobileHamburgerMenu
 } from './Consts.js';
 
 import aboutImage from '../images/about.jpg';
@@ -55,7 +55,45 @@ function About() {
             zIndex="0"
         >
             {/* Nav Bar */}
-            <NavBar />
+            <Box display ={{ base: "none", md: "block"}}>
+                <NavBar />
+            </Box> 
+            <Flex
+                display = {{ base: "block", md: "none"}}
+                alignItems="center"
+                justifyContent="space-between"
+                px={4}
+                py={3}
+                position="fixed"
+                top={0}
+                left={0}
+                right={0}
+                width="100%"
+                zIndex={1000}
+                bg="transparent"
+                backdropFilter="blur(10px)"
+            >
+                <HStack spacing ={2}>
+                    <Circle
+                        size="36px"
+                        bg={`rgba(56, 189, 248, 0.2)`}
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                    >
+                        <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
+                    </Circle>
+                    <Heading
+                        size="30px"
+                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
+                        bgClip="text"
+                        fontWeight="extrabold"   
+                    >
+                        ProComm
+                    </Heading>
+                </HStack>
+                <MobileHamburgerMenu />
+            </Flex>
 
             {/* Hero Section */}
             <Box 
@@ -103,7 +141,7 @@ function About() {
                     </Heading>
                     
                     <Text 
-                        fontSize={{ base: "50px", md: "xl" }} 
+                        fontSize={{ base: "20px", md: "xl" }} 
                         color={textColor} 
                         textAlign="center" 
                         maxWidth="900px" 
@@ -113,7 +151,7 @@ function About() {
                         fontWeight="bold"
                     >
                         ProComm is a cutting-edge platform designed to transform the way you communicate through 
-                        state-of-the-art speech analysis technology. Our mission is to provide seamless, 
+                        state-of-the-art speech analysis technology.<br></br><br></br> Our mission is to provide seamless, 
                         powerful tools that help you become a more effective and confident communicator.
                     </Text>
 
@@ -148,17 +186,19 @@ function About() {
                                 <Icon as={FaLightbulb} color={highlightColor} w={6} h={6} />
                             </Circle>
                             <Heading 
-                                size="xl" 
+                                size="3xl" 
                                 bgGradient={`linear-gradient(90deg, ${highlightColor}, ${accentColor})`} 
                                 bgClip="text" 
                                 marginBottom="20px"
+                                fontWeight="extrabold"
                             >
                                 Our Vision
                             </Heading>
                             <Text 
-                                fontSize="18px" 
+                                fontSize="20px" 
                                 color={textColor} 
                                 lineHeight="1.8"
+                                fontWeight="bold"
                             >
                                 At ProComm, we envision a world where anyone can communicate with clarity and confidence. 
                                 We're developing AI-powered tools that analyze speech patterns, detect filler words, 

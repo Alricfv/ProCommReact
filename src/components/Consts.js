@@ -1,7 +1,14 @@
 //a few imports to create some of the components here
-import {Flex, HStack, Circle, Icon, Heading, Button} from "@chakra-ui/react"
-import {Link} from 'react-router-dom';
+import {Flex, HStack, Circle, Icon, Heading, Button, IconButton, Drawer, 
+    DrawerOverlay, DrawerContent, DrawerCloseButton, DrawerHeader, DrawerBody,
+    useDisclosure, VStack, Link
+} from "@chakra-ui/react"
+
+import {Link as RouterLink} from 'react-router-dom';
+
 import {FaMicrophone} from 'react-icons/fa';
+
+import {HamburgerIcon} from '@chakra-ui/icons';
 
 //Styles for aesthetics
 export const bgGradient = "linear-gradient(135deg, #000000ff 25%, #4032aeff 50%, #16021eff 100%)";
@@ -81,7 +88,7 @@ export function NavBar(){
                 </Heading>
             </HStack>
             <HStack spacing="20px">
-                <Link to="/">
+                <Link as={RouterLink} to="/">
                     <Button
                         variant="ghost"
                         _hover={{bg: 'rgba(56, 189, 248, 0.2'}}
@@ -90,7 +97,7 @@ export function NavBar(){
                         Home
                     </Button>
                 </Link>
-                <Link to="/about">
+                <Link as={RouterLink} to="/about">
                     <Button
                         variant="ghost"
                         _hover={{bg: 'rgba(56, 189, 248, 0.2'}}
@@ -99,7 +106,7 @@ export function NavBar(){
                         About
                     </Button>
                 </Link>
-                <Link to="/try-it">
+                <Link as={RouterLink} to="/try-it">
                     <Button
                         bg={accentColor}
                         _hover={{bg: '#0ea5e9'}}
@@ -109,7 +116,7 @@ export function NavBar(){
                         Try it Out!
                     </Button>
                 </Link>
-                <Link to="/login-page">
+                <Link as={RouterLink} to="/login-page">
                     <Button
                         variant="outline"
                         color={accentColor}
@@ -122,5 +129,75 @@ export function NavBar(){
                 </Link>
             </HStack>
         </Flex>
+    )
+}
+
+export function MobileHamburgerMenu(){
+    const {isOpen, onOpen, onClose} = useDisclosure();
+
+    return(
+        <>
+            <IconButton
+                aria-label="Open Menu"
+                icon={<HamburgerIcon />}
+                display={{ base: "block", md: "none"}}
+                onClick={onOpen}
+                position="fixed"
+                top={4}
+                right={4}
+                zIndex={1000}
+                bg="white"
+                color="purple.700"
+                _hover={{ bg: "gray.100"}}
+            />
+            <Drawer
+                placement="right"
+                onClose={onClose}
+                isOpen={isOpen}
+            >
+                <DrawerOverlay />
+                <DrawerContent bgGradient={bgGradient}>
+                    <DrawerCloseButton />
+                    <DrawerHeader>
+                        Menu
+                    </DrawerHeader>
+                    <DrawerBody>
+                        <VStack align="start" spacing={4}>
+                            <Link
+                                as={RouterLink} 
+                                to="/" 
+                                onClick={onClose}
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                as={RouterLink}
+                                to="/about"
+                                onClick={onClose}
+                            >
+                                About
+                            </Link>
+                            <Link
+                                as={RouterLink}
+                                to="/try-it"
+                                onClick={onClose}
+                            >
+                                Try it Out!   
+                            </Link>
+                            <Link
+                                as={RouterLink}
+                                to="/login-page"
+                                onClick={onClose}
+                            >
+                                Login / Register
+                            </Link>
+                        </VStack>
+                    </DrawerBody>
+                </DrawerContent>
+
+            </Drawer>
+
+            
+        </>
     )
 }
