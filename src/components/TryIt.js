@@ -13,7 +13,7 @@ import AboutTab from './TryIt/AboutTab';
 import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
-import { useNavigate } from 'react-router-dom';
+import { data, useNavigate } from 'react-router-dom';
 
 // Utility: Create a URL for an audio blob
 function createAudioUrl(audioBlob) {
@@ -210,8 +210,6 @@ export default function TryIt(props) {
             }, silenceThreshold);
         }
     };
-    
-    // Detect voice activity from audio data
     const detectVoiceActivity = () => {
         if (!analyserRef.current || !enableVAD) return false;
         
@@ -219,42 +217,37 @@ export default function TryIt(props) {
         const dataArray = new Uint8Array(bufferLength);
         analyserRef.current.getByteFrequencyData(dataArray);
         
-        // Calculate average volume level
+        // Average volume level calculation
         let sum = 0;
         for (let i = 0; i < bufferLength; i++) {
             sum += dataArray[i];
         }
         const average = sum / bufferLength;
         
-        // Detect if the current volume is above threshold
         const voiceDetected = average > vadThreshold;
         const now = Date.now();
         
         // Track voice activity continuously (updated every detection cycle)
         if (voiceActivityTimeRef.current) {
             const elapsedTime = now - voiceActivityTimeRef.current;
-            
-            // Update our duration counters based on current state
-            // This ensures we capture all speech/silence even if the state hasn't changed
+
             if (isVoiceDetected) {
-                // We were speaking during this period
                 totalVoiceDurationRef.current += elapsedTime;
-            } else {
-                // We were silent during this period
+            } 
+            
+            else {
                 totalSilenceDurationRef.current += elapsedTime;
             }
             
-            // Reset the timer for the next cycle
             voiceActivityTimeRef.current = now;
         }
         
         // Track significant silences (>1.5 seconds)
         if (voiceDetected) {
             if (silenceStartTimeRef.current) {
-                // We were in silence and now we're speaking
                 const silenceDuration = now - silenceStartTimeRef.current;
                 
-                // Check if this silence was significant (>1.5s)
+                
                 if (silenceDuration > 1500) {
                     significantSilenceRef.current += 1;
                     setSignificantSilenceCount(significantSilenceRef.current);
@@ -292,17 +285,16 @@ export default function TryIt(props) {
         detectLoop();
     };
     
-    // Stop VAD detection
     const stopVoiceDetection = () => {
-        // Account for any final voice/silence period
         if (voiceActivityTimeRef.current) {
             const now = Date.now();
             const elapsedSinceLastUpdate = now - voiceActivityTimeRef.current;
-            
-            // Add the final segment of time to the appropriate counter
+
             if (isVoiceDetected) {
                 totalVoiceDurationRef.current += elapsedSinceLastUpdate;
-            } else {
+            } 
+            
+            else {
                 totalSilenceDurationRef.current += elapsedSinceLastUpdate;
             }
             
@@ -323,7 +315,6 @@ export default function TryIt(props) {
             silenceTimerRef.current = null;
         }
         
-        // Clean up audio context if needed
         if (audioContextRef.current) {
             try {
                 audioContextRef.current.close();
@@ -337,21 +328,17 @@ export default function TryIt(props) {
         setIsVoiceDetected(false);
     };
     
-    // Complete cleanup of VAD resources
     const cleanupVAD = () => {
-        // Stop the VAD animation frame loop
         if (vadAnimationRef.current) {
             cancelAnimationFrame(vadAnimationRef.current);
             vadAnimationRef.current = null;
         }
         
-        // Clear any silence timers
         if (silenceTimerRef.current) {
             clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = null;
         }
-        
-        // Close audio context
+
         if (audioContextRef.current) {
             try {
                 audioContextRef.current.close();
@@ -361,22 +348,19 @@ export default function TryIt(props) {
             audioContextRef.current = null;
         }
         
-        // Reset refs
         analyserRef.current = null;
         voiceActivityTimeRef.current = null;
         totalSilenceDurationRef.current = 0;
         totalVoiceDurationRef.current = 0;
         silenceStartTimeRef.current = null;
-        significantSilenceRef.current = 0; // Reset significant silence counter
-        setSignificantSilenceCount(0); // Reset the state variable as well
+        significantSilenceRef.current = 0; 
+        setSignificantSilenceCount(0); 
         
         // Reset state
         setIsVoiceDetected(false);
     };
     
-    // Get speech metrics that take into account actual voice activity
     const getVoiceActivityMetrics = () => {
-        // If no voice activity was tracked, return defaults to avoid null values
         if (!voiceActivityTimeRef.current) {
             return {
                 voiceDuration: 0,
@@ -388,28 +372,26 @@ export default function TryIt(props) {
             };
         }
         
-        // Calculate final durations, accounting for current state at the end of recording
         let finalVoiceDuration = totalVoiceDurationRef.current;
         let finalSilenceDuration = totalSilenceDurationRef.current;
         
-        // Account for the ongoing state (speaking or silent) at the end of the recording
+        // Contingency in case user will end the recording early
         const now = Date.now();
         const elapsedSinceLastUpdate = now - voiceActivityTimeRef.current;
         
         if (isVoiceDetected) {
-            // If we're still speaking at the end, add this duration to voice time
+            
             finalVoiceDuration += elapsedSinceLastUpdate;
-        } else {
-            // If we ended in silence, add this duration to silence time
+        } 
+        else{
             finalSilenceDuration += elapsedSinceLastUpdate;
         }
         
-        // Convert to seconds
+        
         const voiceDuration = finalVoiceDuration / 1000;
         const silenceDuration = finalSilenceDuration / 1000;
         const totalDuration = voiceDuration + silenceDuration;
         
-        // If no duration was detected, return defaults to avoid incorrect calculations
         if (totalDuration <= 0) {
             return {
                 voiceDuration: 0,
@@ -421,7 +403,6 @@ export default function TryIt(props) {
             };
         }
         
-        // Handle any ongoing significant silence at the end of recording
         let finalSilenceCount = significantSilenceRef.current;
         if (silenceStartTimeRef.current && (now - silenceStartTimeRef.current > 1500)) {
             finalSilenceCount += 1;
@@ -433,13 +414,12 @@ export default function TryIt(props) {
             totalDuration,
             voicePercentage: (voiceDuration / totalDuration) * 100,
             silencePercentage: (silenceDuration / totalDuration) * 100,
-            significantSilenceCount: finalSilenceCount, // Number of silences > 1.5s
+            significantSilenceCount: finalSilenceCount
         };
     };
     
-    // Check localStorage availability and load initial data
+    // localStorage Checks
     useEffect(() => {
-        // Check if localStorage is available
         const localStorageAvailable = storageUtils.isLocalStorageAvailable();
         setIsLocalStorageAvailable(localStorageAvailable);
         console.log("localStorage available:", localStorageAvailable);
@@ -462,11 +442,10 @@ export default function TryIt(props) {
         console.log("Loaded storage preference from localStorage:", savedPreference);
         
         if (savedPreference) {
-            // Make sure we update the state with the saved preference
             setStoragePreference(savedPreference);
             console.log("Applied storage preference:", savedPreference);
             
-            // Verify the state was updated correctly in next render cycle
+            // State Verification (in console)
             setTimeout(() => {
                 console.log("After initialization, storage preference state is:", storagePreference);
             }, 0);
@@ -479,8 +458,7 @@ export default function TryIt(props) {
             const loadedRecordings = storageUtils.loadRecordings();
             if (loadedRecordings.length > 0) {
                 setRecordingHistory(loadedRecordings);
-                
-                // Update storage statistics
+
                 updateStorageStats();
                 
                 toast({
@@ -494,7 +472,6 @@ export default function TryIt(props) {
         }
     }, [toast]);
     
-    // Function to update storage statistics
     const updateStorageStats = () => {
         if (storageUtils.isLocalStorageAvailable()) {
             const usage = storageUtils.getStorageUsage();
@@ -504,7 +481,7 @@ export default function TryIt(props) {
         }
     };
 
-    // Save recording history to localStorage whenever it changes
+    // Save recording history to localStorage whenever it is changed
     useEffect(() => {
         if (storagePreference === 'local' && recordingHistory.length > 0 && isLocalStorageAvailable) {
             const success = storageUtils.saveRecordings(recordingHistory);
@@ -518,11 +495,9 @@ export default function TryIt(props) {
                 });
                 return;
             }
-            
-            // Update storage statistics after saving
+
             updateStorageStats();
-            
-            // Show warning if approaching storage limits
+
             if (storagePercentage > 80) {
                 toast({
                     title: "Storage Nearly Full",
@@ -535,30 +510,25 @@ export default function TryIt(props) {
         }
     }, [recordingHistory, storagePreference, isLocalStorageAvailable, storagePercentage, toast]);
 
-    // Update timer when duration settings change
     useEffect(() => {
-        // Convert to seconds based on the unit
         const durationInSeconds = durationUnit === 'minutes' 
             ? durationValue * 60 
             : durationValue;
         
-        // Only update timer if not currently recording
         if (!isRecording) {
             setTimer(durationInSeconds);
         }
     }, [durationValue, durationUnit, isRecording]);
 
-    // Handle storage preference change
+    // Storage pref changes
     const handleStoragePreferenceChange = (e) => {
         const newPreference = e.target.value;
         console.log("Changing storage preference to:", newPreference);
         console.log("Previous storage preference was:", storagePreference);
         
-        // Verify that the React state is updated correctly
         setStoragePreference(newPreference);
         console.log("State should now be updated to:", newPreference);
         
-        // In the next render cycle, verify the state was updated
         setTimeout(() => {
             console.log("After state update, storage preference is now:", storagePreference);
         }, 0);
@@ -574,16 +544,13 @@ export default function TryIt(props) {
             return;
         }
         
-        // Save the preference to localStorage if available
         if (isLocalStorageAvailable) {
             console.log("Saving preference to localStorage:", newPreference);
             localStorage.setItem(STORAGE_PREFERENCE_KEY, newPreference);
             
-            // Verify localStorage was updated correctly
             const savedValue = localStorage.getItem(STORAGE_PREFERENCE_KEY);
             console.log("Verified localStorage value after save:", savedValue);
             
-            // If changing from local to none, clear local storage
             if (newPreference === 'none' && localStorage.getItem(RECORDING_HISTORY_KEY)) {
                 console.log("Clearing recordings from localStorage");
                 storageUtils.clearRecordings();
@@ -598,11 +565,9 @@ export default function TryIt(props) {
             isClosable: true,
         });
         
-        // Update storage stats
         updateStorageStats();
     };
 
-    // Handle clearing recording history
     const handleClearHistory = () => {
         setRecordingHistory([]);
         
@@ -620,7 +585,6 @@ export default function TryIt(props) {
         });
     };
     
-    // Handle exporting recordings
     const handleExportRecordings = () => {
         if (recordingHistory.length === 0) {
             toast({
@@ -654,7 +618,6 @@ export default function TryIt(props) {
         }
     };
     
-    // Handle importing recordings
     const handleImportRecordings = (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -663,23 +626,18 @@ export default function TryIt(props) {
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                
-                // Validate that the imported data is an array of recordings with required fields
                 if (!Array.isArray(importedData)) {
                     throw new Error('Invalid format: Expected an array of recordings');
                 }
                 
-                // Convert ISO date strings to Date objects
                 const processedData = importedData.map(record => ({
                     ...record,
                     timestamp: new Date(record.timestamp)
                 }));
                 
-                // Merge with existing recordings or replace them
-                const updatedRecordings = [...recordingHistory, ...processedData];
+                const updatedRecordings = [...recordingHistory, processedData];
                 setRecordingHistory(updatedRecordings);
-                
-                // Save to localStorage if preference is set
+        
                 if (storagePreference === 'local' && isLocalStorageAvailable) {
                     storageUtils.saveRecordings(updatedRecordings);
                     updateStorageStats();
@@ -693,7 +651,6 @@ export default function TryIt(props) {
                     isClosable: true,
                 });
                 
-                // Reset the file input
                 event.target.value = null;
                 
             } catch (error) {
@@ -723,12 +680,10 @@ export default function TryIt(props) {
 
     // Update timer when duration settings change
     useEffect(() => {
-        // Convert to seconds based on the unit
         const durationInSeconds = durationUnit === 'minutes' 
             ? durationValue * 60 
             : durationValue;
         
-        // Only update timer if not currently recording
         if (!isRecording) {
             setTimer(durationInSeconds);
         }
@@ -741,7 +696,6 @@ export default function TryIt(props) {
                 setTimer(prev => prev - 1);
             }, 1000);
         } else if (isRecording && timer === 0) {
-            // Stop recording when timer reaches zero
             if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
                 try {
                     mediaRecorderRef.current.stop();
@@ -778,23 +732,19 @@ export default function TryIt(props) {
         }
     }, [isRecording, timer, toast]);
 
-    // More accurate audio duration measurement using AudioContext
     const getAudioDurationWithAudioContext = async (audioBlob) => {
         return new Promise((resolve, reject) => {
             try {
-                // Create audio context
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const audioContext = new AudioContext();
                 
-                // Convert blob to ArrayBuffer
                 const fileReader = new FileReader();
                 
                 fileReader.onload = async (event) => {
                     try {
-                        // Decode the audio data
+                        // Audio Decoding
                         const audioBuffer = await audioContext.decodeAudioData(event.target.result);
                         
-                        // Get duration in seconds
                         const duration = audioBuffer.duration;
                         resolve(Math.round(duration));
                     } catch (error) {
@@ -808,7 +758,6 @@ export default function TryIt(props) {
                     reject(error);
                 };
                 
-                // Read the blob as ArrayBuffer
                 fileReader.readAsArrayBuffer(audioBlob);
                 
             } catch (error) {
@@ -818,7 +767,6 @@ export default function TryIt(props) {
         });
     };
 
-    // Function to get audio duration from blob
     const getAudioDurationFromBlob = async (audioBlob) => {
         return new Promise((resolve, reject) => {
             try {
@@ -826,9 +774,7 @@ export default function TryIt(props) {
                 const audio = new Audio(audioUrl);
                 
                 audio.addEventListener('loadedmetadata', () => {
-                    // Get duration in seconds
                     const duration = audio.duration;
-                    // Clean up
                     URL.revokeObjectURL(audioUrl);
                     resolve(Math.round(duration));
                 });
@@ -837,8 +783,7 @@ export default function TryIt(props) {
                     URL.revokeObjectURL(audioUrl);
                     reject(new Error('Error loading audio metadata'));
                 });
-                
-                // Load the audio to get metadata
+        
                 audio.load();
                 
             } catch (error) {
@@ -854,14 +799,11 @@ export default function TryIt(props) {
     };
 
     const handleDurationChange = (value) => {
-        // Parse the input value
         let numValue = parseInt(value) || 1;
-        
-        // Apply min/max constraints based on the unit
         if (durationUnit === 'minutes') {
-            numValue = Math.min(Math.max(numValue, 1), 30); // 1-30 minutes
+            numValue = Math.min(Math.max(numValue, 1), 30); 
         } else {
-            numValue = Math.min(Math.max(numValue, 5), 1800); // 5-1800 seconds
+            numValue = Math.min(Math.max(numValue, 5), 1800); 
         }
         
         setDurationValue(numValue);
@@ -871,15 +813,14 @@ export default function TryIt(props) {
         const newUnit = e.target.value;
         setDurationUnit(newUnit);
         
-        // Adjust the value if needed when changing units
         if (newUnit === 'minutes' && durationValue > 30) {
-            setDurationValue(30); // Max 30 minutes
+            setDurationValue(30); 
         } else if (newUnit === 'seconds' && durationValue < 5) {
-            setDurationValue(5); // Min 5 seconds
+            setDurationValue(5); 
         }
     };
 
-    // Implementation of the error function (erf) in case it's not available
+    // Implementation of the error function
     const erf = (x) => {
         // Constants
         const a1 =  0.254829592;
@@ -906,12 +847,10 @@ export default function TryIt(props) {
         const mean = 135;
         const stdDev = 20;
         
-        // Calculate z-score
         const zScore = (wpm - mean) / stdDev;
         
-        // Convert z-score to percentile using cumulative distribution function approximation
+        // Converting z-score to percentile using cumulative distribution function approximation
         // This is an approximation of the CDF of the standard normal distribution
-        // Use our own erf implementation instead of Math.erf which might not be available in all browsers
         const percentile = (0.5 * (1 + erf(zScore / Math.sqrt(2)))) * 100;
         
         return Math.round(percentile);
@@ -930,42 +869,34 @@ export default function TryIt(props) {
             baseFeedback = "Your speaking pace is very fast. Consider practicing at a slower pace to improve clarity and audience comprehension.";
         }
         
-        // Get percentile for additional context
         const percentile = calculateSpeechPercentile(wpm);
         
-        // Add percentile information to the feedback
         const percentileFeedback = ` Your speech rate is faster than approximately ${percentile}% of average speakers.`;
         
         return baseFeedback + percentileFeedback;
     };
 
     const calculateSpeechRate = (wordCount, durationInSeconds) => {
-        // Handle edge cases
+        // Ensuring enough seconds have passed for a valid speech rate calculation (at least in console)
         if (durationInSeconds <= 0) {
             console.warn("Invalid duration for speech rate calculation:", durationInSeconds);
-            return 0; // Avoid division by zero
+            return 0; 
         }
         
         if (wordCount <= 0) {
             console.warn("No words detected for speech rate calculation");
-            return 0; // No words detected
+            return 0; 
         }
-        
-        // Apply a minimum threshold for meaningful measurements
+
         if (durationInSeconds < 3) {
             console.warn("Recording too short for accurate speech rate calculation");
-            return 0; // Too short for meaningful measurement
+            return 0; 
         }
-        
-        // Convert duration to minutes for WPM calculation
+
         const durationInMinutes = durationInSeconds / 60;
         
-        // Calculate words per minute and round to nearest integer
         const wpm = Math.round(wordCount / durationInMinutes);
-        
-        // Log for debugging purposes
         console.log(`Speech rate calculation: ${wordCount} words / ${durationInSeconds}s = ${wpm} WPM`);
-        
         return wpm;
     };
     
@@ -976,134 +907,43 @@ export default function TryIt(props) {
         if (wpm > 150 && wpm <= 180) return { quality: "Fast", color: "blue" };
         return { quality: "Very Fast", color: "red" };
     };
-    
-    // Calculate a deterministic confidence score based on audio quality metrics
-    // This function will first use the server's confidence score if available,
-    // otherwise calculate a client-side confidence score
-    const calculateConfidenceScore = (text, recordingDuration, durationSource, wordCount, vocabularyRichness) => {
-        // First check if we have a server-generated confidence score
-        const serverConfidenceScore = sessionStorage.getItem('serverConfidenceScore');
-        if (serverConfidenceScore) {
-            // Clear it so it's only used once for the current analysis
-            sessionStorage.removeItem('serverConfidenceScore');
-            return parseInt(serverConfidenceScore);
-        }
-        
-        // If no server score is available, calculate client-side score
-        // Base score starts at 85 (minimum confidence)
-        let score = 85;
-          // 1. Add points based on recording duration source reliability
-        // Audio context decoded is most accurate, timer-based least accurate
-        switch(durationSource) {
-            case 'audio-decoded':
-                score += 5;
-                break;
-            case 'audio-metadata':
-                score += 4;
-                break;
-            case 'timestamp':
-                score += 2;
-                break;
-            case 'timer-based':
-                score += 0;
-                break;
-            default:
-                score += 0;
-                break;
-        }
-        
-        // 2. Add points based on recording duration (longer recordings are more reliable)
-        if (recordingDuration >= 30) {
-            score += 3;
-        } else if (recordingDuration >= 15) {
-            score += 2;
-        } else if (recordingDuration >= 5) {
-            score += 1;
-        }
-        
-        // 3. Add points based on word count (more words = more reliable analysis)
-        if (wordCount >= 100) {
-            score += 4;
-        } else if (wordCount >= 50) {
-            score += 3;
-        } else if (wordCount >= 20) {
-            score += 2;
-        } else if (wordCount >= 10) {
-            score += 1;
-        }
-        
-        // 4. Add points based on vocabulary richness (higher richness suggests better quality speech)
-        const richness = parseFloat(vocabularyRichness);
-        if (richness >= 70) {
-            score += 3;
-        } else if (richness >= 50) {
-            score += 2;
-        } else if (richness >= 30) {
-            score += 1;
-        }
-        
-        // Ensure score doesn't exceed 100
-        return Math.min(score, 100);
-    };
 
-    const analyzeSpeech = (text, recordingDuration, durationSource = 'timer-based') => {
+    const analyzeSpeech = (text, recordingDuration, durationSource = 'timer-based', serverConfidenceScore = null) => {
         const words = text.trim().split(/\s+/);
         const sentences = text.split(/[.!?]+/).filter(Boolean);
-        
-        // Use the improved speech rate calculation
         const wordsPerMinute = calculateSpeechRate(words.length, recordingDuration);
-        
-        // Get speech rate quality assessment
         const rateQuality = getSpeechRateQuality(wordsPerMinute);
-        
-        // Generate tailored feedback on speech rate
         const rateFeedback = generateSpeechRateFeedback(wordsPerMinute);
-        
-        // Calculate percentile compared to average speakers
-        const percentile = calculateSpeechPercentile(wordsPerMinute);        // Note: We use durationSource parameter directly, no need for a separate source variable
-        
+        const percentile = calculateSpeechPercentile(wordsPerMinute);       
         const avgWordLength = words.reduce((sum, word) => sum + word.length, 0) / words.length;
         const avgSentenceLength = words.length / sentences.length;
         const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
         const vocabularyRichness = ((uniqueWords / words.length) * 100).toFixed(1);
-        const adjustedRichness = Math.min(parseFloat(vocabularyRichness), 100); // Cap richness at 100%
-        
-        // Get voice activity metrics if available
+        const adjustedRichness = Math.min(parseFloat(vocabularyRichness), 100); 
         const vadMetrics = getVoiceActivityMetrics();
-        
-        // Calculate effective speech rate based on voice activity if available
         let effectiveWordsPerMinute = wordsPerMinute;
         if (vadMetrics && vadMetrics.voiceDuration > 0) {
-            // Recalculate words per minute using only active speech time
             effectiveWordsPerMinute = Math.round(words.length / (vadMetrics.voiceDuration / 60));
             console.log(`Adjusted speech rate: ${words.length} words / ${vadMetrics.voiceDuration}s = ${effectiveWordsPerMinute} WPM`);
         }
         
         return {
-            speech_rate: `${wordsPerMinute} WPM`, // Standard speech rate
-            rate_quality: rateQuality.quality, // Quality assessment (Slow, Ideal, Fast, Very Fast)
-            rate_color: rateQuality.color, // Color for the quality badge
-            rate_feedback: rateFeedback, // Add detailed speech rate feedback
-            rate_percentile: percentile, // Add percentile compared to average speakers
+            speech_rate: `${wordsPerMinute} WPM`, 
+            rate_quality: rateQuality.quality, 
+            rate_color: rateQuality.color, 
+            rate_feedback: rateFeedback, 
+            rate_percentile: percentile, 
             avg_word_length: `${avgWordLength.toFixed(1)} characters`,
             avg_sentence_length: `${avgSentenceLength.toFixed(1)} words`,
-            vocabulary_richness: `${adjustedRichness.toFixed(1)}%`, // Adjusted vocabulary richness
+            vocabulary_richness: `${adjustedRichness.toFixed(1)}%`, 
             total_words: words.length,
             unique_words: uniqueWords,
-            recording_duration: `${formatDuration(recordingDuration)}`, // Include the recording duration
-            duration_seconds: recordingDuration, // Raw seconds for calculations
-            duration_source: durationSource, // Add the source of duration measurement
-            // Voice activity detection metrics
+            recording_duration: `${formatDuration(recordingDuration)}`, 
+            duration_seconds: recordingDuration, 
+            duration_source: durationSource, 
             vad_metrics: vadMetrics,
-            effective_wpm: effectiveWordsPerMinute, // Speech rate adjusted for actual speaking time
-            // Calculate a deterministic confidence score based on multiple quality factors
-            confidence_score: calculateConfidenceScore(
-                text,                   // Transcribed text
-                recordingDuration,      // Duration in seconds
-                durationSource,         // Source of duration measurement (affects accuracy)
-                words.length,           // Word count (more words = more reliable analysis)
-                vocabularyRichness      // Vocabulary richness (indicator of speech quality)
-            )
+            effective_wpm: effectiveWordsPerMinute, 
+            confidence_score: serverConfidenceScore,
         };
     };
 
@@ -1119,10 +959,9 @@ export default function TryIt(props) {
             return;
         }
 
+        // Only stops it if it's actually recording and in valid state
         if (isRecording) {
-            // Only stop if it's actually recording and in valid state
-            if (mediaRecorderRef.current && 
-                mediaRecorderRef.current.state === 'recording') {
+            if (mediaRecorderRef.current.state === 'recording') {
                 try {
                     mediaRecorderRef.current.stop();
                 } catch (error) {
@@ -1150,7 +989,7 @@ export default function TryIt(props) {
             return;
         }
 
-        // Validate duration before starting
+        // Duration validation right before recording starts
         const durationInSeconds = durationUnit === 'minutes' 
             ? durationValue * 60 
             : durationValue;
@@ -1166,10 +1005,9 @@ export default function TryIt(props) {
             return;
         }
         
-        // Reset timer based on current duration settings
         setTimer(durationInSeconds);
         
-        // Reset duration tracking state
+        // Reset duration state
         setActualRecordingDuration(0);
         setDurationSource('timer-based');
 
@@ -1177,34 +1015,30 @@ export default function TryIt(props) {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             chunksRef.current = [];
             
-            // Set up Voice Activity Detection if enabled
             if (enableVAD) {
                 try {
-                    // Clean up any previous instances
                     stopVoiceDetection();
                     
-                    // Create audio context and analyzer
+                    // Audio context and analyser
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     audioContextRef.current = new AudioContext();
                     const source = audioContextRef.current.createMediaStreamSource(stream);
                     analyserRef.current = audioContextRef.current.createAnalyser();
                     
-                    // Configure analyzer
+                    // Analyser config (ngl, i hate that analyzer and analyser both exist)
                     analyserRef.current.fftSize = 256;
                     analyserRef.current.minDecibels = -90;
                     analyserRef.current.maxDecibels = -10;
                     analyserRef.current.smoothingTimeConstant = 0.85;
                     
-                    // Connect source to analyzer but not to destination (to avoid echo)
+                    // Connects source to analyzer but not to destination 
                     source.connect(analyserRef.current);
                     
-                    // Start VAD detection loop
                     startVoiceDetection();
                     
                     console.log("Voice Activity Detection enabled");
                 } catch (vadError) {
                     console.error("Failed to set up Voice Activity Detection:", vadError);
-                    // Continue with recording even if VAD setup fails
                 }
             }
             
@@ -1213,19 +1047,17 @@ export default function TryIt(props) {
                 console.warn(`${mimeType} is not supported, falling back to default`);
             }
 
-            // Configure MediaRecorder with timeslice to get data more frequently
+            // MediaRecorder with timeslice to get data more frequently
             mediaRecorderRef.current = new MediaRecorder(stream, { 
                 mimeType,
-                audioBitsPerSecond: 128000 // Set consistent audio quality
+                audioBitsPerSecond: 128000 
             });
 
-            // Set recording state BEFORE starting the MediaRecorder
             setIsRecording(true);
-            // Set timestamp right before recording starts
             setRecordingStartTime(Date.now());
 
-            // Request data every second for more accurate duration tracking
-            mediaRecorderRef.current.start(1000); // 1000ms = 1 second timeslice
+            // Data requests every second
+            mediaRecorderRef.current.start(1000); 
 
             mediaRecorderRef.current.ondataavailable = (e) => {
                 console.log("Data available at:", new Date().toISOString(), e.data);
@@ -1250,10 +1082,9 @@ export default function TryIt(props) {
                     return;
                 }
                 
-                // Store the audio blob for playback and download
+                // Store the audio blob 
                 setCurrentAudioBlob(audioBlob);
                 
-                // Create a URL for the audio blob for playback
                 const audioUrl = createAudioUrl(audioBlob);
                 setCurrentAudioUrl(audioUrl);
                 
@@ -1296,52 +1127,42 @@ export default function TryIt(props) {
                     }
                 }
                 
-                // Ensure we have a positive duration
                 recordingDuration = Math.max(1, recordingDuration);
                 
-                // Store the duration and source for later use
                 setActualRecordingDuration(recordingDuration);
                 setDurationSource(durationSource);
                 
-                // Store duration source in a custom property on the audioBlob for reference
                 audioBlob.durationSource = durationSource;
-
                 try {
                     setIsAnalyzing(true);
 
                     const formData = new FormData();
                     formData.append('audio', audioBlob, 'audio.webm');
-                    // Add recording duration to form data for server-side calculations if needed
+
                     formData.append('duration', recordingDuration.toString());
 
                     // Get API URLs from environment variables with fallback values
                     const PRIMARY_API_URL = process.env.REACT_APP_PRIMARY_API_URL ;
                     const FALLBACK_API_URL = process.env.REACT_APP_FALLBACK_API_URL || "http://localhost:5000";
                     
-                    console.log('Attempting transcription with primary API (VM):', PRIMARY_API_URL);
+                    console.log('Attempting transcription with primary API (VM)');
                     
-                    // Try primary (VM) API first
+                    // Try primary (VM) API first (implemented a 100 second timeout)
                     let response;
                     try {
-                        // Create a timeout for the VM request
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 100000); // 5 second timeout
+                        const timeoutId = setTimeout(() => controller.abort(), 100000); 
                         
-
-                        // Add storage preference as query parameter
                         const queryParams = new URLSearchParams();
                         
-                        // Double check the current storage preference state
                         console.log("Current storage preference before API call:", storagePreference);
                         console.log("localStorage preference value:", localStorage.getItem(STORAGE_PREFERENCE_KEY));
                         
-                        // Ensure we're using the correct value from state
                         queryParams.append('storage', storagePreference);
                         console.log("Sending API request with storage preference:", storagePreference);
                         
                         const apiUrl = `${PRIMARY_API_URL}/transcribe?${queryParams.toString()}`;
-                        console.log("API request URL with query parameters:", apiUrl);
-                        console.log("API request URL:", apiUrl);
+                        console.log("API request URL with VM query parameters");
                         
                         response = await fetch(apiUrl, {
                             method: 'POST',
@@ -1361,13 +1182,7 @@ export default function TryIt(props) {
                         console.log('Primary API request failed, trying fallback:', e.message);
                         console.log('Attempting fallback API:', FALLBACK_API_URL);
                         
-                        // Get Auth0 token if user is authenticated
-                        let headers = {
-                            'Accept': 'application/json',
-                        };
-                        
-                       
-                        
+
                         // Add storage preference as query parameter
                         const queryParams = new URLSearchParams();
                         queryParams.append('storage', storagePreference);
@@ -1379,7 +1194,6 @@ export default function TryIt(props) {
                         response = await fetch(apiUrl, {
                             method: 'POST',
                             body: formData,
-                            headers: headers
                         });
                     }
 
@@ -1394,7 +1208,6 @@ export default function TryIt(props) {
                     
                     console.log("API response received:", data);
                     
-                    // Log if the recording was saved on the server
                     if (data.saved) {
                         console.log("Recording saved on server with ID:", data.recording_id);
                         if (data.audio_id) {
@@ -1415,37 +1228,17 @@ export default function TryIt(props) {
                         });
                     }
 
-                    // Clean up transcription text if it still contains JSON
                     let cleanedTranscription = data.transcription;
                     
-                    // Check if the transcription appears to contain JSON
-                    if (cleanedTranscription.includes('{"text"') || cleanedTranscription.includes('{ "text"')) {
-                        try {
-                            // Extract text from JSON objects
-                            const textParts = [];
-                            const jsonParts = cleanedTranscription.split(/(?=\{)/g);
-                            
-                            jsonParts.forEach(part => {
-                                try {
-                                    // Try parsing as JSON
-                                    const jsonObj = JSON.parse(part.trim());
-                                    if (jsonObj.text !== undefined) {
-                                        textParts.push(jsonObj.text);
-                                    }
-                                } catch (e) {
-                                    // If not valid JSON, try regex extraction
-                                    const match = /"text"\s*:\s*"([^"]*)"/g.exec(part);
-                                    if (match && match[1]) {
-                                        textParts.push(match[1]);
-                                    }
-                                }
-                            });
-                            
-                            if (textParts.length > 0) {
-                                cleanedTranscription = textParts.join(' ').trim();
+                    //JSON cleaning logic
+                    if (cleanedTranscription.includes('"text"')){
+                        try{
+                            const matches = [...cleanedTranscription.matchAll(/"text"\s*:\s*"([^"]*)"/g)];
+                            if (matches.length > 0){
+                                cleanedTranscription = matches.map(m => m[1]).join(' ').trim();
                             }
                         } catch (e) {
-                            console.warn("Failed to clean up JSON in transcription:", e);
+                            console.warn("Failed to clean JSON in transcription:", e);
                         }
                     }
                     
@@ -1485,8 +1278,6 @@ export default function TryIt(props) {
                     setIsAnalyzing(false);
                 }
             };
-
-            // No need to start here as it's already started with timeslice earlier
             setIsRecording(true);
         } catch (error) {
             console.error("Microphone access error:", error);
@@ -1512,17 +1303,14 @@ export default function TryIt(props) {
             return;
         }
 
-        // Clean up any lingering VAD data from previous analyses
         cleanupVAD();
         
         setIsAnalyzing(true);
         try {
-            // Use the actual recorded duration instead of timer-based calculation
             let recordingDuration;
             let sourceMeasurement = "timer-based";
             
             if (actualRecordingDuration > 0) {
-                // Use the measured duration from audio decoding or timestamps
                 recordingDuration = actualRecordingDuration;
                 sourceMeasurement = durationSource;
             } else {
@@ -1532,10 +1320,15 @@ export default function TryIt(props) {
                 sourceMeasurement = "timer-based";
             }
             
-            const results = analyzeSpeech(transcription, recordingDuration, sourceMeasurement);
+            const results = analyzeSpeech(
+                transcription, 
+                recordingDuration, 
+                sourceMeasurement,
+                data.confidence_score
+            );
+
             setAnalysis(results);
             
-            // Create new recording e
             const newRecording = { 
                 transcription, 
                 analysis: results, 
@@ -1601,16 +1394,12 @@ export default function TryIt(props) {
     const tertiaryAccent = "#c084fc"; // Purple accent color
     
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
-
-
-    // Active tab state for the permanent side menu
     const [activeTab, setActiveTab] = useState("main");
     
     const handleSidebarHomeClick = () => {
         navigate('/');
     };
-    
-    // Fetch recordings from the backend API using access token
+
     const fetchBackendRecordings = useCallback(async () => {
         try {
             if (storagePreference !== 'local') {
