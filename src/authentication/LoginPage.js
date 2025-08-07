@@ -188,7 +188,17 @@ export default function LoginPage() {
             <Button type="submit" colorScheme="blue" isLoading={loading} width="full">
               {isLogin ? 'Login' : 'Sign Up'}
             </Button>
-            <Button variant="link" onClick={() => setIsLogin(!isLogin)}>
+            <Button 
+            variant="link" 
+            onClick={() => {
+              setIsLogin(!isLogin)
+              setError('');
+              setSuccess('');
+              setEmail('');
+              setUsername('');
+              setPassword('');
+              }}
+            >
               {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Login'}
             </Button>
           </VStack>

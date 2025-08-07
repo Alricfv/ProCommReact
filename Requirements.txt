@@ -32,3 +32,4 @@ cryptography==41.0.3  # Required by python-jose for token verification
 
 # Configuration - New addition for environment management
 python-dotenv==1.0.0  # Environment variable management
+webrtcvad

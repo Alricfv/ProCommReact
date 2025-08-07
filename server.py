@@ -361,6 +361,17 @@ def transcribe_with_whisper(audio_data):
             append_punctuations=",.?!:;\"'""''…—–()",
             suppress_blank=False  # Don't suppress blank outputs which might contain fillers
         )
+
+        # Avg log probability (using as confidence score)
+        avg_logprob = result.get('avg_logprob', None)
+        # Whisper logprobs are -ve, the closer it is to 0, the better
+        #-1.0 = 60, 0 = 100
+        if avg_logprob is None and result['segments']:
+            avg_logprob = sum(seg.get('avg_logprob', 0) for seg in result['segments']) / len(result['segments'])
+        if avg_logprob is None:
+            avg_logprob = -1.0
+        confidence_score = max(60, min(100, 100 + avg_logprob * 40))
+
         transcription_time = time.time() - start_time
         logging.info(f"Whisper transcription completed in {transcription_time:.2f} seconds")
         
@@ -370,7 +381,7 @@ def transcribe_with_whisper(audio_data):
         except Exception as e:
             logging.warning(f"Failed to delete temporary file {temp_path}: {e}")
         
-        return result
+        return result, confidence_score
     except Exception as e:
         logging.error(f"Error in Whisper transcription: {e}")
         raise
@@ -396,15 +407,12 @@ def transcribe():
         )
         wav_data, _ = process.communicate(input=webm_data)
 
-        # Calculate confidence score from audio
-        confidence_score = calculate_confidence_from_audio(wav_data)
-
         # Detect speech pauses
         pause_analysis = detect_speech_pauses(wav_data)
         logging.info(f"Pause analysis: {pause_analysis['total_pauses']} total pauses")
 
         # Transcribe with Whisper
-        whisper_result = transcribe_with_whisper(wav_data)
+        whisper_result, confidence_score = transcribe_with_whisper(wav_data)
         transcription = whisper_result['text']
         logging.info(f"Whisper transcription: {transcription}")
 

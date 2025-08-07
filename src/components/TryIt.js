@@ -170,6 +170,8 @@ export default function TryIt(props) {
     const totalVoiceDurationRef = useRef(0); 
     const silenceStartTimeRef = useRef(null); 
     const significantSilenceRef = useRef(0); 
+    const [serverConfidenceScore, setServerConfidenceScore] = useState(null);
+    const getDurationInSeconds = () => durationUnit === 'minutes' ? durationValue * 60 : durationValue;
 
     // Cleanup effect for MediaRecorder and VAD when component unmounts
     useEffect(() => {
@@ -511,9 +513,7 @@ export default function TryIt(props) {
     }, [recordingHistory, storagePreference, isLocalStorageAvailable, storagePercentage, toast]);
 
     useEffect(() => {
-        const durationInSeconds = durationUnit === 'minutes' 
-            ? durationValue * 60 
-            : durationValue;
+        const durationInSeconds = getDurationInSeconds();
         
         if (!isRecording) {
             setTimer(durationInSeconds);
@@ -635,7 +635,7 @@ export default function TryIt(props) {
                     timestamp: new Date(record.timestamp)
                 }));
                 
-                const updatedRecordings = [...recordingHistory, processedData];
+                const updatedRecordings = [...recordingHistory, ...processedData];
                 setRecordingHistory(updatedRecordings);
         
                 if (storagePreference === 'local' && isLocalStorageAvailable) {
@@ -680,9 +680,7 @@ export default function TryIt(props) {
 
     // Update timer when duration settings change
     useEffect(() => {
-        const durationInSeconds = durationUnit === 'minutes' 
-            ? durationValue * 60 
-            : durationValue;
+        const durationInSeconds = getDurationInSeconds();
         
         if (!isRecording) {
             setTimer(durationInSeconds);
@@ -990,9 +988,7 @@ export default function TryIt(props) {
         }
 
         // Duration validation right before recording starts
-        const durationInSeconds = durationUnit === 'minutes' 
-            ? durationValue * 60 
-            : durationValue;
+        const durationInSeconds = getDurationInSeconds();
             
         if (durationInSeconds < 5) {
             toast({
@@ -1069,6 +1065,7 @@ export default function TryIt(props) {
             };
 
             mediaRecorderRef.current.onstop = async () => {
+
                 const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
                 
                 if (audioBlob.size === 0) {
@@ -1099,7 +1096,6 @@ export default function TryIt(props) {
                 try {
                     // First try to get duration using AudioContext (most accurate)
                     recordingDuration = await getAudioDurationWithAudioContext(audioBlob);
-                    console.log("AudioContext duration:", recordingDuration);
                     durationSource = "audio-decoded";
                 } catch (error) {
                     console.warn("Couldn't get AudioContext duration:", error);
@@ -1151,7 +1147,7 @@ export default function TryIt(props) {
                     let response;
                     try {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 100000); 
+                        const timeoutId = setTimeout(() => controller.abort(), 10); 
                         
                         const queryParams = new URLSearchParams();
                         
@@ -1218,15 +1214,7 @@ export default function TryIt(props) {
                     }
 
                     // Handle pause analysis data
-                    if (data.pauses || data.speech_pauses) {
-                        setPauseAnalysis({
-                            total: data.speech_pauses?.total || 0,
-                            speakingTime: data.speech_pauses?.speaking_time || 0,
-                            silenceTime: data.speech_pauses?.silence_time || 0,
-                            totalDuration: data.speech_pauses?.total_duration || 0,
-                            pauses: data.pauses?.total_pauses|| [],
-                        });
-                    }
+                    
 
                     let cleanedTranscription = data.transcription;
                     
@@ -1243,19 +1231,34 @@ export default function TryIt(props) {
                     }
                     
                     setTranscription(cleanedTranscription);
+                    setServerConfidenceScore(data.confidence_score);
+
+                    const results = analyzeSpeech(
+                        cleanedTranscription,
+                        recordingDuration,
+                        durationSource,
+                        data.confidence_score
+                    );
+
+                    setAnalysis(results);
+
                     setSentiment(data.sentiment);
                     setSentimentScore(data.sentiment_score);
                     setEmotion(data.emotion);
                     setEmotionScore(data.emotion_score);
                     
-                    // Store filler word analysis if available
                     if (data.filler_words) {
                         setFillerWords(data.filler_words);
                     }
-                    
-                    // Store the server's confidence score for consistent results
-                    if (data.confidence_score) {
-                        sessionStorage.setItem('serverConfidenceScore', data.confidence_score.toString());
+
+                    if (data.speech_pauses) {
+                        setPauseAnalysis({
+                            total: data.speech_pauses?.total || 0,
+                            speakingTime: data.speech_pauses?.speaking_time || 0,
+                            silenceTime: data.speech_pauses?.silence_time || 0,
+                            totalDuration: data.speech_pauses?.total_duration || 0,
+                            pauses: data.pauses?.total_pauses|| [],
+                        });
                     }
 
                     toast({
@@ -1387,12 +1390,11 @@ export default function TryIt(props) {
 
     const bgGradient = "linear-gradient(120deg, #0a1120 0%,rgb(92, 67, 189) 40%, #2563eb 75%, #7c3aed 100%)";
     const cardBg = "rgba(30, 41, 59, 0.8)";
-    const accentColor = "#38bdf8"; // Vibrant blue
+    const accentColor = "#38bdf8"; 
     const textColor = "#f8fafc";
     const highlightColor = "#7dd3fc";
-    const secondaryAccent = "#4ade80"; // Green accent color
-    const tertiaryAccent = "#c084fc"; // Purple accent color
-    
+    const secondaryAccent = "#4ade80"; 
+    const tertiaryAccent = "#c084fc"; 
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
     const [activeTab, setActiveTab] = useState("main");
     
@@ -1975,7 +1977,6 @@ export default function TryIt(props) {
                                     height="40px"
                                     opacity="0.2"
                                     bgGradient={`radial-gradient(circle, ${accentColor} 0%, transparent 70%)`}
-
                                     zIndex="0"
                                 />
                             </Box>
