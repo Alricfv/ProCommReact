@@ -35,30 +35,14 @@ function downloadAudioAsMp3(blob, filename = 'recording.mp3') {
     URL.revokeObjectURL(url);
 }
 
-/**
- * STORAGE BEHAVIOR IMPLEMENTATION:
- * 
- * The application supports three storage modes:
- * 1. 'local': Stores recordings in browser localStorage only, no API calls are made
- * 2. 'none': No persistence, recordings are lost on refresh
- * 3. 'session': Stores in MongoDB (through API) if authenticated, lost on browser close otherwise
- * 
- * Authentication and API Storage Logic:
- * - When authenticated with Auth0 and NOT using local storage, recordings are saved to MongoDB
- * - Auth0 tokens are fetched directly using getAccessTokenSilently() to ensure freshness
- * - The /transcribe endpoint handles 'storage' query parameter to respect user preference
- * - MongoDB and local storage can be used together if needed for redundancy
- */
-
 // Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
 const RECORDING_HISTORY_KEY = 'procomm-recording-history';
-const MAX_STORAGE_ITEMS = 200; // Maximum number of recordings to store
-const ESTIMATED_MAX_STORAGE_MB = 5; // Estimated maximum storage in MB
+const MAX_STORAGE_ITEMS = 200; 
+const ESTIMATED_MAX_STORAGE_MB = 5; 
 
 // Storage utility functions
 const storageUtils = {
-    // Check if localStorage is available
     isLocalStorageAvailable: () => {
         try {
             const testKey = '__test__';
@@ -70,47 +54,39 @@ const storageUtils = {
         }
     },
 
-    
-    // Get approximate storage usage in KB
     getStorageUsage: () => {
         try {
             let total = 0;
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 const value = localStorage.getItem(key) || '';
-                total += (key.length + value.length) * 2; // UTF-16 uses 2 bytes per character
+                total += (key.length + value.length) * 2; 
             }
-            return Math.round(total / 1024); // Convert to KB
+            return Math.round(total / 1024); 
         } catch (e) {
             console.error('Error calculating storage usage:', e);
             return 0;
         }
     },
     
-    // Get storage usage percentage
     getStoragePercentage: () => {
-        // Most browsers limit localStorage to 5-10MB
-        // We'll estimate based on 5MB to be conservative
-        const maxStorage = ESTIMATED_MAX_STORAGE_MB * 1024; // Convert MB to KB
+        const maxStorage = ESTIMATED_MAX_STORAGE_MB * 1024; 
         const currentUsage = storageUtils.getStorageUsage();
         return Math.min(Math.round((currentUsage / maxStorage) * 100), 100);
     },
     
-    // Save recordings with limit enforcement
+  
     saveRecordings: (recordings) => {
         try {
             // Ensure we don't exceed the maximum number of items
             const limitedRecordings = recordings.slice(-MAX_STORAGE_ITEMS);
 
-            // Process recordings for storage - we can't store Blob objects in localStorage
+            // Process recordings 
             const processedRecordings = limitedRecordings.map(recording => {
                 const { audioBlob, audioUrl, ...rest } = recording;
-
-                // We'll only save metadata without the actual audio blob
-                // as localStorage has limited space
                 return {
                     ...rest,
-                    hasAudio: !!audioBlob,  // Flag to indicate this recording had audio
+                    hasAudio: !!audioBlob,  
                 };
             });
 
@@ -125,7 +101,6 @@ const storageUtils = {
     // Import recordings from JSON data
     importRecordings: (jsonData) => {
         try {
-            // Parse and validate the imported data
             const importedData = JSON.parse(jsonData);
 
             if (!Array.isArray(importedData)) {
@@ -154,28 +129,27 @@ export default function TryIt(props) {
     const [analysis, setAnalysis] = useState(null);
     const [recordingHistory, setRecordingHistory] = useState([]);
     const [durationValue, setDurationValue] = useState(3); // Default to 3
-    const [durationUnit, setDurationUnit] = useState('minutes'); // 'seconds' or 'minutes'
-    const [timer, setTimer] = useState(180); // 3 minutes in seconds
+    const [durationUnit, setDurationUnit] = useState('minutes'); 
+    const [timer, setTimer] = useState(180); 
     const [sentiment, setSentiment] = useState('');
     const [sentimentScore, setSentimentScore] = useState(null);
     const [emotion, setEmotion] = useState('');
     const [emotionScore, setEmotionScore] = useState(null);
-    const [recordingStartTime, setRecordingStartTime] = useState(null); // Track when recording starts
-    const [actualRecordingDuration, setActualRecordingDuration] = useState(0); // Store actual duration
-    const [durationSource, setDurationSource] = useState('timer-based'); // Track source of duration measurement
-    const [fillerWords, setFillerWords] = useState(null); // Store filler word analysis
-    const [storagePreference, setStoragePreference] = useState('local'); // 'none', 'session', or 'local'
-    const [storageUsage, setStorageUsage] = useState(0); // Storage usage in KB
-    const [storagePercentage, setStoragePercentage] = useState(0); // Storage usage percentage
-    const [isLocalStorageAvailable, setIsLocalStorageAvailable] = useState(true); // Whether localStorage is available
-    const [currentAudioBlob, setCurrentAudioBlob] = useState(null); // Store the current recording blob
-    const [currentAudioUrl, setCurrentAudioUrl] = useState(''); // URL for the current recording
-    // Voice Activity Detection states
+    const [recordingStartTime, setRecordingStartTime] = useState(null); 
+    const [actualRecordingDuration, setActualRecordingDuration] = useState(0); 
+    const [durationSource, setDurationSource] = useState('timer-based');
+    const [fillerWords, setFillerWords] = useState(null); 
+    const [storagePreference, setStoragePreference] = useState('local'); 
+    const [storageUsage, setStorageUsage] = useState(0); 
+    const [storagePercentage, setStoragePercentage] = useState(0); 
+    const [isLocalStorageAvailable, setIsLocalStorageAvailable] = useState(true); 
+    const [currentAudioBlob, setCurrentAudioBlob] = useState(null); 
+    const [currentAudioUrl, setCurrentAudioUrl] = useState(''); 
     const [isVoiceDetected, setIsVoiceDetected] = useState(false);
-    const [vadThreshold, setVadThreshold] = useState(15); // Adjustable threshold (5-30)
-    const [silenceThreshold, setSilenceThreshold] = useState(2000); // 2 seconds of silence to auto-stop
-    const [enableVAD, setEnableVAD] = useState(true); // Toggle VAD functionality
-    const [significantSilenceCount, setSignificantSilenceCount] = useState(0); // Count of silences > 1.5s
+    const [vadThreshold, setVadThreshold] = useState(15); 
+    const [silenceThreshold, setSilenceThreshold] = useState(2000); 
+    const [enableVAD, setEnableVAD] = useState(true); 
+    const [significantSilenceCount, setSignificantSilenceCount] = useState(0);
     const toast = useToast();
     
     // Side menu state
@@ -191,11 +165,11 @@ export default function TryIt(props) {
     const audioContextRef = useRef(null);
     const vadAnimationRef = useRef(null);
     const silenceTimerRef = useRef(null);
-    const voiceActivityTimeRef = useRef(null); // Track when voice was last detected
-    const totalSilenceDurationRef = useRef(0); // Total silence duration
-    const totalVoiceDurationRef = useRef(0); // Total voice activity duration
-    const silenceStartTimeRef = useRef(null); // Track when silence started
-    const significantSilenceRef = useRef(0); // Count of significant silences (>1.5s)
+    const voiceActivityTimeRef = useRef(null); 
+    const totalSilenceDurationRef = useRef(0); 
+    const totalVoiceDurationRef = useRef(0); 
+    const silenceStartTimeRef = useRef(null); 
+    const significantSilenceRef = useRef(0); 
 
     // Cleanup effect for MediaRecorder and VAD when component unmounts
     useEffect(() => {
@@ -212,17 +186,13 @@ export default function TryIt(props) {
         };
     }, []);
     
-    // Voice Activity Detection functions
-    
-    // Reset silence timer - call this whenever voice is detected
     const resetSilenceTimer = () => {
-        // Clear any existing timer
         if (silenceTimerRef.current) {
             clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = null;
         }
         
-        // Only set a new timer if we're recording and VAD is enabled
+        // Setting a new timer if we're recording and VAD is enabled
         if (isRecording && enableVAD && silenceThreshold > 0) {
             silenceTimerRef.current = setTimeout(() => {
                 if (isRecording && mediaRecorderRef.current?.state === 'recording') {
@@ -1548,28 +1518,24 @@ export default function TryIt(props) {
         setIsAnalyzing(true);
         try {
             // Use the actual recorded duration instead of timer-based calculation
-            // If actualRecordingDuration is set, use it; otherwise fall back to timer calculation
             let recordingDuration;
             let sourceMeasurement = "timer-based";
             
             if (actualRecordingDuration > 0) {
                 // Use the measured duration from audio decoding or timestamps
                 recordingDuration = actualRecordingDuration;
-                // Use the duration source from state
                 sourceMeasurement = durationSource;
             } else {
-                // Fallback to timer-based calculation
                 const initialDuration = durationUnit === 'minutes' ? durationValue * 60 : durationValue;
                 const timerBasedDuration = initialDuration - timer;
                 recordingDuration = timerBasedDuration > 0 ? timerBasedDuration : initialDuration;
                 sourceMeasurement = "timer-based";
             }
             
-            // Pass actual duration and source to analyzeSpeech
             const results = analyzeSpeech(transcription, recordingDuration, sourceMeasurement);
             setAnalysis(results);
             
-            // Create new recording entry with enhanced debug logging
+            // Create new recording e
             const newRecording = { 
                 transcription, 
                 analysis: results, 
@@ -1577,14 +1543,12 @@ export default function TryIt(props) {
                 duration: recordingDuration,
                 title: `Recording ${new Date().toLocaleString()}`,
                 notes: `Analyzed using ProComm. Duration: ${recordingDuration}s. Emotion: ${emotion}.`
-                // Exclude audioBlob and audioUrl for MongoDB storage - too large
             };
             console.log("Adding new recording:", newRecording);
             console.log("Current recording history:", recordingHistory);
             console.log("Storage preference:", storagePreference);
             console.log("Is local storage available:", isLocalStorageAvailable);
             
-            // For local storage, include audio blob and URL
             const localRecording = {
                 ...newRecording,
                 audioBlob: currentAudioBlob,
@@ -1602,7 +1566,6 @@ export default function TryIt(props) {
             } else if (storagePreference === 'none') {
                 console.log("WARNING: Storage preference is set to 'none', recordings won't persist between sessions");
             } else if (storagePreference === 'Session') {
-                // Save to MongoDB if not using local storage and user is authenticated
                 console.log("Saving to MongoDB via API");
                 try {
                     saveRecording(newRecording);
@@ -1627,8 +1590,8 @@ export default function TryIt(props) {
             });
         }
         setIsAnalyzing(false);
-    };    // Modern color scheme with gradients (matching Home.js and About.js)
-    // Brighter left edge for more vibrancy and a purplish tinge
+    };
+
     const bgGradient = "linear-gradient(120deg, #0a1120 0%,rgb(92, 67, 189) 40%, #2563eb 75%, #7c3aed 100%)";
     const cardBg = "rgba(30, 41, 59, 0.8)";
     const accentColor = "#38bdf8"; // Vibrant blue
@@ -1639,20 +1602,12 @@ export default function TryIt(props) {
     
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
 
-    // Tab components are now imported from separate files
 
-    // Settings tab has been moved to a separate file
-    
-    // Profile tab has been moved to a separate file
-    
-    // Recordings tab has been moved to a separate file
-    
     // Active tab state for the permanent side menu
     const [activeTab, setActiveTab] = useState("main");
     
-    // Add handler for sidebar Home button
     const handleSidebarHomeClick = () => {
-        navigate('/'); // Assumes '/' is the route for LandingPage
+        navigate('/');
     };
     
     // Fetch recordings from the backend API using access token
@@ -1702,7 +1657,6 @@ export default function TryIt(props) {
                 return result;
             } else if (storagePreference === 'local') {
                 console.log('Using local storage only, skipping API save');
-                // Double-check the localStorage state
                 const storedRecordings = storageUtils.loadRecordings();
                 console.log('Current stored recordings count:', storedRecordings.length);
             }
@@ -1732,7 +1686,6 @@ export default function TryIt(props) {
         loadBackendRecordings();
     }, [storagePreference, fetchBackendRecordings]);
 
-    // Removed references to isAuthenticated, getAccessTokenSilently, and useNavigate.
     
     return (
         <Flex 
@@ -2032,7 +1985,6 @@ export default function TryIt(props) {
                     <Box 
                         p={8}
                         borderRadius="20" 
-                        // Card gradient background
                         bgGradient="linear-gradient(135deg, #1e293b 60%, #2563eb 100%)"
                         backdropFilter="blur(10px)"
                         height="100%"
@@ -2209,7 +2161,6 @@ export default function TryIt(props) {
                                                     }} 
                                                 />
                                             </Box>
-                                            
                                             <Button
                                                 size="sm"
                                                 leftIcon={<Icon as={FaDownload} />}
@@ -2449,7 +2400,9 @@ export default function TryIt(props) {
                                         </StatHelpText>
                                     </Stat>
                                 )}
-                            </SimpleGrid>                            {/* Filler Word Analysis */}
+                            </SimpleGrid>                            
+                            
+                            {/* Filler Word Analysis */}
                             {fillerWords && fillerWords.total_count > 0 && (
                                 <Box 
                                     width="100%" 
@@ -2518,7 +2471,9 @@ export default function TryIt(props) {
                                                 ))}
                                             </HStack>
                                         </Box>
-                                    )}                                    {/* Filler Word Instances */}
+                                    )}                                    
+                                    
+                                    {/* Filler Word Instances */}
                                     {fillerWords.instances.length > 0 && (
                                         <Box>
                                             <Text color={textColor} fontSize="sm" mb={2}>Examples:</Text>
@@ -2562,7 +2517,8 @@ export default function TryIt(props) {
                                                     </Box>
                                                 ))}
                                             </VStack>
-                                              {/* Tips for improvement */}
+
+                                            {/* Tips for improvement */}
                                             <Box mt={4} p={4} bg={`rgba(56, 189, 248, 0.1)`} borderRadius="md" borderLeft={`3px solid ${accentColor}`}>
                                                 <Text color={textColor} fontSize="sm" fontWeight="bold">
                                                     Tips to reduce fillers:
@@ -2583,7 +2539,8 @@ export default function TryIt(props) {
                                         </Box>
                                     )}
                                 </Box>
-                            )}                            {/* Speech Rate Feedback */}
+                            )}                            
+                            {/* Speech Rate Feedback */}
                             <Box 
                                 width="100%" 
                                 maxW="800px"
@@ -2612,7 +2569,6 @@ export default function TryIt(props) {
                                     bgGradient={`radial-gradient(circle, ${secondaryAccent} 0%, transparent 70%)`}
                                     zIndex="0"
                                 />
-                                
                                 <HStack alignItems="center" mb={4}>
                                     <Icon as={FaInfoCircle} color={accentColor} boxSize={5} />
                                     <Text fontWeight="bold" color={textColor}>Speech Rate Analysis</Text>
@@ -2627,7 +2583,8 @@ export default function TryIt(props) {
                                         <Icon as={FaQuestionCircle} color={`${textColor}80`} cursor="pointer" ml={2} />
                                     </Tooltip>
                                 </HStack>
-                                  {/* Speech Rate Gauge */}
+                                
+                                {/* Speech Rate Gauge */}
                                 <Box my={4}>
                                     <Text color={textColor} fontSize="sm" mb={2}>Speech Rate Range:</Text>
                                     <HStack width="100%" height="35px" position="relative" mb={3}>
@@ -2669,8 +2626,14 @@ export default function TryIt(props) {
                                     </HStack>
                                 </Box>
                                 
-                                <Text color={textColor} lineHeight="1.7">{analysis.rate_feedback}</Text>
-                                  {/* Show calculation details */}
+                                <Text 
+                                color={textColor} 
+                                lineHeight="1.7"
+                                >
+                                    {analysis.rate_feedback}
+                                </Text>
+
+                                {/* Show calculation details */}
                                 <Box mt={4} p={3} bg="rgba(0,0,0,0.2)" borderRadius="md" border="1px solid rgba(255,255,255,0.05)">
                                     <Text fontSize="sm" color={`${textColor}80`} fontFamily="monospace">
                                         Formula: {analysis.total_words} words ÷ {(analysis.duration_seconds / 60).toFixed(2)} minutes = {analysis.raw_rate} WPM
@@ -2694,7 +2657,8 @@ export default function TryIt(props) {
                                 </Flex>
                             </Box>
                         </>
-                    )}                    {recordingHistory.length > 0 && (
+                    )}                    
+                    {recordingHistory.length > 0 && (
                         <Box 
                             width="100%" 
                             maxW="800px"
@@ -2740,6 +2704,7 @@ export default function TryIt(props) {
                             >
                                 Recording History
                             </Heading>
+
                             <VStack spacing={4} align="stretch">
                                 {recordingHistory.slice(-3).map((record, index) => (
                                     <Box 
