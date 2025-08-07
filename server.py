@@ -249,7 +249,7 @@ def calculate_confidence_from_audio(audio_data):
 
     # Combine factors to calculate confidence score
     confidence_score = max(50, min(100, (loudness + 40) * 0.5 + speech_ratio * 50))
-    return round(confidence_score)
+    return round(confidence_score, 1)
 
 def detect_speech_pauses(audio_data):
     """Detect pauses in speech from audio data."""
@@ -371,6 +371,7 @@ def transcribe_with_whisper(audio_data):
         if avg_logprob is None:
             avg_logprob = -1.0
         confidence_score = max(60, min(100, 100 + avg_logprob * 40))
+        confidence_score = round(confidence_score, 1)
 
         transcription_time = time.time() - start_time
         logging.info(f"Whisper transcription completed in {transcription_time:.2f} seconds")
