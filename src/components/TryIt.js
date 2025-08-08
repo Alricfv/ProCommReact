@@ -1474,7 +1474,7 @@ export default function TryIt(props) {
             direction={{ base: 'column', md: 'row' }} 
             height="100vh" 
             overflow="hidden"
-            bgGradient={bgGradient}
+            bg="black"
         >
             {/* Mobile Menu Button */}
             <Box 
@@ -1740,12 +1740,16 @@ export default function TryIt(props) {
                     <VStack spacing={2} align="center">
                     <Box textAlign="center" mb={4}>                        
                         <Heading 
-                            size={headingSize}
-                            lineHeight="1.3" 
-                            bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                            bgClip="text"
+                            size="3xl"
+                            lineHeight="1.3"
+                            color="#fc6900ff"
+                            textShadow={`
+                                0 0 8px #fc6900ff,
+                                0 0 1px #fc6900ff,
+                                0 0 32px #fc690010
+                                `}
                             fontWeight="extrabold"
-                            letterSpacing="tight"
+                            letterSpacing="wide"
                             mb={3}
                         >
                             Speech Analyzer
@@ -1767,7 +1771,7 @@ export default function TryIt(props) {
                     <Box 
                         p={8}
                         borderRadius="20" 
-                        bgGradient="linear-gradient(135deg, #1e293b 60%, #2563eb 100%)"
+                        bgGradient="linear-gradient(135deg, #16222fff 60%, #2d241bff 100%)"
                         backdropFilter="blur(10px)"
                         height="100%"
                         width="100%"
@@ -1831,7 +1835,7 @@ export default function TryIt(props) {
                                 <HStack spacing={4}>                                    
                                     <Button
                                         size="lg"
-                                        bg={isRecording ? "red.500" : accentColor}
+                                        bg="#fc6900ff"
                                         color="white"
                                         onClick={handleRecord}
                                         leftIcon={<FaMicrophone />}
@@ -1848,8 +1852,6 @@ export default function TryIt(props) {
                                     >
                                         {isRecording ? `Stop (${formatDuration(timer)})` : "Start Recording"}
                                     </Button>
-                                
-                                    
                                     
                                     {/*  Analyze Speech button  */}
                                         <Button

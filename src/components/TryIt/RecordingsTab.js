@@ -47,9 +47,14 @@ const RecordingsTab = ({
   >
     <VStack spacing={8} align="start" width="100%">
       <Heading 
-          size="lg" 
-          bgGradient={`linear-gradient(90deg, ${accentColor}, ${secondaryAccent})`}
-          bgClip="text"
+          size="2xl" 
+          color="#fc6900ff"
+          textShadow={`
+             0 0 8px #fc6900ff,
+             0 0 2px #fc6900ff,
+             0 0 32px #fc690010
+                                
+            `}
       >
           Recordings
       </Heading>
