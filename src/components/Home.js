@@ -18,8 +18,8 @@ export default function Home() {
 
     return (
         <Box 
-            bgGradient={bgGradient}
-            color={textColor} 
+            bg="#16222fff"
+            color={textColor}
             minHeight="100vh"
             position="relative"
             width="100%"
@@ -75,28 +75,10 @@ export default function Home() {
                 padding={{ base: "60px 20px", md: "80px 40px" }}
                 position="relative"
                 overflow="hidden"
+                bg="transparent"
             >
                 {/* Background effects */}
-                <Box 
-                    position="absolute" 
-                    top="0" 
-                    left="0" 
-                    width="100%" 
-                    height="100%" 
-                    opacity="0.3" 
-                    bgGradient="radial-gradient(circle at 25% 25%, #38bdf8 0%, transparent 50%)"
-                    zIndex="1"
-                />
-                <Box 
-                    position="absolute" 
-                    bottom="0" 
-                    right="0" 
-                    width="100%" 
-                    height="100%" 
-                    opacity="0.2" 
-                    bgGradient="radial-gradient(circle at 75% 75%, #c084fc 0%, transparent 60%)"
-                    zIndex="1"
-                />
+                
                 
                 <Container 
                     maxW="1200px" 
@@ -108,8 +90,7 @@ export default function Home() {
                         size={headingSize} 
                         fontWeight="extrabold" 
                         marginY="20px" 
-                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                        bgClip="text"
+                        color={accentColor}
                         letterSpacing="wide"
                         textAlign="center"
                         lineHeight="1.3"
@@ -177,8 +158,7 @@ export default function Home() {
                             textAlign="center" 
                             marginTop={{base:"-20", md:"-20"}}
                             marginBottom={{base: "30px", md:"60px"}} 
-                            bgGradient={`linear-gradient(90deg, ${secondaryAccent}, ${accentColor})`}
-                            bgClip="text"
+                            color={secondaryAccent}
                             fontWeight="extrabold"
                             lineHeight="1.4"
                         >

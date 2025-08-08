@@ -12,6 +12,11 @@ from scipy.io import wavfile
 from transformers import pipeline
 import whisper # type: ignore
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+import webrtcvad
+import collections
+import contextlib
+import wave
+import parselmouth
 
 # Configure logging to also output to the terminal
 logging.basicConfig(
@@ -251,93 +256,78 @@ def calculate_confidence_from_audio(audio_data):
     confidence_score = max(50, min(100, (loudness + 40) * 0.5 + speech_ratio * 50))
     return round(confidence_score, 1)
 
-def detect_speech_pauses(audio_data):
-    """Detect pauses in speech from audio data."""
-    try:
-        # Read WAV data
-        sample_rate, samples = wavfile.read(io.BytesIO(audio_data))
+def analyze_pitch(audio_data, sample_rate=16000):
+    """Extracting pitch contour and pitch variation metrics using parselmouth"""
 
-        # Convert to mono if stereo
-        if len(samples.shape) > 1:
-            samples = np.mean(samples, axis=1)
+    #Loading audio from bytes
+    snd = parselmouth.Sound(io.BytesIO(audio_data))
+    pitch = snd.to_pitch()
+    pitch_values = pitch.selected_array['frequency']
+    times = pitch.xs()
 
-        # Normalize audio samples
-        samples = samples / np.max(np.abs(samples))
+    #Filtering the 0Hz values for the statistics (else statement is so that there's no NaN values)
+    voiced = pitch_values[pitch_values > 0]
+    mean_pitch = float(np.mean(voiced)) if len(voiced) > 0 else 0.0
+    std_pitch = float(np.std(voiced)) if len(voiced) > 0 else 0.0
+    expressiveness = float(std_pitch / mean_pitch) if mean_pitch > 0 else 0.0
 
-        # Calculate RMS energy in small windows
-        window_size = int(0.05 * sample_rate)  # 50ms windows
-        step_size = int(0.025 * sample_rate)   # 25ms step (50% overlap)
+    return {
+        "times": times.tolist(),
+        "pitch_values": pitch_values.tolist(),
+        "mean_pitch": mean_pitch,
+        "std_pitch": std_pitch,
+        "expressiveness": expressiveness
+    }
 
-        energy_windows = []
-        for i in range(0, len(samples) - window_size, step_size):
-            window = samples[i:i + window_size]
-            energy = np.sqrt(np.mean(window**2))
-            energy_windows.append(energy)
+def detect_speech_pauses_webrtcvad(audio_data, sample_rate=16000, frame_duration_ms=30, aggressiveness=2):
+    """Detecting pauses in speech using the webrtcvad library (improved VAD detection)."""
+    vad=webrtcvad.Vad(aggressiveness)
+    with wave.open(io.BytesIO(audio_data), 'rb') as wf:
+        assert wf.getnchannels() == 1
+        assert wf.getsampwidth() == 2
+        assert wf.getframerate() == sample_rate
+        pcm_data = wf.readframes(wf.getnframes())
 
-        energy_windows = np.array(energy_windows)
+    frame_size = int(sample_rate * frame_duration_ms / 1000) * 2
+    frames = [pcm_data[i:i+frame_size] for i in range(0, len(pcm_data), frame_size)]
 
-        # Adaptive threshold for silence
-        silence_threshold = np.percentile(energy_windows, 20)  # Bottom 20% considered silence
+    speech_flags = [vad.is_speech(frame, sample_rate) for frame in frames if len(frame) == frame_size]
 
-        # Detect silence segments
-        is_silence = energy_windows < silence_threshold
+    # Speech and silence segments found here
+    segments = []
+    start = None
+    for i, is_speech in enumerate(speech_flags):
+        t = i * frame_duration_ms / 1000.0
+        if is_speech and start is None:
+            start = t
+        elif not is_speech and start is not None:
+            segments.append((start, t))
+            start = None
+    if start is not None:
+        segments.append((start, len(speech_flags) * frame_duration_ms / 1000.0))
 
-        # Convert to time segments
-        time_per_window = step_size / sample_rate
+    #Calculating pauses represented as the gaps between speech segments
+    pauses = []
+    last_end = 0.0
+    for seg_start, seg_end in segments:
+        if seg_start > last_end:
+            pauses.append((last_end, seg_start))
+        last_end = seg_end
 
-        # Group consecutive silence windows
-        silence_segments = []
-        in_silence = False
-        silence_start = 0
+    total_pauses = len(pauses)
+    total_pause_duration = sum(end - start for start, end in pauses)
+    total_speech_duration = sum(end - start for start, end in segments)
+    total_duration = total_speech_duration + total_pause_duration
 
-        for i, silent in enumerate(is_silence):
-            if silent and not in_silence:
-                in_silence = True
-                silence_start = i * time_per_window
-            elif not silent and in_silence:
-                in_silence = False
-                silence_duration = i * time_per_window - silence_start
-                if silence_duration > 0.3:  # Only count pauses longer than 0.3 seconds
-                    silence_segments.append({
-                        "start": silence_start,
-                        "end": i * time_per_window,
-                        "duration": silence_duration
-                    })
+    return {
+        "total_pauses": total_pauses,
+        "pause_segments": [{"start": start, "end": end, "duration": end-start} for start, end in pauses],
+        "speaking_time": total_speech_duration,
+        "silence_time": total_pause_duration,
+        "total_duration": total_duration,
+        "pause_percentage": (total_pause_duration / total_duration * 100) if total_duration > 0 else 0 
+    }
 
-        # Handle case where audio ends during silence
-        if in_silence:
-            silence_duration = len(is_silence) * time_per_window - silence_start
-            if silence_duration > 0.3:
-                silence_segments.append({
-                    "start": silence_start,
-                    "end": len(is_silence) * time_per_window,
-                    "duration": silence_duration
-                })
-
-        # Calculate total duration of speech and silence
-        total_duration = len(samples) / sample_rate
-        silence_duration = sum(segment["duration"] for segment in silence_segments)
-        speech_duration = total_duration - silence_duration
-
-        return {
-            "total_pauses": len(silence_segments),
-            "pause_segments": silence_segments,
-            "speaking_time": speech_duration,
-            "silence_time": silence_duration,
-            "total_duration": total_duration,
-            "pause_percentage": (silence_duration / total_duration) * 100 if total_duration > 0 else 0
-        }
-    except Exception as e:
-        logging.error(f"Error detecting speech pauses: {str(e)}")
-        return {
-            "total_pauses": 0,
-            "pause_segments": [],
-            "speaking_time": 0,
-            "silence_time": 0,
-            "total_duration": 0,
-            "pause_percentage": 0,
-            "error": str(e)
-        }
 
 def transcribe_with_whisper(audio_data):
     """Transcribe audio using Whisper."""
@@ -408,8 +398,11 @@ def transcribe():
         )
         wav_data, _ = process.communicate(input=webm_data)
 
+        #Analyze pitch
+        pitch_analysis = analyze_pitch(wav_data)
+
         # Detect speech pauses
-        pause_analysis = detect_speech_pauses(wav_data)
+        pause_analysis = detect_speech_pauses_webrtcvad(wav_data)
         logging.info(f"Pause analysis: {pause_analysis['total_pauses']} total pauses")
 
         # Transcribe with Whisper
@@ -440,7 +433,8 @@ def transcribe():
                 "silence_time": round(pause_analysis["silence_time"], 2),
                 "total_duration": round(pause_analysis["total_duration"], 2),
                 "pause_percentage": round(pause_analysis["pause_percentage"], 1)
-            }
+            },
+            "pitch": pitch_analysis
         }
 
         return jsonify(response_data)

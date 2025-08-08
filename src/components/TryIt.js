@@ -918,13 +918,6 @@ export default function TryIt(props) {
         const uniqueWords = new Set(words.map(w => w.toLowerCase())).size;
         const vocabularyRichness = ((uniqueWords / words.length) * 100).toFixed(1);
         const adjustedRichness = Math.min(parseFloat(vocabularyRichness), 100); 
-        const vadMetrics = getVoiceActivityMetrics();
-        let effectiveWordsPerMinute = wordsPerMinute;
-        if (vadMetrics && vadMetrics.voiceDuration > 0) {
-            effectiveWordsPerMinute = Math.round(words.length / (vadMetrics.voiceDuration / 60));
-            console.log(`Adjusted speech rate: ${words.length} words / ${vadMetrics.voiceDuration}s = ${effectiveWordsPerMinute} WPM`);
-        }
-        
         return {
             speech_rate: `${wordsPerMinute} WPM`, 
             rate_quality: rateQuality.quality, 
@@ -939,8 +932,6 @@ export default function TryIt(props) {
             recording_duration: `${formatDuration(recordingDuration)}`, 
             duration_seconds: recordingDuration, 
             duration_source: durationSource, 
-            vad_metrics: vadMetrics,
-            effective_wpm: effectiveWordsPerMinute, 
             confidence_score: serverConfidenceScore,
         };
     };
@@ -2013,16 +2004,9 @@ export default function TryIt(props) {
                                             Percentile: {analysis.rate_percentile}%
                                         </Text>
                                     </StatHelpText>
-                                    {analysis.vad_metrics && analysis.effective_wpm && analysis.effective_wpm !== analysis.speech_rate && (
-                                        <Text fontSize="sm" mt={2} fontStyle="italic" color={highlightColor}>
-                                            Effective rate: {analysis.effective_wpm} WPM <Tooltip label="Speaking rate calculated using only active speech time, excluding silences">
-                                                <Icon as={FaInfoCircle} boxSize="0.7em" ml={1} />
-                                            </Tooltip>
-                                        </Text>
-                                    )}
                                 </Stat>
                                 
-                                {analysis.vad_metrics && (
+                                {pauseAnalysis && (
                                     <Stat
                                         bg={cardBg}
                                         p={4}
@@ -2064,7 +2048,8 @@ export default function TryIt(props) {
                                             </Text>
                                         </Flex>
                                     </Stat>
-                                )}                                <Stat
+                                )}                                
+                                <Stat
                                     bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
@@ -2084,7 +2069,8 @@ export default function TryIt(props) {
                                         <Icon as={FaInfoCircle} mr={2} />
                                         <Badge size="sm" colorScheme="purple">{analysis.duration_source}</Badge>
                                     </StatHelpText>
-                                </Stat>                                <Stat
+                                </Stat>                                
+                                <Stat
                                     bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
@@ -2104,7 +2090,8 @@ export default function TryIt(props) {
                                         <Icon as={FaInfoCircle} mr={2} />
                                         Higher is better
                                     </StatHelpText>
-                                </Stat>                                <Stat
+                                </Stat>                                
+                                <Stat
                                     bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
@@ -2124,7 +2111,8 @@ export default function TryIt(props) {
                                         <Icon as={FaInfoCircle} mr={2} />
                                         Total spoken words
                                     </StatHelpText>
-                                </Stat>                                <Stat
+                                </Stat>                                
+                                <Stat
                                     bg={cardBg}
                                     p={4}
                                     borderRadius="lg"
@@ -2144,7 +2132,8 @@ export default function TryIt(props) {
                                         <Icon as={FaInfoCircle} mr={2} />
                                         Speech clarity
                                     </StatHelpText>
-                                </Stat>                                {emotion && (
+                                </Stat>                                
+                                {emotion && (
                                     <Stat
                                         bg={cardBg}
                                         p={4}

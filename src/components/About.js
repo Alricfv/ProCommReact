@@ -49,7 +49,7 @@ function About() {
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
     return (
         <Box 
-            bgGradient={bgGradient} 
+            bg="#16222fff"
             color={textColor} 
             minHeight="100vh" 
             zIndex="0"
@@ -102,28 +102,8 @@ function About() {
                 padding={{ base: "60px 20px", md: "80px 40px" }}
                 position="relative"
                 overflow="hidden"
+                bg="transparent"
             >
-                {/* Background effects */}
-                <Box 
-                    position="absolute" 
-                    top="0" 
-                    left="0" 
-                    width="100%" 
-                    height="100%" 
-                    opacity="0.3" 
-                    bgGradient="radial-gradient(circle at 25% 25%, #38bdf8 0%, transparent 50%)"
-                    zIndex="1"
-                />
-                <Box 
-                    position="absolute" 
-                    bottom="0" 
-                    right="0" 
-                    width="100%" 
-                    height="100%" 
-                    opacity="0.2" 
-                    bgGradient="radial-gradient(circle at 75% 75%, #c084fc 0%, transparent 60%)"
-                    zIndex="1"
-                />
                 
                 <Container maxW="1200px" position="relative" zIndex="2" >
                     {/* Main heading */}

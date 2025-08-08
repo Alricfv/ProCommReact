@@ -5,7 +5,7 @@ const theme = extendTheme({
     global: {
       body: {
         fontFamily: "'Geist', sans-serif",
-        bg: '#121212',
+        bg: '#16222fff',
         color: '#f5f5f7'
       }
     }
