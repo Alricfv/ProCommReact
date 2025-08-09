@@ -150,6 +150,7 @@ function About() {
                     >
                         <Box 
                           {...cardBoxStyles}
+                          
                           textAlign={{base: "center", md: "left"}} 
                           maxWidth="500px" 
                           padding="40px" 
@@ -251,7 +252,7 @@ function About() {
                                     color={accentColor} 
                                     marginBottom="16px"
                                 >
-                                    Advanced Speech Analysis
+                                    Speech Analysis
                                 </Heading>
                                 <Text 
                                     fontSize="18px" 
@@ -323,7 +324,7 @@ function About() {
                                     color={secondaryAccent} 
                                     marginBottom="16px"
                                 >
-                                    Real-Time Feedback
+                                    Feedback
                                 </Heading>
                                 <Text fontSize="18px" color={textColor} lineHeight="1.8" fontWeight="bold" align="center">
                                     Get instant feedback on your speaking patterns, track your progress over time.
@@ -439,25 +440,14 @@ function About() {
                     <Box
                         textAlign="center"
                         padding={{base: "40px 20px", md: "60px 40px"}}
-                        bg="rgba(15, 23, 42, 0.9)"
+                        bg="rgba(30, 41, 59, 0.)"
                         color={textColor}
                         borderRadius="20px"
-                        boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2)"
+                        boxShadow= "0 0 24px 0 #00e226ff"
                         marginY="70px"
                         position="relative"
                         overflow="hidden"
                     >
-                        <Box 
-                            position="absolute" 
-                            top="0" 
-                            left="0" 
-                            width="100%" 
-                            height="100%" 
-                            opacity="0.3" 
-                            bgGradient="linear-gradient(135deg, #38bdf8 0%, #c084fc 100%)"
-                            zIndex="0"
-                        />
-                        
                         <VStack spacing={6} position="relative" zIndex="1">
                             <Heading 
                                 size="2xl" 

@@ -20,9 +20,9 @@ export const tertiaryAccent = "#c084fc";
 
 //Styles for UI components
 export const cardBoxStyles= {
-    bg: "rgba(30, 41, 59, 0.8)",
+    
     borderRadius: "20px",
-    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1)",
+    boxShadow: "0 0 14px 0 #fc6900ff",
     border: "1px solid rgba(255, 255, 255, 0.1)",
     backdropFilter: "blur(16px)",
     transition: "all 0.3s ease-in-out"
@@ -31,7 +31,7 @@ export const cardBoxStyles= {
 export const featureBoxStyles = {
     textAlign: "center",
     borderRadius: "16px",
-    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
+    boxShadow: "0 0 24px 0 #0a336bff",
     border: "1px solid rgba(255, 255, 255, 0.1)",
     backdropFilter: "blur(16px)",
     transition: "all 0.3s ease"
@@ -41,8 +41,8 @@ export const teamCardStyles = {
     spacing: 4,
     p: 6,
     borderRadius: "lg",
-    bg: "rgba(30, 41, 59, 0.6)",
     border: "1px solid rgba(255, 255, 255, 0.1)",
+    boxShadow: "0 0 24px 0 #0a336bff",
     backdropFilter: "blur(16px)",
     minW: "250px",
     transition: "all 0.3s ease"

@@ -200,7 +200,7 @@ export default function Home() {
                                     textAlign="center"
                                     marginTop="-3"
                                 >
-                                    Accurate Speech Transcription
+                                   Speech Transcription
                                 </Heading>
                                 <Text 
                                     textAlign="center" 
@@ -240,7 +240,7 @@ export default function Home() {
                                     marginTop ="-3"
                                     textAlign="center"
                                 >
-                                    In-Depth <br></br> Speech Analysis
+                                    Speech Analysis
                                 </Heading>
                                 <Text 
                                     textAlign="center" 
@@ -278,7 +278,7 @@ export default function Home() {
                                     marginTop="-3"
                                     textAlign="center"
                                 >
-                                    Communication Enhancement
+                                    Feedback
                                 </Heading>
                                 <Text 
                                     textAlign="center" 
@@ -433,10 +433,10 @@ export default function Home() {
                     <Box
                         textAlign="center"
                         padding={{base: "40px 20px", md: "60px 40px"}}
-                        bg="rgba(15, 23, 42, 0.9)"
+                        
                         color={textColor}
                         borderRadius="20px"
-                        boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.2)"
+                        boxShadow= "0 0 24px 0 #00e226ff"
                         marginY="70px"
                         position="relative"
                         overflow="hidden"
@@ -448,7 +448,6 @@ export default function Home() {
                             width="100%" 
                             height="100%" 
                             opacity="0.3" 
-                            bgGradient="linear-gradient(135deg, #38bdf8 0%, #c084fc 100%)"
                             zIndex="0"
                         />
                         <VStack 
