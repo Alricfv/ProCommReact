@@ -121,6 +121,7 @@ const storageUtils = {
 };
 
 export default function TryIt(props) {
+    const [pitchData, setPitchData] = useState(null);
     const [pauseAnalysis, setPauseAnalysis] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -1192,6 +1193,10 @@ export default function TryIt(props) {
                     }
                     
                     console.log("API response received:", data);
+
+                    if (data.pitch){
+                        setPitchData(data.pitch);
+                    }
                     
                     if (data.saved) {
                         console.log("Recording saved on server with ID:", data.recording_id);
@@ -2196,7 +2201,65 @@ export default function TryIt(props) {
                                         </StatHelpText>
                                     </Stat>
                                 )}
-                            </SimpleGrid>                            
+                            </SimpleGrid>
+
+                            {/* Pitch Analysis*/}
+                            {pitchData && (
+                                <Box
+                                    bg={cardBg}
+                                    p={4}
+                                    borderRadius="lg"
+                                    border="1px solid rgba(255, 255, 255, 0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
+                                    mt={4}
+                                >
+                                    <Heading
+                                        size="sm" 
+                                        color={accentColor}
+                                        mb={2}
+                                    >
+                                        Pitch Analysis
+                                    </Heading>
+                                    <Text
+                                        color={textColor}
+                                        fontSize="sm"
+                                        mb={2}
+                                    >
+                                        {(() => {
+                                            if (pitchData){
+                                                console.log("Pitch Analysis Debug:",
+                                                "mean_pitch:", pitchData.mean_pitch,
+                                                "std_pitch:", pitchData.std_pitch,
+                                                "expressiveness:", pitchData.expressiveness
+                                                );
+                                            }
+                                            if (pitchData.mean_pitch < 50){
+                                                return "Try recording in a peaceful environment"
+                                            }
+                                            let feedback="";
+                                            if(pitchData.expressiveness < 0.15){
+                                                feedback= "Low pitch variation, try to add more voice variation for better delivery.";
+                                            }
+                                            else if (pitchData.expressiveness > 0.35){
+                                                feedback= "Too much pitch variation, your voice seems erratic in this session"
+                                            }
+                                            else if (pitchData.expressiveness > 0.15 && pitchData.expressiveness <= 0.35){
+                                                feedback= "Pitch is well-balanced, keep up the good work!"
+                                            }
+                                            return feedback;
+                                        })()}
+                                    </Text>
+
+                                </Box>
+                            )}
+                                                        
                             
                             {/* Filler Word Analysis */}
                             {fillerWords && fillerWords.total_count > 0 && (
