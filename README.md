@@ -1,57 +1,35 @@
-# ProComm Speech Analysis Application
+### ProComm 
 
-## Modern UI Update - June 2025
+ Welcome to ProComm (stands for Professional Communication). It's a cool web app which anyone can use to improve their speech or public speaking skills! If you want to test it, access it through the "try it out!" button on the navbar, if you're a regular user you might want to sign up/login as you can then have a record of some of your past speeches (limited storage only though)
 
-The ProComm application has been updated with a modern UI design language across all pages:
+## Features
 
-### UI Enhancements
+ 1. Transcription
+ 2. Speech analysis (includes speech rate, emotional tone, etc.)
+ 3. Ability to view your past recordings (not saving statistics at the moment due to storage limitations)
 
-- **Consistent Design Language**: Applied throughout Home, About, and TryIt pages
-- **Modern UI Elements**: Gradients, glassmorphism, animations, and improved visual hierarchy
-- **Interactive Components**: Hover effects, transitions, and responsive design elements
-- **Visual Feedback**: Enhanced recording state indicators and analysis visualizations
+## Tech Stack Used!
+ Front End: React.js + Chakra UI
+ Back End: Flask (Python)
+ Storage: LocalStorage/MongoDB (depending on your storage preference)
 
-### Key Features
+## Client Usage
+ If you want to test or use my app, check out my website (alricfv.github.io/ProCommReact/)
 
-- **Speech Recording**: Record your voice with customizable duration settings
-- **Speech Analysis**: Get detailed insights into your speaking patterns
-- **Speech Rate Analysis**: Words per minute with visual indicators and percentile comparison
-- **Vocabulary Assessment**: Analysis of word usage, sentence structure, and vocabulary richness
-- **Emotional Tone Analysis**: Detect the emotional tone of your speech
-- **Filler Word Detection**: Identify and count filler words in your speech
-- **Recording History**: Track your progress with a history of previous recordings
+## Dev Usage
+ If you want to locally host my app or make a few changes for yourself, feel free to clone my project, run npm install and then npm start on your terminal
 
-### Technology Stack
+ As for the python backend, just run python server.py on your terminal .Currently, I've tried and tested python3.8 and python3.9. Can't guarantee stability for other versions
 
-- React
-- Chakra UI
-- Web Audio API
-- Speech Recognition
+ Use your own DB though, i can't give you access to mine.
 
-### Usage
+## Ending Statements
 
-1. Set your preferred recording duration
-2. Click the record button to start recording
-3. Speak clearly into your microphone
-4. Stop the recording when finished
-5. Click Analyze to see detailed insights about your speech
-6. Review your progress in the recording history section
+ Thanks for reading this, PRs are welcome! 
 
-### Installation
 
-```bash
-git clone https://github.com/yourusername/ProCommReactSon1.git
-cd ProCommReactSon1
-npm install
-npm start
-```
 
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-### Contributors
 
-- Development Team
-- UI/UX Design Team
-- Speech Analysis Experts
 
-© 2025 ProComm. All rights reserved.
+

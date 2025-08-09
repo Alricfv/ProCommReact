@@ -15,13 +15,13 @@ import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
 import { data, useNavigate } from 'react-router-dom';
 
-// Utility: Create a URL for an audio blob
+
 function createAudioUrl(audioBlob) {
     if (!audioBlob) return '';
     return URL.createObjectURL(audioBlob);
 }
 
-// Utility: Download an audio blob as an MP3 file
+//audio blob to MP3 file
 function downloadAudioAsMp3(blob, filename = 'recording.mp3') {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
@@ -35,13 +35,12 @@ function downloadAudioAsMp3(blob, filename = 'recording.mp3') {
     URL.revokeObjectURL(url);
 }
 
-// Storage keys
 const STORAGE_PREFERENCE_KEY = 'procomm-storage-preference';
 const RECORDING_HISTORY_KEY = 'procomm-recording-history';
 const MAX_STORAGE_ITEMS = 200; 
 const ESTIMATED_MAX_STORAGE_MB = 5; 
 
-// Storage utility functions
+// Storage functions
 const storageUtils = {
     isLocalStorageAvailable: () => {
         try {
@@ -173,7 +172,7 @@ export default function TryIt(props) {
     const [serverConfidenceScore, setServerConfidenceScore] = useState(null);
     const getDurationInSeconds = () => durationUnit === 'minutes' ? durationValue * 60 : durationValue;
 
-    // Cleanup effect for MediaRecorder and VAD when component unmounts
+    // Cleanup for MediaRecorder and VAD
     useEffect(() => {
         return () => {
             if (mediaRecorderRef.current) {
@@ -194,13 +193,12 @@ export default function TryIt(props) {
             silenceTimerRef.current = null;
         }
         
-        // Setting a new timer if we're recording and VAD is enabled
+        // new timer if we're recording and VAD is enabled
         if (isRecording && enableVAD && silenceThreshold > 0) {
             silenceTimerRef.current = setTimeout(() => {
                 if (isRecording && mediaRecorderRef.current?.state === 'recording') {
                     console.log("Auto-stopping recording due to silence");
-                    handleRecord(); // Stop the recording
-                    
+                    handleRecord(); // stops
                     toast({
                         title: "Recording stopped",
                         description: "Extended silence detected",

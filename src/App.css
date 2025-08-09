@@ -23,13 +23,13 @@ html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, #root::-webkit-scr
 }
 
 html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, #root::-webkit-scrollbar-thumb:hover{
-    background: #0ea5e9;
+    background: #bd4108;
 } 
 
 /* Adjust layout for transcription and analysis */
 .transcription-box {
     transition: transform 0.5s ease-in-out;
-    transform: translateX(-20%); /* Nudge to the left */
+    transform: translateX(-20%);
 }
 
 .transcription-box.slide-left {
@@ -38,15 +38,15 @@ html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, #root:
 
 .analysis-box {
     display: flex;
-    flex-direction: column; /* Stack results vertically */
-    gap: 20px; /* Add spacing between results */
+    flex-direction: column; 
+    gap: 20px; 
     position: absolute;
-    right: 10%; /* Position on the right */
+    right: 10%; 
     top: 10%;
-    width: 30%; /* Adjust width for better visibility */
-    max-height: 80%; /* Prevent overflow */
-    overflow-y: auto; /* Enable scrolling if needed */
-    background: rgba(0, 0, 0, 0.7); /* Add a semi-transparent background */
+    width: 30%;
+    max-height: 80%; 
+    overflow-y: auto; 
+    background: rgba(0, 0, 0, 0.7); 
     padding: 20px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -57,27 +57,27 @@ html::-webkit-scrollbar-thumb:hover, body::-webkit-scrollbar-thumb:hover, #root:
     opacity: 1;
 }
 
-/* Add animation for shifting the page to the left */
+
 .page-container {
     transition: transform 0.5s ease-in-out;
     transform: translateX(0);
 }
 
 .page-container.shift-left {
-    transform: translateX(-20%); /* Shift the page slightly to the left */
+    transform: translateX(-20%);
 }
 
 /* Ensure the analysis results are fully visible and scrollable */
 .analysis-results {
-    position: fixed; /* Ensure it stays visible on the screen */
+    position: fixed; 
     right: 0;
     top: 0;
-    width: 25%; /* Adjust width for better visibility */
-    height: 100%; /* Use full height of the viewport */
-    background: rgba(0, 0, 0, 0.9); /* Slightly darker background for better contrast */
+    width: 25%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); 
     color: #fff;
     padding: 20px;
-    overflow-y: auto; /* Enable scrolling for overflowing content */
+    overflow-y: auto; 
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
-    z-index: 1000; /* Ensure it appears above other elements */
+    z-index: 1000; /* bit of a crude fix ik but hey it works */
 }

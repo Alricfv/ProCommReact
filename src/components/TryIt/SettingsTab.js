@@ -55,7 +55,6 @@ const SettingsTab = ({
       >
         Settings
       </Heading>
-      
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} width="100%">
         <Box 
           p={6}

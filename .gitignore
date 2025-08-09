@@ -15,6 +15,7 @@ venv38
 
 # Config files (removing the config file approach)
 src/config.js
+procommconfig.conf
 
 #logs
 server.log
