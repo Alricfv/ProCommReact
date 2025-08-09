@@ -49,7 +49,7 @@ function About() {
     const headingSize = useBreakpointValue({ base: "xl", md: "2xl" });
     return (
         <Box 
-            bg="#16222fff"
+            bg="#091018ff"
             color={textColor} 
             minHeight="100vh" 
             zIndex="0"
@@ -110,9 +110,14 @@ function About() {
                     <Heading 
                         size={headingSize}
                         textAlign="center" 
+                        marginTop="-14"
                         marginBottom="30px" 
-                        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                        bgClip="text"
+                        color="#fc6900ff"
+                        textShadow={`
+                            0 0 8px #fc6900ff,
+                            0 0 1px #fc6900ff,
+                            0 0 32px #fc690010
+                        `}
                         fontWeight="extrabold"
                         letterSpacing="tight"
                         lineHeight="1.4"
@@ -167,10 +172,14 @@ function About() {
                             </Circle>
                             <Heading 
                                 size="3xl" 
-                                bgGradient={`linear-gradient(90deg, ${highlightColor}, ${accentColor})`} 
-                                bgClip="text" 
+                                color={highlightColor}
                                 marginBottom="20px"
                                 fontWeight="extrabold"
+                                textShadow={`
+                                    0 0 8px ${highlightColor},
+                                    0 0 1px ${highlightColor},
+                                    0 0 32px #fc690010
+                                `}
                             >
                                 Our Vision
                             </Heading>
@@ -203,11 +212,15 @@ function About() {
                     {/* Features section with improved styling */}
                     <Box padding="20px 0 50px 0">
                         <Heading 
-                            size={headingSize} 
+                            size="3xl" 
                             textAlign="center" 
                             marginBottom="60px" 
-                            bgGradient={`linear-gradient(90deg, ${secondaryAccent}, ${accentColor})`}
-                            bgClip="text"
+                            color={secondaryAccent}
+                            textShadow={`
+                                0 0 8px ${secondaryAccent},
+                                0 0 1px ${secondaryAccent},
+                                0 0 32px #fc690010
+                            `}
                             fontWeight="extrabold"
                         >
                             Why Choose ProComm?
@@ -332,8 +345,11 @@ function About() {
                             <Heading 
                                 textAlign="center"
                                 size="xl"
-                                bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                                bgClip="text"
+                                textShadow={`
+                                    0 0 8px #fc6900ff,
+                                    0 0 1px #fc6900ff,
+                                    0 0 32px #fc690010
+                                `}
                             >
                                 Powered by Advanced Technology
                             </Heading>
@@ -344,7 +360,9 @@ function About() {
                                 <VStack align="flex-start" spacing={4}>
                                     <HStack>
                                         <Icon as={FaCode} color={accentColor} w={5} h={5} />
-                                        <Heading size="md" color={highlightColor}>Advanced Speech Recognition</Heading>
+                                        <Heading size="md" color={highlightColor}>
+                                            Advanced Speech Recognition
+                                        </Heading>
                                     </HStack>
                                     <Text fontSize="md" color={textColor} lineHeight="1.8">
                                         Our platform delivers unparalleled speech recognition accuracy,

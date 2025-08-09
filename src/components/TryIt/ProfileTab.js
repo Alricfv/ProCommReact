@@ -25,9 +25,13 @@ const ProfileTab = ({
     >
       <VStack spacing={8} align="stretch" width="100%">
         <Heading 
-          size="lg" 
-          bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-          bgClip="text"
+          size="2xl" 
+          color="#fc6900ff"
+          textShadow={`
+            0 0 8px #fc6900ff,
+            0 0 1px #fc6900ff,
+            0 0 32px #fc690010                            
+          `}
         >
           User Profile
         </Heading>
@@ -40,12 +44,18 @@ const ProfileTab = ({
             border="1px solid rgba(255,255,255,0.05)"
           >
             <VStack spacing={5} align="center">
-              <Icon as={FaUser} boxSize={20} color={accentColor} />
+              <Icon as={FaUser} boxSize={20} color="#fc6900ff" />
               <Heading size="lg" color={textColor}>
                 {username ? username : 'Guest User'}
               </Heading>
-              <Badge colorScheme="purple" fontSize="md" py={1} px={3}>Free Plan</Badge>
-              {/* Auth0 buttons removed. You can add custom login/signup UI here if needed. */}
+              <Badge 
+                colorScheme="purple" 
+                fontSize="md" 
+                py={1} 
+                px={3}
+              >
+                Free Plan
+              </Badge>
             </VStack>
           </Box>
         
@@ -55,8 +65,14 @@ const ProfileTab = ({
             bg="rgba(0,0,0,0.2)"
             border="1px solid rgba(255,255,255,0.05)"
           >
-            <Heading size="md" color={highlightColor} mb={4}>Recent Activity</Heading>
-            
+            <Heading 
+              size="md" 
+              color="#fc6900ff" 
+              mb={4}
+            >
+              Recent Activity
+            </Heading>
+
             {recordingHistory.length > 0 ? (
               <VStack align="start" spacing={4}>
                 <Text color={textColor}>
@@ -82,7 +98,7 @@ const ProfileTab = ({
                 ))}
                 
                 <Button 
-                  colorScheme="blue" 
+                  bg="#fc6900ff" 
                   size="sm" 
                   variant="ghost"
                   alignSelf="center"
@@ -107,8 +123,12 @@ const ProfileTab = ({
             borderRadius="lg"
             border="1px solid rgba(255,255,255,0.05)"
           >
-            <StatLabel>Total Recordings</StatLabel>
-            <StatNumber color={accentColor}>{recordingHistory.length}</StatNumber>
+            <StatLabel>
+              Total Recordings
+            </StatLabel>
+            <StatNumber color="#fc6900ff">
+              {recordingHistory.length}
+            </StatNumber>
           </Stat>
           
           <Stat
@@ -118,7 +138,7 @@ const ProfileTab = ({
             border="1px solid rgba(255,255,255,0.05)"
           >
             <StatLabel>Average Speech Rate</StatLabel>
-            <StatNumber color={accentColor}>
+            <StatNumber color="#fc6900ff">
               {recordingHistory.length > 0 
                 ? Math.round(recordingHistory.reduce((sum, record) => sum + record.analysis.raw_rate, 0) / recordingHistory.length) 
                 : 0} WPM
@@ -131,8 +151,12 @@ const ProfileTab = ({
             borderRadius="lg"
             border="1px solid rgba(255,255,255,0.05)"
           >
-            <StatLabel>User Since</StatLabel>
-            <StatNumber color={accentColor} fontSize="md">Today</StatNumber>
+            <StatLabel>
+              User Since
+            </StatLabel>
+            <StatNumber color="#fc6900ff">
+              Today
+            </StatNumber>
           </Stat>
         </SimpleGrid>
       </VStack>

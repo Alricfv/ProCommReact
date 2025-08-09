@@ -18,7 +18,7 @@ export default function Home() {
 
     return (
         <Box 
-            bg="#16222fff"
+            bg="#091018ff"
             color={textColor}
             minHeight="100vh"
             position="relative"
@@ -90,7 +90,12 @@ export default function Home() {
                         size={headingSize} 
                         fontWeight="extrabold" 
                         marginY="20px" 
-                        color={accentColor}
+                        color="#fc6900ff"      
+                        textShadow={`
+                            0 0 8px #fc6900ff,
+                            0 0 1px #fc6900ff,
+                            0 0 32px #fc690010                            
+                        `}                   
                         letterSpacing="wide"
                         textAlign="center"
                         lineHeight="1.3"
@@ -158,6 +163,11 @@ export default function Home() {
                             textAlign="center" 
                             marginTop={{base:"-20", md:"-20"}}
                             marginBottom={{base: "30px", md:"60px"}} 
+                            textShadow={`
+                            0 0 8px ${secondaryAccent},
+                            0 0 1px ${secondaryAccent},
+                            0 0 1px ${secondaryAccent}
+                            `}
                             color={secondaryAccent}
                             fontWeight="extrabold"
                             lineHeight="1.4"
@@ -294,9 +304,13 @@ export default function Home() {
                         <VStack spacing={8}>
                             <Heading 
                                 textAlign="center"
-                                size="xl"
-                                bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                                bgClip="text"
+                                size="2xl"
+                                color="#fc6900ff"
+                                textShadow={`
+                                    0 0 8px #fc6900ff,
+                                    0 0 1px #fc6900ff,
+                                    0 0 32px #fc690010                            
+                                `}
                             >
                                 Key Benefits
                             </Heading>
@@ -449,6 +463,11 @@ export default function Home() {
                                 bgGradient={`linear-gradient(90deg, ${highlightColor}, #f0abfc)`}
                                 bgClip="text"
                                 lineHeight="1.4"
+                                textShadow={`
+                                    0 0 8px ${highlightColor},
+                                    0 0 1px ${highlightColor},
+                                    0 0 32px ${highlightColor}10
+                            `}
                             >
                                 Transform Your Speaking Skills!
                             </Heading>

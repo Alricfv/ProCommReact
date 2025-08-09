@@ -1507,14 +1507,19 @@ export default function TryIt(props) {
                 display={{ base: "none", md: "block" }}
                 overflowY="auto"
                 boxShadow="2px 0 16px 0 rgba(30,41,59,0.15)"
+                bg="#080116ff"
             >
                 <VStack spacing={8} align="stretch" height="full">
                     <Box py={4}>
                         <Heading 
-                            size="lg" 
+                            size="xl" 
                             textAlign="center" 
-                            bgGradient="linear-gradient(90deg, #38bdf8, #818cf8)"
-                            bgClip="text"
+                            color="#fc6900ff"
+                            textShadow={`
+                                0 0 8px #fc6900ff,
+                                0 0 1px #fc6900ff,
+                                0 0 32px #fc690010                            
+                            `}
                         >
                             ProComm 
                         </Heading>
@@ -1523,13 +1528,13 @@ export default function TryIt(props) {
                     <VStack spacing={2} align="stretch">
                         <Button
                             variant={activeTab === "main" ? "solid" : "ghost"}
-                            colorScheme={activeTab === "main" ? "blue" : "gray"}
+                            bg={activeTab === "main" ? "#fc6900ff" : "transparent"}
                             justifyContent="flex-start"
                             leftIcon={<Icon as={FaMicrophone} color={activeTab === "main" ? undefined : "white"} />}
                             onClick={() => setActiveTab("main")}
                             borderRadius="md"
                             py={6}
-                            _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+                            _hover={{ bg: 'rgba(111, 56, 6, 1)' }}
                             color="white"
                         >
                             Speech Analyzer
@@ -1537,13 +1542,13 @@ export default function TryIt(props) {
                         
                         <Button
                             variant={activeTab === "recordings" ? "solid" : "ghost"}
-                            colorScheme={activeTab === "recordings" ? "blue" : "gray"}
+                            bg={activeTab === "recordings" ? "#fc6900ff" : "transparent"}
                             justifyContent="flex-start"
                             leftIcon={<Icon as={FaHistory} color={activeTab === "recordings" ? undefined : "white"} />}
                             onClick={() => setActiveTab("recordings")}
                             borderRadius="md"
                             py={6}
-                            _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+                            _hover={{ bg: 'rgba(111, 56, 6, 1)' }}
                             color="white"
                         >
                             Recordings
@@ -1551,13 +1556,13 @@ export default function TryIt(props) {
                         
                         <Button
                             variant={activeTab === "about" ? "solid" : "ghost"}
-                            colorScheme={activeTab === "about" ? "blue" : "gray"}
+                            bg={activeTab === "about" ? "#fc6900ff" : "transparent"}
                             justifyContent="flex-start"
                             leftIcon={<Icon as={FaInfoCircle} color={activeTab === "about" ? undefined : "white"} />}
                             onClick={() => setActiveTab("about")}
                             borderRadius="md"
                             py={6}
-                            _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+                            _hover={{ bg: 'rgba(111, 56, 6, 1)' }}
                             color="white"
                         >
                             About
@@ -1565,13 +1570,13 @@ export default function TryIt(props) {
                         
                         <Button
                             variant={activeTab === "settings" ? "solid" : "ghost"}
-                            colorScheme={activeTab === "settings" ? "blue" : "gray"}
+                            bg={activeTab === "settings" ? "#fc6900ff" : "transparent"}
                             justifyContent="flex-start"
                             leftIcon={<Icon as={FaCog} color={activeTab === "settings" ? undefined : "white"} />}
                             onClick={() => setActiveTab("settings")}
                             borderRadius="md"
                             py={6}
-                            _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+                            _hover={{ bg: 'rgba(111, 56, 6, 1)' }}
                             color="white"
                         >
                             Settings
@@ -1579,13 +1584,13 @@ export default function TryIt(props) {
                         
                         <Button
                             variant={activeTab === "profile" ? "solid" : "ghost"}
-                            colorScheme={activeTab === "profile" ? "blue" : "gray"}
+                            bg={activeTab === "profile" ? "#fc6900ff" : "transparent"}
                             justifyContent="flex-start"
                             leftIcon={<Icon as={FaUser} color={activeTab === "profile" ? undefined : "white"} />}
                             onClick={() => setActiveTab("profile")}
                             borderRadius="md"
                             py={6}
-                            _hover={{ bg: 'rgba(255, 255, 255, 0.1)' }}
+                            _hover={{ bg: 'rgba(111, 56, 6, 1)' }}
                             color="white"
                         >
                             Profile
@@ -1733,6 +1738,7 @@ export default function TryIt(props) {
                 overflow="auto"
                 position="relative"
                 height="100%"
+                bg="#091018ff"
                 
             >
                 {activeTab === "main" ? (
@@ -1793,7 +1799,7 @@ export default function TryIt(props) {
                                 <FormControl w="60%">                                    
                                     <FormLabel color={textColor}>
                                         <HStack>
-                                            <Icon as={FaClock} color={accentColor} />
+                                            <Icon as={FaClock} color="#fc6900ff" />
                                             <Text>Recording Duration</Text>
                                         </HStack>
                                     </FormLabel>
@@ -1815,6 +1821,7 @@ export default function TryIt(props) {
                                             </NumberInputStepper>
                                         </NumberInput>                                        
                                         <Select 
+                                            fontWeight="bold"
                                             value={durationUnit} 
                                             onChange={handleDurationUnitChange}
                                             w="120px"
@@ -1823,8 +1830,18 @@ export default function TryIt(props) {
                                             borderColor="rgba(255,255,255,0.1)"
                                             textColor={textColor}
                                         >
-                                            <option value="seconds">Seconds</option>
-                                            <option value="minutes">Minutes</option>
+                                            <option 
+                                                value="seconds" 
+                                                style = {{color: "#fc6900ff", background: "#091018ff", fontWeight:"bold"}}
+                                            >
+                                                Seconds
+                                            </option>
+                                            <option 
+                                                value="minutes" 
+                                                style = {{color: "#fc6900ff", background: "#091018ff", fontWeight:"bold" }}
+                                            >
+                                                Minutes
+                                            </option>
                                         </Select>
                                     </HStack>
                                     <Text fontSize="xs" color="#999" mt={1}>

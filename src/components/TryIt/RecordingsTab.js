@@ -51,7 +51,7 @@ const RecordingsTab = ({
           color="#fc6900ff"
           textShadow={`
              0 0 8px #fc6900ff,
-             0 0 2px #fc6900ff,
+             0 0 1px #fc6900ff,
              0 0 32px #fc690010
                                 
             `}

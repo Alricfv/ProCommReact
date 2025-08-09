@@ -45,9 +45,13 @@ const SettingsTab = ({
   >
     <VStack spacing={8} align="start" width="100%">
       <Heading 
-        size="lg" 
-        bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-        bgClip="text"
+        size="2xl"
+        textShadow={`
+          0 0 8px #fc6900ff,
+          0 0 1px #fc6900ff,
+          0 0 32px #fc690010                            
+        `}
+        color="#fc6900ff"
       >
         Settings
       </Heading>
@@ -60,7 +64,7 @@ const SettingsTab = ({
           border="1px solid rgba(255,255,255,0.05)"
         >
           <HStack mb={4}>
-            <Icon as={FaClock} color={accentColor} boxSize={5} />
+            <Icon as={FaClock} color="#fc6900ff" boxSize={5} />
             <Heading size="md" color={textColor}>Recording Settings</Heading>
           </HStack>
           
@@ -123,7 +127,7 @@ const SettingsTab = ({
             <Switch 
               isChecked={enableVAD} 
               onChange={(e) => setEnableVAD(e.target.checked)}
-              colorScheme="blue"
+              colorScheme="orange"
             />
             <Text fontSize="xs" color={`${textColor}60`} mt={1}>
               Enhances speech analysis by detecting actual speaking time
@@ -138,6 +142,7 @@ const SettingsTab = ({
                   <Text fontSize="sm" color={`${textColor}80`}>Low</Text>
                   <Slider
                     value={vadThreshold}
+                    colorScheme="orange"
                     min={5}
                     max={30}
                     step={1}
@@ -145,9 +150,9 @@ const SettingsTab = ({
                     flex="1"
                   >
                     <SliderTrack bg="rgba(0,0,0,0.3)">
-                      <SliderFilledTrack bg={accentColor} />
+                      <SliderFilledTrack bg="#fc6900ff" />
                     </SliderTrack>
-                    <SliderThumb boxSize={4} bg={accentColor} />
+                    <SliderThumb boxSize={4} bg="#fc6900ff" />
                   </Slider>
                   <Text fontSize="sm" color={`${textColor}80`}>High</Text>
                 </HStack>
@@ -155,30 +160,9 @@ const SettingsTab = ({
                   Adjust if voice detection is too sensitive or not sensitive enough
                 </Text>
               </FormControl>
-              
-              <FormControl>
-                <FormLabel color={textColor}>Auto-Stop After Silence</FormLabel>
-                <Select 
-                  value={silenceThreshold}
-                  onChange={(e) => setSilenceThreshold(Number(e.target.value))}
-                  bg="rgba(0,0,0,0.2)"
-                  borderColor="rgba(255,255,255,0.1)"
-                  color={textColor}
-                >
-                  <option value={1000}>1 second</option>
-                  <option value={2000}>2 seconds</option>
-                  <option value={3000}>3 seconds</option>
-                  <option value={5000}>5 seconds</option>
-                  <option value={0}>Disabled</option>
-                </Select>
-                <Text fontSize="xs" color={`${textColor}60`} mt={1}>
-                  Automatically stops recording after extended silence
-                </Text>
-              </FormControl>
             </>
           )}
         </Box>
-        
         <Box 
           p={6}
           borderRadius="lg"
