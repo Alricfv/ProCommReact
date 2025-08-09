@@ -25,5 +25,26 @@ const AudioWaveForm = ({
         }
 
         const audioUrl = URL.createObjectURL(audioBlob);
+
+        const wavesurfer = WaveSurfer.create({
+            container: waveformRef.current,
+            waveColor: waveColor,
+            progressColor: progressColor,
+            cursorColor: 'transparent',
+            height: height,
+            normalize: true,
+            responsive: true,
+            plugins: [
+                RegionsPlugin.create()
+            ]
+        });
+
+        wavesurferRef.current = wavesurfer;
+        wavesurfer.load(audioUrl);
+
+        wavesurfer.on('ready', () => {
+            setIsReady(true);
+            setDuration(wavesurfer.getDuration());
+        })
     })
 }
