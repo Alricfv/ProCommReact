@@ -1,4 +1,4 @@
-### ProComm 
+# ProComm 
 
  Welcome to ProComm (stands for Professional Communication). It's a cool web app which anyone can use to improve their speech or public speaking skills! If you want to test it, access it through the "try it out!" button on the navbar, if you're a regular user you might want to sign up/login as you can then have a record of some of your past speeches (limited storage only though)
 

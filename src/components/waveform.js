@@ -45,6 +45,67 @@ const AudioWaveForm = ({
         wavesurfer.on('ready', () => {
             setIsReady(true);
             setDuration(wavesurfer.getDuration());
-        })
-    })
+
+            if (pauseAnalysis.pause_segments){
+                pauseAnalysis.pause_segments.forEach((pause, index) => {
+                    if (pause.start < pause.end && pause.duration > 0.3){
+                        wavesurfer.addRegion({
+                            id: 'pause-' + index,
+                            start: pause.start,
+                            end: pause.end,
+                            color: pauseColor,
+                            drag: false,
+                            resize: false
+                        });
+                    }
+                });
+            }
+        });
+
+        return() => {
+            wavesurfer.destroy();
+            URL.revokeObjectURL(audioUrl);
+        };
+    }, [audioBlob, pauseAnalysis, height, waveColor, progressColor, pauseColor]);
+
+    return (
+        <Box width = "100%">
+            <Box
+                ref={waveformRef}
+                width="100%"
+                bg="rgba(0,0,0,0.2)"
+                borderRadius="lg"
+                p={2}
+            />
+
+            {isReady && pauseAnalysis.total_pauses > 0 && (
+                <Flex
+                    justifyContent="space-between" 
+                    mt={1}
+                    fontSize="xs"
+                >
+                    <Text color="gray.400">
+                        Total Pauses: {pauseAnalysis.total_pauses}
+                    </Text>
+                    <Text color="gray.400">
+                        Speaking Duration: {Math.round(pauseAnalysis.speaking_time)}
+                    </Text>
+                    <Text color="gray.400">
+                        Silence Duration: {Math.round(pauseAnalysis.silence_time)}s
+                    </Text>
+                </Flex>
+            )}
+
+            {isReady && duration > 0 && (
+                <Flex
+                    justifyContent="space-between"
+                    mt={1}
+                >
+                
+
+                </Flex>
+            )}
+
+        </Box>
+    )
 }
