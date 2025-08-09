@@ -1997,7 +1997,63 @@ export default function TryIt(props) {
                     </Box>
 
                     {analysis && (
-                        <>                            
+                        <>
+                            {pitchData && (
+                                <Box
+                                    bg={cardBg}
+                                    p={4}
+                                    width="800px"
+                                    borderRadius="lg"
+                                    border="1px solid rgba(255, 255, 255, 0.1)"
+                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                    transition="all 0.3s ease"
+                                    _hover={{
+                                        transform: "translateY(-2px)",
+                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                    }}
+                                    position="relative"
+                                    overflow="hidden"
+                                    mt={4}
+                                    mb={4}
+                                >
+                                    <Heading
+                                        size="lg" 
+                                        color={accentColor}
+                                        mb={2}
+                                    >
+                                        Pitch Analysis
+                                    </Heading>
+                                    <Text
+                                        color={textColor}
+                                        fontSize="18px"
+                                        mb={2}
+                                    >
+                                        {(() => {
+                                            if (pitchData){
+                                                console.log("Pitch Analysis Debug:",
+                                                "mean_pitch:", pitchData.mean_pitch,
+                                                "std_pitch:", pitchData.std_pitch,
+                                                "expressiveness:", pitchData.expressiveness
+                                                );
+                                            }
+                                            if (pitchData.mean_pitch < 50){
+                                                return "Try recording in a peaceful environment"
+                                            }
+                                            
+                                            if(pitchData.expressiveness <= 0.03){
+                                                return "Too monotonous! Implement more voice variation in your speech to make it more expressive.";
+                                            }
+                                            else if (pitchData.expressiveness > 0.08){
+                                                return "Alright you're trying too hard with your voice variation, relax and find a natural flow.";
+                                            }
+                                            else {
+                                                return "Pitch is well-balanced, keep up the good work!";
+                                            }
+                                        })()}
+                                    </Text>
+                                </Box>
+                            )}
+
                             <SimpleGrid 
                                 columns={{ base: 1, md: 2, lg:  3 }} 
                                 spacing={6} 
@@ -2204,60 +2260,7 @@ export default function TryIt(props) {
                             </SimpleGrid>
 
                             {/* Pitch Analysis*/}
-                            {pitchData && (
-                                <Box
-                                    bg={cardBg}
-                                    p={4}
-                                    borderRadius="lg"
-                                    border="1px solid rgba(255, 255, 255, 0.1)"
-                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
-                                    transition="all 0.3s ease"
-                                    _hover={{
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
-                                    }}
-                                    position="relative"
-                                    overflow="hidden"
-                                    mt={4}
-                                >
-                                    <Heading
-                                        size="sm" 
-                                        color={accentColor}
-                                        mb={2}
-                                    >
-                                        Pitch Analysis
-                                    </Heading>
-                                    <Text
-                                        color={textColor}
-                                        fontSize="sm"
-                                        mb={2}
-                                    >
-                                        {(() => {
-                                            if (pitchData){
-                                                console.log("Pitch Analysis Debug:",
-                                                "mean_pitch:", pitchData.mean_pitch,
-                                                "std_pitch:", pitchData.std_pitch,
-                                                "expressiveness:", pitchData.expressiveness
-                                                );
-                                            }
-                                            if (pitchData.mean_pitch < 50){
-                                                return "Try recording in a peaceful environment"
-                                            }
-                                            
-                                            if(pitchData.expressiveness <= 0.15){
-                                                return "Low pitch variation, try to add more voice variation for better delivery.";
-                                            }
-                                            else if (pitchData.expressiveness > 0.40){
-                                                return "Too much pitch variation, your voice seems erratic in this session"
-                                            }
-                                            else if (pitchData.expressiveness > 0.15 && pitchData.expressiveness <= 0.40){
-                                                return "Pitch is well-balanced, keep up the good work!"
-                                            }
-                                        })()}
-                                    </Text>
-
-                                </Box>
-                            )}
+                            
                                                         
                             
                             {/* Filler Word Analysis */}

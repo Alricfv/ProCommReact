@@ -271,10 +271,22 @@ def analyze_pitch(audio_data, sample_rate=16000):
 
         smoothed = scipy.signal.medfilt(pitch_values, kernel_size = 5)
         #Filtering the 0Hz values for the statistics (else statement is so that there's no NaN values
-        voiced = smoothed[(smoothed > 60) & (smoothed < 500)]
-        mean_pitch = float(np.mean(voiced)) if len(voiced) > 0 else 0.0
-        std_pitch = float(np.std(voiced)) if len(voiced) > 0 else 0.0
-        expressiveness = float(std_pitch / mean_pitch) if mean_pitch > 0 else 0.0
+        voiced = smoothed[(smoothed > 75) & (smoothed < 450)]
+
+        if len(voiced) > 10:
+            voiced_sorted = np.sort(voiced)
+
+            #Separating the outliers here
+            pitch_5th = voiced_sorted[int(len(voiced_sorted) * 0.05)]
+            pitch_95th = voiced_sorted[int(len(voiced_sorted) * 0.95)]
+
+            mean_pitch = float(np.mean(voiced_sorted))
+            std_pitch = float(np.std(voiced_sorted))
+
+            pitch_range = float(pitch_95th - pitch_5th)
+            
+            #Now this here, is what we call. NORMALIZED RAAAANGEEEE
+            expressiveness = (float(pitch_range / mean_pitch))/20
 
         return {
             "times": times.tolist(),
