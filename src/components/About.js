@@ -344,7 +344,8 @@ function About() {
                         >
                             <Heading 
                                 textAlign="center"
-                                size="xl"
+                                size="2xl"
+                                color="#fc6900ff"
                                 textShadow={`
                                     0 0 8px #fc6900ff,
                                     0 0 1px #fc6900ff,
@@ -460,8 +461,12 @@ function About() {
                         <VStack spacing={6} position="relative" zIndex="1">
                             <Heading 
                                 size="2xl" 
-                                bgGradient={`linear-gradient(90deg, ${highlightColor}, #f0abfc)`}
-                                bgClip="text"
+                                color={highlightColor}
+                                textShadow={`
+                                    0 0 8px ${highlightColor},
+                                    0 0 1px ${highlightColor},
+                                    0 0 32px ${highlightColor}10
+                                `}
                                 fontWeight="bold"
                             >
                                 Let's Transform Your Communication Skills!
@@ -503,10 +508,14 @@ function About() {
                     >
                         <Heading 
                             size={headingSize}
-                            bgGradient={`linear-gradient(90deg, ${tertiaryAccent}, ${accentColor})`}
-                            bgClip="text"
+                            color={highlightColor}
                             marginBottom="40px"
                             fontWeight="extrabold"
+                            textShadow={`
+                                0 0 8px ${highlightColor},
+                                0 0 1px ${highlightColor},
+                                0 0 32px ${highlightColor}10
+                            `}
                         >
                             Our Team
                         </Heading>

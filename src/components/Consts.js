@@ -76,13 +76,13 @@ export function NavBar(){
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <Icon as={FaMicrophone} color={accentColor} w={5} h={5} />
+                    <Icon as={FaMicrophone} color="#fc6900ff" w={5} h={5} />
                 </Circle>
                 <Heading
-                    size="lg"
-                    bgGradient={`linear-gradient(90deg, ${accentColor}, ${tertiaryAccent})`}
-                    bgClip="text"
+                    size="xl"
+                    color= "#fc6900ff"
                     fontWeight="extrabold"
+                   
                 >
                     ProComm
                 </Heading>
@@ -91,7 +91,7 @@ export function NavBar(){
                 <Link as={RouterLink} to="/">
                     <Button
                         variant="ghost"
-                        _hover={{bg: 'rgba(56, 189, 248, 0.2'}}
+                        _hover={{bg: "#000000"}}
                         color={textColor}
                     >
                         Home
@@ -100,7 +100,7 @@ export function NavBar(){
                 <Link as={RouterLink} to="/about">
                     <Button
                         variant="ghost"
-                        _hover={{bg: 'rgba(56, 189, 248, 0.2'}}
+                        _hover={{bg: '#000000'}}
                         color={textColor}
                     >
                         About
@@ -108,10 +108,15 @@ export function NavBar(){
                 </Link>
                 <Link as={RouterLink} to="/try-it">
                     <Button
-                        bg={accentColor}
-                        _hover={{bg: '#0ea5e9'}}
+                        textColor={textColor}
+                        bg="#fc6900ff"
+                        _hover={{bg: '#000000'}}
                         size="md"
-                        boxShadow="0 4px 12px rgba(56, 189, 248, 0.4)"
+                        boxShadow={`
+                            0 0 8px #fc6900ff,
+                            0 0 1px #fc6900ff,
+                            0 0 32px #fc690010
+                        `}
                     >
                         Try it Out!
                     </Button>
@@ -119,9 +124,9 @@ export function NavBar(){
                 <Link as={RouterLink} to="/login-page">
                     <Button
                         variant="outline"
-                        color={accentColor}
-                        borderColor={accentColor}
-                        _hover={{bg: accentColor, color: "#fff"}}
+                        color="#fc6900ff"
+                        borderColor="#fc6900ff"
+                        _hover={{bg: "#000000"}}
                         ml={2}
                     >
                         Login / Register
