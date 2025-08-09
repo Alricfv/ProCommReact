@@ -2243,17 +2243,16 @@ export default function TryIt(props) {
                                             if (pitchData.mean_pitch < 50){
                                                 return "Try recording in a peaceful environment"
                                             }
-                                            let feedback="";
-                                            if(pitchData.expressiveness < 0.15){
-                                                feedback= "Low pitch variation, try to add more voice variation for better delivery.";
+                                            
+                                            if(pitchData.expressiveness <= 0.15){
+                                                return "Low pitch variation, try to add more voice variation for better delivery.";
                                             }
-                                            else if (pitchData.expressiveness > 0.35){
-                                                feedback= "Too much pitch variation, your voice seems erratic in this session"
+                                            else if (pitchData.expressiveness > 0.40){
+                                                return "Too much pitch variation, your voice seems erratic in this session"
                                             }
-                                            else if (pitchData.expressiveness > 0.15 && pitchData.expressiveness <= 0.35){
-                                                feedback= "Pitch is well-balanced, keep up the good work!"
+                                            else if (pitchData.expressiveness > 0.15 && pitchData.expressiveness <= 0.40){
+                                                return "Pitch is well-balanced, keep up the good work!"
                                             }
-                                            return feedback;
                                         })()}
                                     </Text>
 

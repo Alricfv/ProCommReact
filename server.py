@@ -13,10 +13,9 @@ from transformers import pipeline
 import whisper # type: ignore
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import webrtcvad
-import collections
-import contextlib
 import wave
 import parselmouth
+import soundfile as sf
 
 # Configure logging to also output to the terminal
 logging.basicConfig(
@@ -258,19 +257,21 @@ def calculate_confidence_from_audio(audio_data):
 
 def analyze_pitch(audio_data, sample_rate=16000):
     """Extracting pitch contour and pitch variation metrics using parselmouth"""
+    import scipy.signal
 
     with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
-        temp_wav.write(audio_data)
+        sf.write(temp_wav, np.frombuffer(audio_data, dtype=np.int16), sample_rate)
         temp_path = temp_wav.name
 
     try:
         snd = parselmouth.Sound(temp_path)
-        pitch = snd.to_pitch()
+        pitch = snd.to_pitch(time_step=0.01, pitch_floor=60, pitch_ceiling=500)
         pitch_values = pitch.selected_array['frequency']
         times = pitch.xs()
 
-        #Filtering the 0Hz values for the statistics (else statement is so that there's no NaN values)
-        voiced = pitch_values[pitch_values > 0]
+        smoothed = scipy.signal.medfilt(pitch_values, kernel_size = 5)
+        #Filtering the 0Hz values for the statistics (else statement is so that there's no NaN values
+        voiced = smoothed[(smoothed > 60) & (smoothed < 500)]
         mean_pitch = float(np.mean(voiced)) if len(voiced) > 0 else 0.0
         std_pitch = float(np.std(voiced)) if len(voiced) > 0 else 0.0
         expressiveness = float(std_pitch / mean_pitch) if mean_pitch > 0 else 0.0
