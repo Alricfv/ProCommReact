@@ -259,25 +259,31 @@ def calculate_confidence_from_audio(audio_data):
 def analyze_pitch(audio_data, sample_rate=16000):
     """Extracting pitch contour and pitch variation metrics using parselmouth"""
 
-    #Loading audio from bytes
-    snd = parselmouth.Sound(io.BytesIO(audio_data))
-    pitch = snd.to_pitch()
-    pitch_values = pitch.selected_array['frequency']
-    times = pitch.xs()
+    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as temp_wav:
+        temp_wav.write(audio_data)
+        temp_path = temp_wav.name
 
-    #Filtering the 0Hz values for the statistics (else statement is so that there's no NaN values)
-    voiced = pitch_values[pitch_values > 0]
-    mean_pitch = float(np.mean(voiced)) if len(voiced) > 0 else 0.0
-    std_pitch = float(np.std(voiced)) if len(voiced) > 0 else 0.0
-    expressiveness = float(std_pitch / mean_pitch) if mean_pitch > 0 else 0.0
+    try:
+        snd = parselmouth.Sound(temp_path)
+        pitch = snd.to_pitch()
+        pitch_values = pitch.selected_array['frequency']
+        times = pitch.xs()
 
-    return {
-        "times": times.tolist(),
-        "pitch_values": pitch_values.tolist(),
-        "mean_pitch": mean_pitch,
-        "std_pitch": std_pitch,
-        "expressiveness": expressiveness
-    }
+        #Filtering the 0Hz values for the statistics (else statement is so that there's no NaN values)
+        voiced = pitch_values[pitch_values > 0]
+        mean_pitch = float(np.mean(voiced)) if len(voiced) > 0 else 0.0
+        std_pitch = float(np.std(voiced)) if len(voiced) > 0 else 0.0
+        expressiveness = float(std_pitch / mean_pitch) if mean_pitch > 0 else 0.0
+
+        return {
+            "times": times.tolist(),
+            "pitch_values": pitch_values.tolist(),
+            "mean_pitch": mean_pitch,
+            "std_pitch": std_pitch,
+            "expressiveness": expressiveness
+        }
+    finally:
+        os.unlink(temp_path)
 
 def detect_speech_pauses_webrtcvad(audio_data, sample_rate=16000, frame_duration_ms=30, aggressiveness=2):
     """Detecting pauses in speech using the webrtcvad library (improved VAD detection)."""
