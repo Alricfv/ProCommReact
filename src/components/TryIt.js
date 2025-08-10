@@ -14,6 +14,7 @@ import SettingsTab from './TryIt/SettingsTab';
 import ProfileTab from './TryIt/ProfileTab';
 import RecordingsTab from './TryIt/RecordingsTab';
 import { data, useNavigate } from 'react-router-dom';
+import AudioWaveform from './waveform';
 
 
 function createAudioUrl(audioBlob) {
@@ -1997,7 +1998,41 @@ export default function TryIt(props) {
                     </Box>
 
                     {analysis && (
-                        <>
+                        <>  
+                            <Box
+                                bg={cardBg}
+                                p={4}
+                                width="800px"
+                                borderRadius ="lg"
+                                border="1px solid rgba(255, 255, 255, 0.1)"
+                                boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
+                                transition="all 0.3s ease"
+                                _hover= {{
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
+                                }}
+                                position="relative"
+                                overflow="hidden"
+                                mt={4}
+                                
+                            >
+                                <Heading
+                                    size = "md"
+                                    color = {accentColor}
+                                    mb = {3}
+                                >
+                                    Volume n Pauses!
+                                </Heading>
+                                <AudioWaveform 
+                                    audioBlob={currentAudioBlob}
+                                    pauseAnalysis={pauseAnalysis}
+                                    height={120}
+                                    waveColor={highlightColor}
+                                    progressColor="#fc6900ff"
+                                    pauseColor="rgba(252, 105, 0, 0.3)"
+                                />
+                            </Box>
+
                             {pitchData && (
                                 <Box
                                     bg={cardBg}

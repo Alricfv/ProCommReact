@@ -11,7 +11,7 @@ import {
 } from 'react-icons/fa';
 
 import {
-    bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
+    accentColor, textColor, highlightColor, secondaryAccent,
     tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar, MobileHamburgerMenu
 } from './Consts.js';
 

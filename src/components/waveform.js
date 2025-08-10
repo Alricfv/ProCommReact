@@ -1,12 +1,11 @@
-import React, {useRef, useEffect, useState} from "react";
+import {useRef, useEffect, useState} from "react";
 import WaveSurfer from "wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugin/wavesurfer.regions.min.js";
+import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
 import {Box, Text, Flex} from "@chakra-ui/react";
 
-const AudioWaveForm = ({
+const AudioWaveform = ({
     audioBlob,
     pauseAnalysis,
-    accentColor="#fc6900ff",
     height = 100,
     waveColor = "#8884d8",
     progressColor = "#fc6900ff",
@@ -18,12 +17,13 @@ const AudioWaveForm = ({
     const [duration, setDuration] = useState(0);
 
     useEffect(() => {
-        if (!audioblog || !waveformRef.current) return;
+        if (!audioBlob || !waveformRef.current) return;
 
         if (wavesurferRef.current){
             wavesurferRef.current.destroy();
         }
 
+        //the creation, initialization and load events are all here
         const audioUrl = URL.createObjectURL(audioBlob);
 
         const wavesurfer = WaveSurfer.create({
@@ -42,6 +42,7 @@ const AudioWaveForm = ({
         wavesurferRef.current = wavesurfer;
         wavesurfer.load(audioUrl);
 
+        //waveform handler
         wavesurfer.on('ready', () => {
             setIsReady(true);
             setDuration(wavesurfer.getDuration());
@@ -61,13 +62,17 @@ const AudioWaveForm = ({
                 });
             }
         });
-
+        //Cleaning up the stuff
         return() => {
-            wavesurfer.destroy();
+            if(wavesurferRef.current){
+                wavesurferRef.current.destroy();
+                wavesurferRef.current = null;
+            }
             URL.revokeObjectURL(audioUrl);
         };
     }, [audioBlob, pauseAnalysis, height, waveColor, progressColor, pauseColor]);
 
+    //UI
     return (
         <Box width = "100%">
             <Box
@@ -78,20 +83,20 @@ const AudioWaveForm = ({
                 p={2}
             />
 
-            {isReady && pauseAnalysis.total_pauses > 0 && (
+            {isReady && pauseAnalysis.total > 0 && (
                 <Flex
                     justifyContent="space-between" 
                     mt={1}
                     fontSize="xs"
                 >
                     <Text color="gray.400">
-                        Total Pauses: {pauseAnalysis.total_pauses}
+                        Total Pauses: {pauseAnalysis.total}
                     </Text>
                     <Text color="gray.400">
-                        Speaking Duration: {Math.round(pauseAnalysis.speaking_time)}
+                        Speaking Duration: {Math.round(pauseAnalysis.speakingTime)}s
                     </Text>
                     <Text color="gray.400">
-                        Silence Duration: {Math.round(pauseAnalysis.silence_time)}s
+                        Silence Duration: {Math.round(pauseAnalysis.silenceTime)}s
                     </Text>
                 </Flex>
             )}
@@ -101,11 +106,16 @@ const AudioWaveForm = ({
                     justifyContent="space-between"
                     mt={1}
                 >
-                
-
+                    <Text fontSize ="xs" color="gray.500">
+                        0:00
+                    </Text>
+                    <Text fontSize ="xs" color="gray.500">
+                        {Math.floor(duration/60)}:{String(Math.floor(duration % 60)).padStart(2, '0')}
+                    </Text>
                 </Flex>
             )}
-
         </Box>
-    )
-}
+    );
+};
+
+export default AudioWaveform;

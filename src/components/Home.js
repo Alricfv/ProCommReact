@@ -1,7 +1,6 @@
 import { 
     Box, Flex, Heading, Text, Button, VStack, HStack, Image, 
-    Container, SimpleGrid, Icon, Circle, Divider, useBreakpointValue,
-    Badge
+    Container, SimpleGrid, Icon, Circle, Divider, useBreakpointValue
 } from '@chakra-ui/react';
 
 import { Link } from 'react-router-dom';
@@ -9,8 +8,8 @@ import { Link } from 'react-router-dom';
 import { FaMicrophone, FaChartLine, FaComments, FaCheck, FaRocket} from 'react-icons/fa';
 
 import {
-    bgGradient, accentColor, textColor, highlightColor, secondaryAccent,
-    tertiaryAccent, cardBoxStyles, featureBoxStyles, teamCardStyles, NavBar, MobileHamburgerMenu
+     accentColor, textColor, highlightColor, secondaryAccent,
+    tertiaryAccent, cardBoxStyles, NavBar, MobileHamburgerMenu
 } from './Consts.js';
 
 export default function Home() {
