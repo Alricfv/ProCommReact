@@ -1,7 +1,8 @@
 import {useRef, useEffect, useState} from "react";
 import WaveSurfer from "wavesurfer.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
-import {Box, Text, Flex} from "@chakra-ui/react";
+import {Box, Text, Flex, IconButton} from "@chakra-ui/react";
+import {FaPlay, FaPause} from "react-icons/fa"
 
 const AudioWaveform = ({
     audioBlob,
@@ -15,6 +16,7 @@ const AudioWaveform = ({
     const wavesurferRef = useRef(null);
     const [isReady, setIsReady] = useState(false);
     const [duration, setDuration] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     useEffect(() => {
         if (!audioBlob || !waveformRef.current) return;
@@ -62,15 +64,31 @@ const AudioWaveform = ({
                 });
             }
         });
+
+        wavesurfer.on('play', () => setIsPlaying(true));
+        wavesurfer.on('pause', () => setIsPlaying(false));
+        wavesurfer.on('finish', () => setIsPlaying(false));
         //Cleaning up the stuff
         return() => {
             if(wavesurferRef.current){
-                wavesurferRef.current.destroy();
+                try{
+                    wavesurferRef.current.destroy();
+                }catch(e){
+                    if (e.name !== "AbortError"){
+                        console.error("WaveSurfer destroy error (known issue):, e");
+                    }
+                }
                 wavesurferRef.current = null;
             }
             URL.revokeObjectURL(audioUrl);
         };
     }, [audioBlob, pauseAnalysis, height, waveColor, progressColor, pauseColor]);
+
+    const handlePlayPause = () => {
+        if (wavesurferRef.current){
+            wavesurferRef.current.playPause();
+        }
+    };
 
     //UI
     return (
@@ -81,7 +99,25 @@ const AudioWaveform = ({
                 bg="rgba(0,0,0,0.2)"
                 borderRadius="lg"
                 p={2}
+                cursor="pointer"
+                onClick={handlePlayPause}
             />
+            <Flex alignItems="center" mt={2} mb={1}>
+                <IconButton 
+                aria-label={isPlaying ? "Pause" : "Play"}
+                icon = {isPlaying ? <FaPause /> : <FaPlay />}
+                onClick={handlePlayPause}
+                size="sm"
+                mr={2}
+                colorScheme="orange"
+                isDisabled={!isReady}
+                />
+                {isReady && (
+                    <Text fontSize="sm" color="gray.400">
+                        {isPlaying ? "Playing..." : "Paused"}
+                    </Text>
+                )}
+            </Flex>
 
             {isReady && pauseAnalysis.total > 0 && (
                 <Flex
