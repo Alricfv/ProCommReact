@@ -10,7 +10,7 @@ const AudioWaveform = ({
     height = 100,
     waveColor = "#8884d8",
     progressColor = "#fc6900ff",
-    pauseColor = "rgba(237, 100, 166, 0.3)"
+    pauseColor = "red"
 }) => {
     const waveformRef = useRef(null);
     const wavesurferRef = useRef(null);
@@ -49,10 +49,14 @@ const AudioWaveform = ({
             setIsReady(true);
             setDuration(wavesurfer.getDuration());
 
-            if (pauseAnalysis.pause_segments){
+            console.log("pauseAnalysis.pause_segments:", pauseAnalysis && pauseAnalysis.pause_segments)
+
+            if (pauseAnalysis && pauseAnalysis.pause_segments){
+                
+                const regionsPlugin= wavesurfer.getActivePlugins().regions;
                 pauseAnalysis.pause_segments.forEach((pause, index) => {
                     if (pause.start < pause.end && pause.duration > 0.3){
-                        wavesurfer.addRegion({
+                        regionsPlugin.addRegion({
                             id: 'pause-' + index,
                             start: pause.start,
                             end: pause.end,
@@ -75,7 +79,7 @@ const AudioWaveform = ({
                     wavesurferRef.current.destroy();
                 }catch(e){
                     if (e.name !== "AbortError"){
-                        console.error("WaveSurfer destroy error (known issue):, e");
+                        console.error("WaveSurfer destroy error (known issue):", e);
                     }
                 }
                 wavesurferRef.current = null;

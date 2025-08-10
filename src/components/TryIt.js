@@ -1253,6 +1253,8 @@ export default function TryIt(props) {
                             silenceTime: data.speech_pauses?.silence_time || 0,
                             totalDuration: data.speech_pauses?.total_duration || 0,
                             pauses: data.pauses?.total_pauses|| [],
+                            pause_percentage: data.speech_pauses?.pause_percentage || 0,
+                            pause_segments: data.pauses?.pause_segments || []
                         });
                     }
 
