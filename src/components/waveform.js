@@ -1,6 +1,6 @@
 import {useRef, useEffect, useState} from "react";
 import WaveSurfer from "wavesurfer.js";
-import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.js";
+import RegionsPlugin from "wavesurfer.js/plugins/regions";
 import {Box, Text, Flex, IconButton} from "@chakra-ui/react";
 import {FaPlay, FaPause} from "react-icons/fa"
 
@@ -49,24 +49,26 @@ const AudioWaveform = ({
             setIsReady(true);
             setDuration(wavesurfer.getDuration());
 
-            console.log("pauseAnalysis.pause_segments:", pauseAnalysis && pauseAnalysis.pause_segments)
+            console.log("Regions Plugin:", wavesurfer.plugins);
+            setTimeout(() => {
 
-            if (pauseAnalysis && pauseAnalysis.pause_segments){
-                
-                const regionsPlugin= wavesurfer.getActivePlugins().regions;
-                pauseAnalysis.pause_segments.forEach((pause, index) => {
-                    if (pause.start < pause.end && pause.duration > 0.3){
-                        regionsPlugin.addRegion({
-                            id: 'pause-' + index,
-                            start: pause.start,
-                            end: pause.end,
-                            color: pauseColor,
-                            drag: false,
-                            resize: false
-                        });
-                    }
-                });
-            }
+                const regions = wavesurfer.plugins.find(plugin => typeof plugin.addRegion === "function");
+                if (pauseAnalysis && pauseAnalysis.pause_segments){
+                   pauseAnalysis.pause_segments.forEach((pause, index) => {
+                        if (pause.start < pause.end && pause.duration > 0.3){
+                            regions.addRegion({
+                                id: 'pause-' + index,
+                                start: pause.start,
+                                end: pause.end,
+                                color: pauseColor,
+                                drag: false,
+                                resize: false
+                            });
+                        }
+                    
+                    });
+                }
+            }, 50);
         });
 
         wavesurfer.on('play', () => setIsPlaying(true));
