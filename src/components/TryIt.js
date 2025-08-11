@@ -2026,6 +2026,7 @@ export default function TryIt(props) {
                                     Volume n Pauses!
                                 </Heading>
                                 <AudioWaveform 
+                                    key={currentAudioUrl || "no-audio"}
                                     audioBlob={currentAudioBlob}
                                     pauseAnalysis={pauseAnalysis}
                                     height={120}
@@ -2090,6 +2091,8 @@ export default function TryIt(props) {
                                     </Text>
                                 </Box>
                             )}
+
+                            {/* im gonna update the speech rate analysis here :3 */}
 
                             <SimpleGrid 
                                 columns={{ base: 1, md: 2, lg:  3 }} 
@@ -2482,47 +2485,6 @@ export default function TryIt(props) {
                                     </Tooltip>
                                 </HStack>
                                 
-                                {/* Speech Rate Gauge */}
-                                <Box my={4}>
-                                    <Text color={textColor} fontSize="sm" mb={2}>Speech Rate Range:</Text>
-                                    <HStack width="100%" height="35px" position="relative" mb={3}>
-                                        {/* Gauge Background */}
-                                        <Box flex={1} height="100%" bg="rgba(0,0,0,0.3)" borderRadius="full" position="relative" overflow="hidden" borderWidth="1px" borderColor="rgba(255,255,255,0.05)">                                            {/* Rate Range Zones - Adjusted to match speech rate quality ranges */}
-                                            <HStack height="100%" width="100%" spacing={0}>
-                                                <Box width="44%" bg={`${highlightColor}50`} height="100%" /> {/* 0-110 WPM (Slow) */}
-                                                <Box width="16%" bg={`${secondaryAccent}50`} height="100%" /> {/* 110-150 WPM (Ideal) */}
-                                                <Box width="12%" bg={`${accentColor}50`} height="100%" /> {/* 150-180 WPM (Fast) */}
-                                                <Box width="28%" bg={`${tertiaryAccent}50`} height="100%" /> {/* 180-250 WPM (Very Fast) */}
-                                            </HStack>
-                                              {/* Position Indicator */}                                            <Flex
-                                                position="absolute" 
-                                                left={`${Math.min(Math.max((analysis.raw_rate * 100) / 250, 0), 100)}%`} 
-                                                top="0" 
-                                                height="100%" 
-                                                width="4px"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                            >
-                                                <Box 
-                                                    width="6px" 
-                                                    height="110%" 
-                                                    bgGradient={`linear-gradient(to bottom, ${accentColor}, ${tertiaryAccent})`}
-                                                    borderRadius="full"
-                                                    boxShadow={`0 0 10px ${accentColor}80`}
-                                                />
-                                            </Flex>
-                                        </Box>
-                                    </HStack>
-                                    
-                                    {/* Legend */}
-                                    <HStack justifyContent="space-between" width="100%" px={1}>
-                                        <Text fontSize="xs" color={`${textColor}80`}>0</Text>
-                                        <Text fontSize="xs" color={`${textColor}80`}>100</Text>
-                                        <Text fontSize="xs" color={`${textColor}80`}>150</Text>
-                                        <Text fontSize="xs" color={`${textColor}80`}>200</Text>
-                                        <Text fontSize="xs" color={`${textColor}80`}>250</Text>
-                                    </HStack>
-                                </Box>
                                 
                                 <Text 
                                 color={textColor} 

@@ -17,6 +17,7 @@ const AudioWaveform = ({
     const [isReady, setIsReady] = useState(false);
     const [duration, setDuration] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    let timeoutId;
 
     useEffect(() => {
         if (!audioBlob || !waveformRef.current) return;
@@ -49,10 +50,21 @@ const AudioWaveform = ({
             setIsReady(true);
             setDuration(wavesurfer.getDuration());
 
-            console.log("Regions Plugin:", wavesurfer.plugins);
-            setTimeout(() => {
+
+            //implemented the settimeout as there was an issue with the regions plugin buggin out
+            //too lazy to remove this, focusing on better development
+            
+            timeoutId=setTimeout(() => {
+
+                if (!wavesurferRef.current)
+                    return;
 
                 const regions = wavesurfer.plugins.find(plugin => typeof plugin.addRegion === "function");
+                if (!regions) 
+                    return;
+
+                regions.clearRegions();
+                
                 if (pauseAnalysis && pauseAnalysis.pause_segments){
                    pauseAnalysis.pause_segments.forEach((pause, index) => {
                         if (pause.start < pause.end && pause.duration > 0.3){
@@ -76,6 +88,7 @@ const AudioWaveform = ({
         wavesurfer.on('finish', () => setIsPlaying(false));
         //Cleaning up the stuff
         return() => {
+            if(timeoutId) clearTimeout(timeoutId);
             if(wavesurferRef.current){
                 try{
                     wavesurferRef.current.destroy();
