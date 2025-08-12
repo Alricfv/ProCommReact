@@ -920,6 +920,7 @@ export default function TryIt(props) {
         const adjustedRichness = Math.min(parseFloat(vocabularyRichness), 100); 
         return {
             speech_rate: `${wordsPerMinute} WPM`, 
+            raw_rate: wordsPerMinute,
             rate_quality: rateQuality.quality, 
             rate_color: rateQuality.color, 
             rate_feedback: rateFeedback, 
@@ -2051,8 +2052,8 @@ export default function TryIt(props) {
                                     }}
                                     position="relative"
                                     overflow="hidden"
-                                    mt={4}
-                                    mb={4}
+                                    mt={2}
+                                    mb={2}
                                 >
                                     <Heading
                                         size="lg" 
@@ -2067,13 +2068,6 @@ export default function TryIt(props) {
                                         mb={2}
                                     >
                                         {(() => {
-                                            if (pitchData){
-                                                console.log("Pitch Analysis Debug:",
-                                                "mean_pitch:", pitchData.mean_pitch,
-                                                "std_pitch:", pitchData.std_pitch,
-                                                "expressiveness:", pitchData.expressiveness
-                                                );
-                                            }
                                             if (pitchData.mean_pitch < 50){
                                                 return "Try recording in a peaceful environment"
                                             }
@@ -2096,7 +2090,7 @@ export default function TryIt(props) {
                             <Box
                                 width="100%"
                                 maxW="800px"
-                                mt={4}
+                                mb={2}
                                 p={6}
                                 bg={cardBg}
                                 borderRadius="xl"
@@ -2112,8 +2106,8 @@ export default function TryIt(props) {
                             >
                                 <Heading
                                     size="lg"
-                                    color="accentColor" 
-                                    mb={1}
+                                    color={accentColor}
+                                    mb={2}
                                 >
                                     How fast are you?
                                 </Heading>
@@ -2123,12 +2117,12 @@ export default function TryIt(props) {
                                     fontWeight="bold"
                                     mb={2}
                                 >
-                                    {Math.round(analysis.raw_rate)}
+                                    {Math.round(analysis.raw_rate) + " WPM"}
                                 </Text>
                                 <Text
                                     color={textColor}
                                     fontSize="bold"
-                                    mb={2}
+        
                                 >
                                     {(() => {
                                         const wpm = Math.round(analysis.raw_rate);
