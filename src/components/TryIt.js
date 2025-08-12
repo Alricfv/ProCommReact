@@ -2056,7 +2056,7 @@ export default function TryIt(props) {
                                     mb={2}
                                 >
                                     <Heading
-                                        size="lg" 
+                                        size="xl" 
                                         color={accentColor}
                                         mb={2}
                                     >
@@ -2064,7 +2064,7 @@ export default function TryIt(props) {
                                     </Heading>
                                     <Text
                                         color={textColor}
-                                        fontSize="18px"
+                                        fontSize="20px"
                                         mb={2}
                                     >
                                         {(() => {
@@ -2105,7 +2105,7 @@ export default function TryIt(props) {
                                 overflow="hidden"
                             >
                                 <Heading
-                                    size="lg"
+                                    size="xl"
                                     color={accentColor}
                                     mb={2}
                                 >
@@ -2121,7 +2121,7 @@ export default function TryIt(props) {
                                 </Text>
                                 <Text
                                     color={textColor}
-                                    fontSize="bold"
+                                    fontSize="20px"
         
                                 >
                                     {(() => {
@@ -2150,74 +2150,7 @@ export default function TryIt(props) {
                                 spacing={6} 
                                 width="100%"
                                 maxW="800px"
-                            >
-                                <Stat
-                                    bg={cardBg}
-                                    p={4}
-                                    borderRadius="lg"
-                                    border="1px solid rgba(255,255,255,0.1)"
-                                    boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
-                                    transition="all 0.3s ease"
-                                    _hover={{
-                                        transform: "translateY(-2px)",
-                                        boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
-                                    }}
-                                    position="relative"
-                                    overflow="hidden"
-                                >
-                                    <StatLabel>Speech Rate</StatLabel>
-                                    <StatNumber color={accentColor}>{analysis.speech_rate}</StatNumber>
-                                    <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
-                                        <Badge colorScheme={analysis.rate_color || "blue"}>{analysis.rate_quality}</Badge>
-                                        <Text fontSize="xs">
-                                            Percentile: {analysis.rate_percentile}%
-                                        </Text>
-                                    </StatHelpText>
-                                </Stat>
-                                
-                                {pauseAnalysis && (
-                                    <Stat
-                                        bg={cardBg}
-                                        p={4}
-                                        borderRadius="lg"
-                                        border="1px solid rgba(255,255,255,0.1)"
-                                        boxShadow="0 8px 16px -2px rgba(0, 0, 0, 0.2)"
-                                        transition="all 0.3s ease"
-                                        _hover={{
-                                            transform: "translateY(-2px)",
-                                            boxShadow: "0 12px 20px -2px rgba(0, 0, 0, 0.3)"
-                                        }}
-                                        position="relative"
-                                        overflow="hidden"
-                                    >
-                                        <StatLabel>Speech Pauses</StatLabel>
-                                        <StatNumber color={tertiaryAccent}>
-                                            {pauseAnalysis.total || 0}
-                                        </StatNumber>
-                                        <StatHelpText display="flex" alignItems="center" justifyContent="space-between">
-                                            <Badge colorScheme="purple">Total Pauses</Badge>
-                                            <Tooltip label="Total number of pauses detected in your speech">
-                                                <Icon as={FaInfoCircle} boxSize="0.7em" />
-                                            </Tooltip>
-                                        </StatHelpText>
-                                        <Text mt={2} fontSize="sm">
-                                            {pauseAnalysis.total > 8 ?
-                                                "Your speech contains many pauses." :
-                                                pauseAnalysis.total > 3 ?
-                                                "Your speech has a moderate number of pauses." :
-                                                "Your speech has very few pauses."
-                                            }
-                                        </Text>
-                                        <Flex justify="space-between" mt={2} alignItems="center">
-                                            <Text fontSize="xs" color={`${textColor}80`}>
-                                                {Math.round(pauseAnalysis.speakingTime) || 0}s speaking
-                                            </Text>
-                                            <Text fontSize="xs" color={`${textColor}80`}>
-                                                {Math.round(pauseAnalysis.silenceTime) || 0}s silent
-                                            </Text>
-                                        </Flex>
-                                    </Stat>
-                                )}                                
+                            >                       
                                 <Stat
                                     bg={cardBg}
                                     p={4}
@@ -2350,10 +2283,6 @@ export default function TryIt(props) {
                                 )}
                             </SimpleGrid>
 
-                            {/* Pitch Analysis*/}
-                            
-                                                        
-                            
                             {/* Filler Word Analysis */}
                             {fillerWords && fillerWords.total_count > 0 && (
                                 <Box 
