@@ -2020,7 +2020,7 @@ export default function TryIt(props) {
                                 
                             >
                                 <Heading
-                                    size = "md"
+                                    size = "lg"
                                     color = {accentColor}
                                     mb = {3}
                                 >
@@ -2056,7 +2056,7 @@ export default function TryIt(props) {
                                     mb={2}
                                 >
                                     <Heading
-                                        size="xl" 
+                                        size="lg" 
                                         color={accentColor}
                                         mb={2}
                                     >
@@ -2105,7 +2105,7 @@ export default function TryIt(props) {
                                 overflow="hidden"
                             >
                                 <Heading
-                                    size="xl"
+                                    size="lg"
                                     color={accentColor}
                                     mb={2}
                                 >
