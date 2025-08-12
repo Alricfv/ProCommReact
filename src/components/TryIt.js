@@ -2093,6 +2093,63 @@ export default function TryIt(props) {
                             )}
 
                             {/* im gonna update the speech rate analysis here :3 */}
+                            <Box
+                                width="100%"
+                                maxW="800px"
+                                mt={4}
+                                p={6}
+                                bg={cardBg}
+                                borderRadius="xl"
+                                border="1px solid rgba(255, 255, 255, 0.1)"
+                                boxShadow= "0 15px 25px -5px rgba(0, 0, 0, 0.2)"
+                                backdropFilter="blur(16px)"
+                                transition="all 0.3s ease"
+                                _hover={{
+                                    boxShadow: "0 20px 30px -5px rgba(37, 99, 235, 0.25)"
+                                }}
+                                position="relative"
+                                overflow="hidden"
+                            >
+                                <Heading
+                                    size="lg"
+                                    color="accentColor" 
+                                    mb={1}
+                                >
+                                    How fast are you?
+                                </Heading>
+                                <Text
+                                    color={accentColor}
+                                    fontSize="xl"
+                                    fontWeight="bold"
+                                    mb={2}
+                                >
+                                    {Math.round(analysis.raw_rate)}
+                                </Text>
+                                <Text
+                                    color={textColor}
+                                    fontSize="lg"
+                                    mb={2}
+                                >
+                                    {(() => {
+                                        const wpm = Math.round(analysis.raw_rate);
+                                        if (wpm === 0){
+                                            return "I don't think I can hear you, there might be an issue with your microphone"
+                                        }
+                                        if (wpm < 110){
+                                            return "Hurry up! The world's spinning and life goes on. You have to talk a bit faster if you want to keep up!"
+                                        }
+                                        else if (wpm >=110 && wpm <= 150){
+                                            return "Your speech pacing is solid and clear, word of warning: speaking like this could end up making people engage more with you ;)"
+                                        }
+                                        else if (wpm > 150 && wpm <= 180){
+                                            return "Hey do you've a flight to catch? You seem to be rushing your speech way beyond the ideal pacing. Let's slow down a bit for the next one yeah?"
+                                        }
+                                        else{
+                                            return "Enthusiasm 100, pacing 1000, engagement well... keep the enthusiasm but try to speak slower this time yeah? Amazing energy though"
+                                        }
+                                    })()}
+                                </Text>
+                            </Box>
 
                             <SimpleGrid 
                                 columns={{ base: 1, md: 2, lg:  3 }} 
@@ -2441,81 +2498,6 @@ export default function TryIt(props) {
                                     )}
                                 </Box>
                             )}                            
-                            {/* Speech Rate Feedback */}
-                            <Box 
-                                width="100%" 
-                                maxW="800px"
-                                mt={8}
-                                p={6}
-                                bg={cardBg}
-                                borderRadius="xl"
-                                border="1px solid rgba(255,255,255,0.1)"
-                                boxShadow="0 15px 25px -5px rgba(0, 0, 0, 0.2)"
-                                backdropFilter="blur(16px)"
-                                transition="all 0.3s ease"
-                                _hover={{
-                                    boxShadow: "0 20px 30px -5px rgba(37,99,235,0.25)",
-                                }}
-                                position="relative"
-                                overflow="hidden"
-                            >
-                                {/* Background accent */}
-                                <Box 
-                                    position="absolute" 
-                                    top="0"
-                                    left="0" 
-                                    width="200px" 
-                                    height="200px" 
-                                    opacity="0.1" 
-                                    bgGradient={`radial-gradient(circle, ${secondaryAccent} 0%, transparent 70%)`}
-                                    zIndex="0"
-                                />
-                                <HStack alignItems="center" mb={4}>
-                                    <Icon as={FaInfoCircle} color={accentColor} boxSize={5} />
-                                    <Text fontWeight="bold" color={textColor}>Speech Rate Analysis</Text>
-                                    <Tooltip 
-                                        hasArrow
-                                        label="Speech rate is calculated by dividing total spoken words by the actual recording duration in minutes. The accuracy depends on the duration measurement method used."
-                                        bg="gray.700"
-                                        color="white"
-                                        placement="top"
-                                        p={3}
-                                    >
-                                        <Icon as={FaQuestionCircle} color={`${textColor}80`} cursor="pointer" ml={2} />
-                                    </Tooltip>
-                                </HStack>
-                                
-                                
-                                <Text 
-                                color={textColor} 
-                                lineHeight="1.7"
-                                >
-                                    {analysis.rate_feedback}
-                                </Text>
-
-                                {/* Show calculation details */}
-                                <Box mt={4} p={3} bg="rgba(0,0,0,0.2)" borderRadius="md" border="1px solid rgba(255,255,255,0.05)">
-                                    <Text fontSize="sm" color={`${textColor}80`} fontFamily="monospace">
-                                        Formula: {analysis.total_words} words ÷ {(analysis.duration_seconds / 60).toFixed(2)} minutes = {analysis.raw_rate} WPM
-                                    </Text>
-                                </Box>
-                                
-                                {/* Show accuracy note about duration measurement */}
-                                <Flex align="center" mt={3}>
-                                    <Icon as={FaInfoCircle} color={`${textColor}60`} mr={2} fontSize="xs" />
-                                    <Text fontSize="xs" color={`${textColor}80`}>
-                                        Note: Speech rate calculated using {
-                                            analysis.duration_source === "audio-decoded" 
-                                                ? "audio waveform decoding (highest accuracy)" 
-                                                : analysis.duration_source === "audio-metadata" 
-                                                    ? "audio file metadata (high accuracy)" 
-                                                    : analysis.duration_source === "timestamp" 
-                                                        ? "recording timestamps (medium accuracy)"
-                                                        : "timer estimation (lower accuracy)"
-                                        }
-                                    </Text>
-                                </Flex>
-                            </Box>
                         </>
                     )}                    
                     {recordingHistory.length > 0 && (
