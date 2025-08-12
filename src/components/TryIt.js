@@ -2127,7 +2127,7 @@ export default function TryIt(props) {
                                 </Text>
                                 <Text
                                     color={textColor}
-                                    fontSize="lg"
+                                    fontSize="bold"
                                     mb={2}
                                 >
                                     {(() => {
