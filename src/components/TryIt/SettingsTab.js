@@ -1,6 +1,6 @@
 import { Box, VStack, Heading, SimpleGrid, FormControl, FormLabel, HStack, NumberInput, NumberInputField,
-    NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Select, Switch, Text, Slider, 
-    SliderTrack, SliderFilledTrack, SliderThumb, Progress, Alert, AlertIcon, Button, Icon, Tooltip 
+    NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Select, Text, Progress, Alert, AlertIcon,
+    Button, Icon
   } from "@chakra-ui/react";
 
 import { FaClock, FaInfoCircle, FaChartLine, FaDatabase, FaTrash, FaDownload, FaUpload } from "react-icons/fa";
@@ -10,12 +10,6 @@ const SettingsTab = ({
   durationUnit,
   handleDurationChange,
   handleDurationUnitChange,
-  enableVAD,
-  setEnableVAD,
-  vadThreshold,
-  setVadThreshold,
-  silenceThreshold,
-  setSilenceThreshold,
   storagePreference,
   handleStoragePreferenceChange,
   isLocalStorageAvailable,
@@ -27,12 +21,10 @@ const SettingsTab = ({
   handleClearHistory,
   handleExportRecordings,
   recordingHistory,
-  accentColor,
   secondaryAccent,
   tertiaryAccent,
   cardBg,
   textColor,
-  highlightColor
 }) => (
   <Box 
     bg={cardBg}
@@ -112,55 +104,6 @@ const SettingsTab = ({
             </Select>
           </FormControl>
           
-          <FormControl mb={5}>
-            <FormLabel color={textColor} display="flex" alignItems="center">
-              Voice Activity Detection
-              <Tooltip 
-                label="Automatically detects when you're speaking and can stop recording after silence" 
-                placement="top"
-                hasArrow
-              >
-                <Icon as={FaInfoCircle} ml={1} fontSize="xs" color={`${textColor}60`} />
-              </Tooltip>
-            </FormLabel>
-            <Switch 
-              isChecked={enableVAD} 
-              onChange={(e) => setEnableVAD(e.target.checked)}
-              colorScheme="orange"
-            />
-            <Text fontSize="xs" color={`${textColor}60`} mt={1}>
-              Enhances speech analysis by detecting actual speaking time
-            </Text>
-          </FormControl>
-          
-          {enableVAD && (
-            <>
-              <FormControl mb={5}>
-                <FormLabel color={textColor}>Voice Detection Sensitivity</FormLabel>
-                <HStack>
-                  <Text fontSize="sm" color={`${textColor}80`}>Low</Text>
-                  <Slider
-                    value={vadThreshold}
-                    colorScheme="orange"
-                    min={5}
-                    max={30}
-                    step={1}
-                    onChange={(val) => setVadThreshold(val)}
-                    flex="1"
-                  >
-                    <SliderTrack bg="rgba(0,0,0,0.3)">
-                      <SliderFilledTrack bg="#fc6900ff" />
-                    </SliderTrack>
-                    <SliderThumb boxSize={4} bg="#fc6900ff" />
-                  </Slider>
-                  <Text fontSize="sm" color={`${textColor}80`}>High</Text>
-                </HStack>
-                <Text fontSize="xs" color={`${textColor}60`} mt={1}>
-                  Adjust if voice detection is too sensitive or not sensitive enough
-                </Text>
-              </FormControl>
-            </>
-          )}
         </Box>
         <Box 
           p={6}

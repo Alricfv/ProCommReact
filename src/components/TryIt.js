@@ -107,7 +107,6 @@ const storageUtils = {
                 throw new Error('Invalid format: Expected an array of recordings');
             }
 
-            // Convert ISO date strings back to Date objects
             const processedData = importedData.map(record => ({
                 ...record,
                 timestamp: new Date(record.timestamp)
@@ -146,11 +145,6 @@ export default function TryIt(props) {
     const [isLocalStorageAvailable, setIsLocalStorageAvailable] = useState(true); 
     const [currentAudioBlob, setCurrentAudioBlob] = useState(null); 
     const [currentAudioUrl, setCurrentAudioUrl] = useState(''); 
-    const [isVoiceDetected, setIsVoiceDetected] = useState(false);
-    const [vadThreshold, setVadThreshold] = useState(15); 
-    const [silenceThreshold, setSilenceThreshold] = useState(2000); 
-    const [enableVAD, setEnableVAD] = useState(true); 
-    const [significantSilenceCount, setSignificantSilenceCount] = useState(0);
     const toast = useToast();
     
     // Side menu state
@@ -161,264 +155,12 @@ export default function TryIt(props) {
 
     const mediaRecorderRef = useRef(null);
     const chunksRef = useRef([]);
-    // VAD refs
-    const analyserRef = useRef(null);
-    const audioContextRef = useRef(null);
-    const vadAnimationRef = useRef(null);
-    const silenceTimerRef = useRef(null);
-    const voiceActivityTimeRef = useRef(null); 
-    const totalSilenceDurationRef = useRef(0); 
-    const totalVoiceDurationRef = useRef(0); 
-    const silenceStartTimeRef = useRef(null); 
-    const significantSilenceRef = useRef(0); 
+
+   
     const [serverConfidenceScore, setServerConfidenceScore] = useState(null);
     const getDurationInSeconds = () => durationUnit === 'minutes' ? durationValue * 60 : durationValue;
 
-    // Cleanup for MediaRecorder and VAD
-    useEffect(() => {
-        return () => {
-            if (mediaRecorderRef.current) {
-                if (mediaRecorderRef.current.state === "recording") {
-                    mediaRecorderRef.current.stop();
-                }
-                if (mediaRecorderRef.current.stream) {
-                    mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-                }
-            }
-            cleanupVAD();
-        };
-    }, []);
     
-    const resetSilenceTimer = () => {
-        if (silenceTimerRef.current) {
-            clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = null;
-        }
-        
-        // new timer if we're recording and VAD is enabled
-        if (isRecording && enableVAD && silenceThreshold > 0) {
-            silenceTimerRef.current = setTimeout(() => {
-                if (isRecording && mediaRecorderRef.current?.state === 'recording') {
-                    console.log("Auto-stopping recording due to silence");
-                    handleRecord(); // stops
-                    toast({
-                        title: "Recording stopped",
-                        description: "Extended silence detected",
-                        status: "info",
-                        duration: 3000,
-                        isClosable: true,
-                    });
-                }
-            }, silenceThreshold);
-        }
-    };
-    const detectVoiceActivity = () => {
-        if (!analyserRef.current || !enableVAD) return false;
-        
-        const bufferLength = analyserRef.current.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        analyserRef.current.getByteFrequencyData(dataArray);
-        
-        // Average volume level calculation
-        let sum = 0;
-        for (let i = 0; i < bufferLength; i++) {
-            sum += dataArray[i];
-        }
-        const average = sum / bufferLength;
-        
-        const voiceDetected = average > vadThreshold;
-        const now = Date.now();
-        
-        // Track voice activity continuously (updated every detection cycle)
-        if (voiceActivityTimeRef.current) {
-            const elapsedTime = now - voiceActivityTimeRef.current;
-
-            if (isVoiceDetected) {
-                totalVoiceDurationRef.current += elapsedTime;
-            } 
-            
-            else {
-                totalSilenceDurationRef.current += elapsedTime;
-            }
-            
-            voiceActivityTimeRef.current = now;
-        }
-        
-        // Track significant silences (>1.5 seconds)
-        if (voiceDetected) {
-            if (silenceStartTimeRef.current) {
-                const silenceDuration = now - silenceStartTimeRef.current;
-                
-                
-                if (silenceDuration > 1500) {
-                    significantSilenceRef.current += 1;
-                    setSignificantSilenceCount(significantSilenceRef.current);
-                }
-                silenceStartTimeRef.current = null;
-            }
-            resetSilenceTimer();
-        } else if (!silenceStartTimeRef.current) {
-            // We just entered silence
-            silenceStartTimeRef.current = now;
-        }
-        
-        // Update the voice detection state if it changed
-        if (voiceDetected !== isVoiceDetected) {
-            setIsVoiceDetected(voiceDetected);
-        }
-        
-        return voiceDetected;
-    };
-    
-    // Start VAD detection loop
-    const startVoiceDetection = () => {
-        // Reset tracking variables
-        voiceActivityTimeRef.current = Date.now();
-        totalSilenceDurationRef.current = 0;
-        totalVoiceDurationRef.current = 0;
-        silenceStartTimeRef.current = null;
-        significantSilenceRef.current = 0;
-        setSignificantSilenceCount(0);
-        
-        const detectLoop = () => {
-            detectVoiceActivity();
-            vadAnimationRef.current = requestAnimationFrame(detectLoop);
-        };
-        detectLoop();
-    };
-    
-    const stopVoiceDetection = () => {
-        if (voiceActivityTimeRef.current) {
-            const now = Date.now();
-            const elapsedSinceLastUpdate = now - voiceActivityTimeRef.current;
-
-            if (isVoiceDetected) {
-                totalVoiceDurationRef.current += elapsedSinceLastUpdate;
-            } 
-            
-            else {
-                totalSilenceDurationRef.current += elapsedSinceLastUpdate;
-            }
-            
-            // Check for any final significant silence
-            if (silenceStartTimeRef.current && (now - silenceStartTimeRef.current > 1500)) {
-                significantSilenceRef.current += 1;
-                setSignificantSilenceCount(significantSilenceRef.current);
-            }
-        }
-        
-        if (vadAnimationRef.current) {
-            cancelAnimationFrame(vadAnimationRef.current);
-            vadAnimationRef.current = null;
-        }
-        
-        if (silenceTimerRef.current) {
-            clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = null;
-        }
-        
-        if (audioContextRef.current) {
-            try {
-                audioContextRef.current.close();
-            } catch (err) {
-                console.warn("Error closing audio context:", err);
-            }
-            audioContextRef.current = null;
-        }
-        
-        analyserRef.current = null;
-        setIsVoiceDetected(false);
-    };
-    
-    const cleanupVAD = () => {
-        if (vadAnimationRef.current) {
-            cancelAnimationFrame(vadAnimationRef.current);
-            vadAnimationRef.current = null;
-        }
-        
-        if (silenceTimerRef.current) {
-            clearTimeout(silenceTimerRef.current);
-            silenceTimerRef.current = null;
-        }
-
-        if (audioContextRef.current) {
-            try {
-                audioContextRef.current.close();
-            } catch (err) {
-                console.warn("Error closing audio context:", err);
-            }
-            audioContextRef.current = null;
-        }
-        
-        analyserRef.current = null;
-        voiceActivityTimeRef.current = null;
-        totalSilenceDurationRef.current = 0;
-        totalVoiceDurationRef.current = 0;
-        silenceStartTimeRef.current = null;
-        significantSilenceRef.current = 0; 
-        setSignificantSilenceCount(0); 
-        
-        // Reset state
-        setIsVoiceDetected(false);
-    };
-    
-    const getVoiceActivityMetrics = () => {
-        if (!voiceActivityTimeRef.current) {
-            return {
-                voiceDuration: 0,
-                silenceDuration: 0,
-                totalDuration: 0,
-                voicePercentage: 0,
-                silencePercentage: 0,
-                significantSilenceCount: 0
-            };
-        }
-        
-        let finalVoiceDuration = totalVoiceDurationRef.current;
-        let finalSilenceDuration = totalSilenceDurationRef.current;
-        
-        // Contingency in case user will end the recording early
-        const now = Date.now();
-        const elapsedSinceLastUpdate = now - voiceActivityTimeRef.current;
-        
-        if (isVoiceDetected) {
-            
-            finalVoiceDuration += elapsedSinceLastUpdate;
-        } 
-        else{
-            finalSilenceDuration += elapsedSinceLastUpdate;
-        }
-        
-        
-        const voiceDuration = finalVoiceDuration / 1000;
-        const silenceDuration = finalSilenceDuration / 1000;
-        const totalDuration = voiceDuration + silenceDuration;
-        
-        if (totalDuration <= 0) {
-            return {
-                voiceDuration: 0,
-                silenceDuration: 0,
-                totalDuration: 0,
-                voicePercentage: 0,
-                silencePercentage: 0,
-                significantSilenceCount: significantSilenceRef.current || 0
-            };
-        }
-        
-        let finalSilenceCount = significantSilenceRef.current;
-        if (silenceStartTimeRef.current && (now - silenceStartTimeRef.current > 1500)) {
-            finalSilenceCount += 1;
-        }
-        
-        return {
-            voiceDuration,
-            silenceDuration,
-            totalDuration,
-            voicePercentage: (voiceDuration / totalDuration) * 100,
-            silencePercentage: (silenceDuration / totalDuration) * 100,
-            significantSilenceCount: finalSilenceCount
-        };
-    };
     
     // localStorage Checks
     useEffect(() => {
@@ -966,8 +708,6 @@ export default function TryIt(props) {
             // Reset recording start time
             setRecordingStartTime(null);
             
-            // Stop voice activity detection
-            stopVoiceDetection();
             
             toast({
                 title: "Recording Stopped",
@@ -1003,32 +743,6 @@ export default function TryIt(props) {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             chunksRef.current = [];
             
-            if (enableVAD) {
-                try {
-                    stopVoiceDetection();
-                    
-                    // Audio context and analyser
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    audioContextRef.current = new AudioContext();
-                    const source = audioContextRef.current.createMediaStreamSource(stream);
-                    analyserRef.current = audioContextRef.current.createAnalyser();
-                    
-                    // Analyser config (ngl, i hate that analyzer and analyser both exist)
-                    analyserRef.current.fftSize = 256;
-                    analyserRef.current.minDecibels = -90;
-                    analyserRef.current.maxDecibels = -10;
-                    analyserRef.current.smoothingTimeConstant = 0.85;
-                    
-                    // Connects source to analyzer but not to destination 
-                    source.connect(analyserRef.current);
-                    
-                    startVoiceDetection();
-                    
-                    console.log("Voice Activity Detection enabled");
-                } catch (vadError) {
-                    console.error("Failed to set up Voice Activity Detection:", vadError);
-                }
-            }
             
             const mimeType = 'audio/webm';
             if (!MediaRecorder.isTypeSupported(mimeType)) {
@@ -1303,8 +1017,6 @@ export default function TryIt(props) {
             });
             return;
         }
-
-        cleanupVAD();
         
         setIsAnalyzing(true);
         try {
@@ -2611,12 +2323,6 @@ export default function TryIt(props) {
                             durationUnit={durationUnit}
                             handleDurationChange={handleDurationChange}
                             handleDurationUnitChange={handleDurationUnitChange}
-                            enableVAD={enableVAD}
-                            setEnableVAD={setEnableVAD}
-                            vadThreshold={vadThreshold}
-                            setVadThreshold={setVadThreshold}
-                            silenceThreshold={silenceThreshold}
-                            setSilenceThreshold={setSilenceThreshold}
                             storagePreference={storagePreference}
                             handleStoragePreferenceChange={handleStoragePreferenceChange}
                             isLocalStorageAvailable={isLocalStorageAvailable}
