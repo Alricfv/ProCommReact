@@ -54,6 +54,29 @@ const storageUtils = {
         }
     },
 
+    exportRecordings: (recordings) => {
+        try{
+            const exportable = recordings.map(recording => {
+                const {audioBlob, audioUrl, ...rest} = recording;
+                return rest;
+            })
+            const json = JSON.stringify(exportable, null, 2);
+            const blob = new Blob([json], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SpeechAnalysis-${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            return true;
+        } catch (e) {
+            console.error('Failed to export recordings:', e);
+            return false;
+        }
+    },
+
     clearRecordings: () => {
         try{
             localStorage.removeItem(RECORDING_HISTORY_KEY);

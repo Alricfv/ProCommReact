@@ -63,6 +63,7 @@ const RecordingsTab = ({
           <>
               <Box 
                   p={4} 
+                  width="100%"
                   borderRadius="lg" 
                   bg="rgba(0,0,0,0.2)"
                   border="1px solid rgba(255,255,255,0.05)"
@@ -90,18 +91,6 @@ const RecordingsTab = ({
                           >
                               Clear
                           </Button>
-                          
-                          <Button 
-                              size="sm" 
-                              colorScheme="blue" 
-                              variant="outline"
-                              leftIcon={<Icon as={FaDownload} />}
-                              onClick={handleExportRecordings}
-                              isDisabled={recordingHistory.length === 0}
-                          >
-                              Export
-                          </Button>
-                          
                           <Button 
                               size="sm" 
                               colorScheme="green" 
@@ -221,10 +210,8 @@ const RecordingsTab = ({
                               </HStack>
                           </Flex>
                           
-                          <Text noOfLines={2} mb={3} color={textColor} fontWeight="medium">
-                              {record.transcription.length > 100 
-                                  ? record.transcription.substring(0, 100) + "..." 
-                                  : record.transcription}
+                          <Text mb={3} color={textColor} fontWeight="medium">
+                              {record.transcription}
                           </Text>
                           
                           <Flex justifyContent="space-between" alignItems="center" mb={3}>

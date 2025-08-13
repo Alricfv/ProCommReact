@@ -138,9 +138,8 @@ const SettingsTab = ({
               borderColor="rgba(255,255,255,0.1)"
               color={textColor}
             >
-              <option value="none">Don't Store Data</option>
-              <option value="session">Store in Session</option>
               <option value="local">Store Locally</option>
+              <option value="session">Store in Session</option>
             </Select>
           </FormControl>
         </Box>
@@ -205,18 +204,7 @@ const SettingsTab = ({
             >
               Clear History
             </Button>
-            
-            <Button 
-              colorScheme="blue" 
-              variant="outline" 
-              size="md"
-              leftIcon={<Icon as={FaDownload} />}
-              onClick={handleExportRecordings}
-              isDisabled={recordingHistory.length === 0}
-              flex="1"
-            >
-              Export
-            </Button>
+
             
             <Button 
               colorScheme="green" 
