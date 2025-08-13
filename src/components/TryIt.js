@@ -1573,7 +1573,7 @@ export default function TryIt(props) {
                             and get instant feedback on your speech patterns.
                         </Text>
                         <Text fontSize="md" color={`${textColor}80`} mt={2} maxW="800px" mx="1">
-                            Speech rate is calculated using true recording time for accuracy.
+                            Please be patient, transcription can take up to 1-2 minutes depending on how much you've spoken because i dont have a gpu for my server rip
                         </Text>
                       
                     </Box>                    
