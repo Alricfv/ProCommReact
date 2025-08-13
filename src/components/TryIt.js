@@ -2069,17 +2069,34 @@ export default function TryIt(props) {
                                     >
                                         {(() => {
                                             if (pitchData.mean_pitch < 50){
-                                                return "Try recording in a peaceful environment"
+                                                return(
+                                                    <>
+                                                        Try recording in a peaceful environment
+                                                    </>
+                                                );
                                             }
                                             
                                             if(pitchData.expressiveness <= 0.03){
-                                                return "Too monotonous! Implement more voice variation in your speech to make it more expressive.";
+                                                return (
+                                                    <>
+                                                        <Text as="span" color="orange">Too monotonous!</Text> Implement more voice variation in your speech to make it more expressive.
+                                                    </>
+                                                );
+
                                             }
                                             else if (pitchData.expressiveness > 0.08){
-                                                return "Alright you're trying too hard with your voice variation, relax and find a natural flow.";
+                                                return (
+                                                    <>
+                                                        Alright you're <Text as="span" color="orange">trying too hard with your voice variation</Text>, relax and find a natural flow.
+                                                    </>
+                                                );
                                             }
                                             else {
-                                                return "Pitch is well-balanced, keep up the good work!";
+                                                return (
+                                                    <>
+                                                        <Text as="span" color="green">Pitch is well-balanced</Text>, keep up the great work!
+                                                    </>
+                                                );
                                             }
                                         })()}
                                     </Text>
@@ -2098,9 +2115,6 @@ export default function TryIt(props) {
                                 boxShadow= "0 15px 25px -5px rgba(0, 0, 0, 0.2)"
                                 backdropFilter="blur(16px)"
                                 transition="all 0.3s ease"
-                                _hover={{
-                                    boxShadow: "0 20px 30px -5px rgba(37, 99, 235, 0.25)"
-                                }}
                                 position="relative"
                                 overflow="hidden"
                             >
@@ -2130,13 +2144,25 @@ export default function TryIt(props) {
                                             return "I don't think I can hear you, there might be an issue with your microphone"
                                         }
                                         if (wpm < 110){
-                                            return "Hurry up! The world's spinning and life goes on. You have to talk a bit faster if you want to keep up!"
+                                            return (
+                                                <>
+                                                    <Text as="span" color="orange">Hurry up!</Text> The world's spinning and life goes on. <Text as="span" color="orange">You have to talk a bit faster</Text> if you want to keep up!
+                                                </>
+                                            );
                                         }
                                         else if (wpm >=110 && wpm <= 150){
-                                            return "Your speech pacing is solid and clear, word of warning: speaking like this could end up making people engage more with you ;)"
+                                            return (
+                                                <>
+                                                    <Text as="span" color="green">Your speech pacing is solid and clear</Text>, word of warning: speaking like this could end up making people engage more with you haha
+                                                </>
+                                            );
                                         }
                                         else if (wpm > 150 && wpm <= 180){
-                                            return "Hey do you've a flight to catch? You seem to be rushing your speech way beyond the ideal pacing. Let's slow down a bit for the next one yeah?"
+                                            return ( 
+                                                <>
+                                                    "Hey do you've a flight to catch? You seem to be <Text as="span" color="orange">rushing your speech way beyond the ideal pacing.</Text> Let's slow down a bit for the next one yeah?"
+                                                </>
+                                            );
                                         }
                                         else{
                                             return "Enthusiasm 100, pacing 1000, engagement well... keep the enthusiasm but try to speak slower this time yeah? Amazing energy though"
