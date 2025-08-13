@@ -937,7 +937,7 @@ export default function TryIt(props) {
                     let response;
                     try {
                         const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 10); 
+                        const timeoutId = setTimeout(() => controller.abort(), 100000); 
                         
                         const queryParams = new URLSearchParams();
                         
