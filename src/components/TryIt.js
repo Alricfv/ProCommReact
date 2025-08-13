@@ -54,6 +54,31 @@ const storageUtils = {
         }
     },
 
+    clearRecordings: () => {
+        try{
+            localStorage.removeItem(RECORDING_HISTORY_KEY);
+            return true;
+        } catch(e) {
+            console.error('Failed to clear recordings:', e);
+            return false;
+        }
+    },
+
+    loadRecordings: () => {
+        try{
+            const data = localStorage.getItem(RECORDING_HISTORY_KEY);
+            if (!data) return [];
+            const parsed = JSON.parse(data);
+            return parsed.map(record => ({
+                ...record,
+                timestamp: record.timestamp ? new Date(record.timestamp) : new Date()
+            }));
+        } catch (e) {
+            console.error('Failed to load recordings:', e);
+            return [];
+        }
+    },
+
     getStorageUsage: () => {
         try {
             let total = 0;
@@ -204,14 +229,6 @@ export default function TryIt(props) {
                 setRecordingHistory(loadedRecordings);
 
                 updateStorageStats();
-                
-                toast({
-                    title: "Recordings Loaded",
-                    description: `Loaded ${loadedRecordings.length} recordings from local storage.`,
-                    status: "info",
-                    duration: 3000,
-                    isClosable: true,
-                });
             }
         }
     }, [toast]);
@@ -368,15 +385,21 @@ export default function TryIt(props) {
         reader.onload = (e) => {
             try {
                 const importedData = JSON.parse(e.target.result);
-                if (!Array.isArray(importedData)) {
-                    throw new Error('Invalid format: Expected an array of recordings');
+                let processedData;
+                if (Array.isArray(importedData)){
+                    processedData = importedData.map(record => ({
+                        ...record,
+                        timestamp: new Date(record.timestamp)
+                    }));
                 }
-                
-                const processedData = importedData.map(record => ({
-                    ...record,
-                    timestamp: new Date(record.timestamp)
-                }));
-                
+                else if (typeof importedData === 'object'){
+                    processedData = [{
+                        ...importedData,
+                        timestamp: new Date(importedData.timestamp)
+                    }];
+                }
+                else {throw new Error("Invalid data format");}
+
                 const updatedRecordings = [...recordingHistory, ...processedData];
                 setRecordingHistory(updatedRecordings);
         
@@ -471,6 +494,44 @@ export default function TryIt(props) {
             }
         }
     }, [isRecording, timer, toast]);
+
+    async function saveRecordingToFolder({audioBlob, analysis, transcription, meta = {}}){
+        if ('showDirectoryPicker' in window) {
+            try{
+                const dirHandle = await window.showDirectoryPicker();
+
+                //audio saving
+                const audioFileName=`SpeechRecording-${new Date().toISOString().slice(0,10)}.webm`;
+                const audioHandle= await dirHandle.getFileHandle(audioFileName, {create:true});
+                const audioWritable= await audioHandle.createWritable();
+                await audioWritable.write(audioBlob);
+                await audioWritable.close();
+
+                //saving the transcription + analysis data as a json file
+                const jsonFileName=`SpeechAnalysis-${new Date().toISOString().slice(0,10)}.json`;
+                const jsonHandle= await dirHandle.getFileHandle(jsonFileName, {create:true});
+                const jsonWritable = await jsonHandle.createWritable();
+                const jsonData = {
+                    transcription,
+                    analysis,
+                    ...meta
+                };
+                await jsonWritable.write(JSON.stringify(jsonData, null, 2));
+                await jsonWritable.close();
+
+                return true;
+            } catch (err) {
+                if (err.name !== 'AbortError'){
+                    alert('Failed to save files: ' + err.message);
+                }
+                return false;
+            }
+        } 
+        else{
+            alert("Saving to a folder is only supported in Chrome, Edge or other Chromium browsers. Please switch to one of these browsers if you want to download your speech!");
+            return false;
+        }
+    }
 
     const getAudioDurationWithAudioContext = async (audioBlob) => {
         return new Promise((resolve, reject) => {
@@ -1589,15 +1650,37 @@ export default function TryIt(props) {
                                         {isRecording ? `Stop (${formatDuration(timer)})` : "Start Recording"}
                                     </Button>
                                     
-                                    {/*  Analyze Speech button  */}
+                                    {/*  saving le recordings along with le analysis data  */}
                                         <Button
-                                            onClick={handleAnalyze}
+                                            onClick={async() => {
+                                                const success = await saveRecordingToFolder({
+                                                    audioBlob: currentAudioBlob,
+                                                    analysis,
+                                                    transcription,
+                                                    meta: {
+                                                        timestamp: new Date().toISOString(),
+                                                        emotion,
+                                                        sentiment,
+                                                        duration: actualRecordingDuration
+                                                    }
+                                                });
+                                                if(success){
+                                                    toast({
+                                                        title: "Saved Successfully!",
+                                                        description: "Audio & Analysis has been saved to your chosen folder",
+                                                        status: "success",
+                                                        duration: 3000,
+                                                        isClosable: true,
+                                                    });
+                                                } 
+                                                }
+                                            }
                                             isDisabled={!transcription}
                                             isLoading={isAnalyzing}
                                             bg={secondaryAccent}
                                             color="white"
                                             size="lg"
-                                            leftIcon={<FaChartLine />}
+                                            leftIcon={<FaDownload />}
                                             minWidth="200px"
                                             h="60px"
                                             fontSize="lg"
@@ -1608,7 +1691,7 @@ export default function TryIt(props) {
                                                 bg: "green.400"
                                             }}
                                         >
-                                            Analyze Speech
+                                            Save Recording
                                         </Button>
                                 </HStack>
                             </HStack>

@@ -146,7 +146,7 @@ const RecordingsTab = ({
                   >
                       <StatLabel>Average Speech Rate</StatLabel>
                       <StatNumber color={accentColor}>
-                          {Math.round(recordingHistory.reduce((sum, record) => sum + record.analysis.raw_rate, 0) / recordingHistory.length)} WPM
+                          {Math.round(recordingHistory.reduce((sum, record) => sum + (record.analysis?.raw_rate || 0), 0) / recordingHistory.length)} WPM
                       </StatNumber>
                   </Stat>
                   
@@ -210,7 +210,7 @@ const RecordingsTab = ({
                                   borderRadius="md"
                                   fontSize="sm"
                               >
-                                  {record.analysis.speech_rate}
+                                  {record.analysis.raw_rate}
                               </Badge>
                               
                               <HStack>
